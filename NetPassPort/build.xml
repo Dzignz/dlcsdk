@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- WARNING: Eclipse auto-generated file.
+              Any modifications will be overwritten.
+              To include a user specific buildfile here, simply create one in the same
+              directory with the processing instruction <?eclipse.ant.import?>
+              as the first entry and export the buildfile again. -->
+<project basedir="." default="build" name="NetPassPort">
+    <property environment="env"/>
+    <property name="ECLIPSE_HOME" value="../../eclipse"/>
+	<property name="libPath" location="D:\Projects\Mylib"/>
+
+    <property name="debuglevel" value="source,lines,vars"/>
+    <property name="target" value="1.6"/>
+    <property name="source" value="1.6"/>
+    <path id="Apache Tomcat v6.0 [Apache Tomcat v6.0].libraryclasspath">
+        <pathelement location="../../Server/tomcat-6.0.14/lib/annotations-api.jar"/>
+        <pathelement location="../../Server/tomcat-6.0.14/lib/catalina-ant.jar"/>
+        <pathelement location="../../Server/tomcat-6.0.14/lib/catalina-ha.jar"/>
+        <pathelement location="../../Server/tomcat-6.0.14/lib/catalina-tribes.jar"/>
+        <pathelement location="../../Server/tomcat-6.0.14/lib/catalina.jar"/>
+        <pathelement location="../../Server/tomcat-6.0.14/lib/el-api.jar"/>
+        <pathelement location="../../Server/tomcat-6.0.14/lib/jasper-el.jar"/>
+        <pathelement location="../../Server/tomcat-6.0.14/lib/jasper-jdt.jar"/>
+        <pathelement location="../../Server/tomcat-6.0.14/lib/jasper.jar"/>
+        <pathelement location="../../Server/tomcat-6.0.14/lib/jsp-api.jar"/>
+        <pathelement location="../../Server/tomcat-6.0.14/lib/servlet-api.jar"/>
+        <pathelement location="../../Server/tomcat-6.0.14/lib/tomcat-coyote.jar"/>
+        <pathelement location="../../Server/tomcat-6.0.14/lib/tomcat-dbcp.jar"/>
+        <pathelement location="../../Server/tomcat-6.0.14/lib/tomcat-i18n-es.jar"/>
+        <pathelement location="../../Server/tomcat-6.0.14/lib/tomcat-i18n-fr.jar"/>
+        <pathelement location="../../Server/tomcat-6.0.14/lib/tomcat-i18n-ja.jar"/>
+    </path>
+    <path id="Web App Libraries.libraryclasspath">
+        <pathelement location="WebContent/WEB-INF/lib/axis.jar"/>
+        <pathelement location="WebContent/WEB-INF/lib/cglib-nodep-2.2.jar"/>
+        <pathelement location="WebContent/WEB-INF/lib/commons-beanutils-1.7.0.jar"/>
+        <pathelement location="WebContent/WEB-INF/lib/commons-codec-1.4.jar"/>
+        <pathelement location="WebContent/WEB-INF/lib/commons-collections-3.2.1.jar"/>
+        <pathelement location="WebContent/WEB-INF/lib/commons-discovery-0.2.jar"/>
+        <pathelement location="WebContent/WEB-INF/lib/commons-httpclient-3.1.jar"/>
+        <pathelement location="WebContent/WEB-INF/lib/commons-lang-2.3.jar"/>
+        <pathelement location="WebContent/WEB-INF/lib/commons-logging-1.1.1.jar"/>
+        <pathelement location="WebContent/WEB-INF/lib/commons-logging.jar"/>
+        <pathelement location="WebContent/WEB-INF/lib/dom4j-1.6.1.jar"/>
+        <pathelement location="WebContent/WEB-INF/lib/dsn.jar"/>
+        <pathelement location="WebContent/WEB-INF/lib/ezmorph-1.0.2.jar"/>
+        <pathelement location="WebContent/WEB-INF/lib/filterbuilder.jar"/>
+        <pathelement location="WebContent/WEB-INF/lib/hsqldb.jar"/>
+        <pathelement location="WebContent/WEB-INF/lib/htmllexer.jar"/>
+        <pathelement location="WebContent/WEB-INF/lib/htmlparser.jar"/>
+        <pathelement location="WebContent/WEB-INF/lib/imap.jar"/>
+        <pathelement location="WebContent/WEB-INF/lib/jaxen-1.1.1.jar"/>
+        <pathelement location="WebContent/WEB-INF/lib/jaxrpc.jar"/>
+        <pathelement location="WebContent/WEB-INF/lib/jdom-1.1.jar"/>
+        <pathelement location="WebContent/WEB-INF/lib/jettison-1.0.1.jar"/>
+        <pathelement location="WebContent/WEB-INF/lib/joda-time-1.6.jar"/>
+        <pathelement location="WebContent/WEB-INF/lib/json-lib-2.3-jdk15.jar"/>
+        <pathelement location="WebContent/WEB-INF/lib/mailapi.jar"/>
+        <pathelement location="WebContent/WEB-INF/lib/mysql-connector-java-5.1.8-bin.jar"/>
+        <pathelement location="WebContent/WEB-INF/lib/pop3.jar"/>
+        <pathelement location="WebContent/WEB-INF/lib/proxool-0.9.1.jar"/>
+        <pathelement location="WebContent/WEB-INF/lib/proxool-cglib.jar"/>
+        <pathelement location="WebContent/WEB-INF/lib/saaj.jar"/>
+        <pathelement location="WebContent/WEB-INF/lib/sitecapturer.jar"/>
+        <pathelement location="WebContent/WEB-INF/lib/smtp.jar"/>
+        <pathelement location="WebContent/WEB-INF/lib/stax-1.2.0.jar"/>
+        <pathelement location="WebContent/WEB-INF/lib/stax-api-1.0.1.jar"/>
+        <pathelement location="WebContent/WEB-INF/lib/thumbelina.jar"/>
+        <pathelement location="WebContent/WEB-INF/lib/webserviceutils.jar"/>
+        <pathelement location="WebContent/WEB-INF/lib/wsdl4j.jar"/>
+        <pathelement location="WebContent/WEB-INF/lib/wstx-asl-3.2.7.jar"/>
+        <pathelement location="WebContent/WEB-INF/lib/xml-writer-0.2.jar"/>
+        <pathelement location="WebContent/WEB-INF/lib/xom-1.1.jar"/>
+        <pathelement location="WebContent/WEB-INF/lib/xpp3_min-1.1.4c.jar"/>
+        <pathelement location="WebContent/WEB-INF/lib/xstream-1.3.1.jar"/>
+        <pathelement location="WebContent/WEB-INF/lib/xstream-benchmark-1.3.1.jar"/>
+    </path>
+    <path id="EAR Libraries.libraryclasspath"/>
+    <path id="commons-httpclient-3.1.userclasspath">
+        <pathelement location="../lib/commons-httpclient-3.1/commons-httpclient-3.1.jar"/>
+    </path>
+    <path id="commons-codec-1.4.userclasspath">
+        <pathelement location="../lib/commons-codec-1.4/commons-codec-1.4.jar"/>
+    </path>
+    <path id="commons-logging-1.1.1.userclasspath">
+        <pathelement location="../lib/commons-logging-1.1.1/commons-logging-1.1.1.jar"/>
+    </path>
+    <path id="HTMLParser-2.0.userclasspath"/>
+    <path id="JSON.userclasspath">
+        <pathelement location="../lib/JSON/commons-beanutils-1.7.0.jar"/>
+        <pathelement location="../lib/JSON/commons-lang-2.3.jar"/>
+        <pathelement location="../lib/JSON/commons-logging.jar"/>
+        <pathelement location="../lib/JSON/ezmorph-1.0.2.jar"/>
+        <pathelement location="../lib/JSON/json-lib-2.3-jdk15.jar"/>
+    </path>
+    <path id="xstream-1.3.1.userclasspath"/>
+    <path id="proxool-0.9.1.userclasspath">
+        <pathelement location="../lib/proxool-0.9.1/lib/proxool-0.9.1.jar"/>
+    </path>
+    <path id="hsqldb-1.90-rc6.userclasspath">
+        <pathelement location="../lib/hsqldb-1.90-rc6/hsqldb.jar"/>
+    </path>
+    <path id="dom4j-1.6.1.userclasspath">
+        <pathelement location="../lib/dom4j-1.6.1/dom4j-1.6.1.jar"/>
+    </path>
+    <path id="jaxen-1.1.1.userclasspath">
+        <pathelement location="../lib/jaxen-1.1.1/jaxen-1.1.1.jar"/>
+    </path>
+    <path id="NetPassPort.classpath">
+        <pathelement location="build/classes"/>
+        <path refid="Apache Tomcat v6.0 [Apache Tomcat v6.0].libraryclasspath"/>
+        <path refid="Web App Libraries.libraryclasspath"/>
+        <path refid="EAR Libraries.libraryclasspath"/>
+        <path refid="commons-httpclient-3.1.userclasspath"/>
+        <path refid="commons-codec-1.4.userclasspath"/>
+        <path refid="commons-logging-1.1.1.userclasspath"/>
+        <path refid="HTMLParser-2.0.userclasspath"/>
+        <path refid="JSON.userclasspath"/>
+        <path refid="xstream-1.3.1.userclasspath"/>
+        <path refid="proxool-0.9.1.userclasspath"/>
+        <path refid="hsqldb-1.90-rc6.userclasspath"/>
+        <path refid="dom4j-1.6.1.userclasspath"/>
+        <path refid="jaxen-1.1.1.userclasspath"/>
+    </path>
+    <target name="init">
+        <mkdir dir="build/classes"/>
+        <copy includeemptydirs="false" todir="build/classes">
+            <fileset dir="src" excludes="**/*.launch, **/*.java"/>
+        </copy>
+    </target>
+    <target name="clean">
+        <delete dir="build/classes"/>
+    </target>
+    <target depends="clean" name="cleanall"/>
+    <target depends="build-subprojects,build-project" name="build"/>
+    <target name="build-subprojects"/>
+    <target depends="init" name="build-project">
+        <echo message="${ant.project.name}: ${ant.file}"/>
+        <javac debug="true" debuglevel="${debuglevel}" destdir="build/classes" source="${source}" target="${target}">
+            <src path="src"/>
+            <classpath refid="NetPassPort.classpath"/>
+        </javac>
+    </target>
+    <target description="Build all projects which reference this project. Useful to propagate changes." name="build-refprojects"/>
+    <target description="copy Eclipse compiler jars to ant lib directory" name="init-eclipse-compiler">
+        <copy todir="${ant.library.dir}">
+            <fileset dir="${ECLIPSE_HOME}/plugins" includes="org.eclipse.jdt.core_*.jar"/>
+        </copy>
+        <unzip dest="${ant.library.dir}">
+            <patternset includes="jdtCompilerAdapter.jar"/>
+            <fileset dir="${ECLIPSE_HOME}/plugins" includes="org.eclipse.jdt.core_*.jar"/>
+        </unzip>
+    </target>
+    <target description="compile project with Eclipse compiler" name="build-eclipse-compiler">
+        <property name="build.compiler" value="org.eclipse.jdt.core.JDTCompilerAdapter"/>
+        <antcall target="build"/>
+    </target>
+    <target description="setToLib" name="to-lib">
+        <property name="build.compiler" value="org.eclipse.jdt.core.JDTCompilerAdapter"/>
+        <antcall target="build"/>
+    	<jar destfile="${libPath}/DLC.0.5.jar">
+    	    <zipfileset dir="build/classes">
+    	        <include name="**/*.*" />
+    	        <exclude name="**/*.jar" />
+    	    </zipfileset>
+    	</jar>
+    </target>
+</project>

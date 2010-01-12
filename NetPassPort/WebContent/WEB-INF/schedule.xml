@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<models>
+	<model>
+		<modelName>MsnBot</modelName>
+		<modelJar>DLC Models.jar</modelJar>
+		<modelClass>com.mogan.model.MsnBot</modelClass>
+		<modelDiscription></modelDiscription>
+		<model-properties>
+			<property name="msnAccount" value="mogansweet@gmail.com"/>
+			<property name="msnPwd" value="MOGANS4725333"/>
+		</model-properties>
+		<schedule-properties>
+			<loop>false</loop>
+			<sleepTime>0</sleepTime>
+		</schedule-properties>
+	</model>
+</models>

@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<models>
+	<schedule>
+		<scheduleName>GmailTask</scheduleName>
+		<scheduleJar>DLC Models.jar</scheduleJar>
+		<scheduleClass>com.mogan.schedule.GmailTask</scheduleClass>
+		<scheduleDiscription></scheduleDiscription>
+		<load-on-startup>true</load-on-startup>
+		<loop>true</loop>
+		<interval>3</interval>
+		<schedule-properties>
+			<property name="GMAIL_ACCOUNT" value="mogansweet@gmail.com"/>
+			<property name="GMAIL_PWD" value="MOGANS4725333"/>
+			<property name="YAHOO_JP_WON_BID_MAIL" value="日雅-已得標"/>
+			<property name="YAHOO_JP_NEW_PRICE_MAIL" value="日雅-被超標"/>
+			<property name="YAHOO_JP_CANCEL_BID_MAIL" value="日雅-出價被取消"/>
+			<property name="YAHOO_JP_SELLER_ANS_MAIL" value="日雅-賣家回答"/>
+			<property name="YAHOO_JP_SELLER_CONTACT_MAIL" value="日雅-賣家聯絡"/>
+			<property name="YAHOO_JP_HIGHEST_BIDDER_MAIL" value="日雅-最高出價者"/>
+			<property name="YAHOO_JP_BUYER_DISCUSS_MAIL" value="日雅-買家揭示版"/>
+			<property name="YAHOO_JP_POST_ITEM_MAIL" value="日雅-手動上架"/>
+			<property name="YAHOO_JP_SOLD_MAIL" value="日雅-已賣出"/>
+			<property name="YAHOO_JP_AUTO_POST_ITEM_MAIL" value="日雅-自動上架"/>
+			<property name="YAHOO_JP_BUYER_ASK_MAIL" value="日雅-買家質問"/>
+			<property name="YAHOO_JP_BUYER_CONTACT_MAIL" value="日雅-買家聯絡"/>
+			<property name="YAHOO_JP_SELLER_DISCUSS_MAIL" value="日雅-賣家揭示版"/>
+			
+			<property name="YAHOO_JP_WEBSITE_ID" value="SWD-2009-0001"/>
+			<property name="PHP_SOLD_ALERT_URL" value="http://192.168.1.66/common/class/SellAPI.php?appId=051b3fe6d815681c0bd487b55b7f4e7f&amp;action=BID_SUCCESS&amp;io_id=$MOGAN_ITEM_ORDER_ID&amp;args=$ARGS"/>
+			<property name="PHP_COMMON_ALERT_URL" value="http://192.168.1.66/common/class/BiddingAutoActionTaiwanAPI.php"/>
+			<property name="PHP_APP_ID" value="051b3fe6d815681c0bd487b55b7f4e7f"/>
+		</schedule-properties>
+	</schedule>
+	<schedule>
+		<scheduleName>PhpTask</scheduleName>
+		<scheduleJar>DLC Models.jar</scheduleJar>
+		<scheduleClass>com.mogan.schedule.PhpTask</scheduleClass>
+		<scheduleDiscription></scheduleDiscription>
+		<load-on-startup>true</load-on-startup>
+		<loop>true</loop>
+		<interval>3</interval>
+	</schedule>
+	<model>
+		<modelName>SMSModel</modelName>
+		<modelJar>DLC Models.jar</modelJar>
+		<modelClass>com.mogan.model.SMSModel</modelClass>
+		<modelDiscription></modelDiscription>
+		<model-properties>
+			<property name="LOG_SERVER_URL" value="http://sms.smse.com.tw"/>
+			<property name="SEND_SERVER_URL" value="http://smsmo.smse.com.tw"/>
+			<property name="SEND_TEXT" value="/STANDARD/sms_fu.asp"/>
+			<property name="QUERY_LOG" value="/STANDARD/TVRVRE_FU_B.ASP"/>
+			<property name="ACCOUNT" value="MORGAN"/>
+			<property name="PWD" value="24266676"/>
+		</model-properties>
+	</model>
+	<model>
+		<modelName>TransCode</modelName>
+		<modelJar>DLC Models.jar</modelJar>
+		<modelClass>com.mogan.model.TransCode</modelClass>
+		<modelDiscription></modelDiscription>
+	</model>
+	<model>
+		<modelName>MsnBot</modelName>
+		<modelJar>DLC Models.jar</modelJar>
+		<modelClass>com.mogan.model.MsnBot</modelClass>
+		<modelDiscription></modelDiscription>
+		<schedule-properties>
+			<schedule-name>MsnBot</schedule-name>
+			<load-on-startup>false</load-on-startup>
+			<loop>true</loop>
+			<interval>3</interval>
+		</schedule-properties>
+	</model>
+	<model>
+		<modelName>NetAgentGoogle</modelName>
+		<modelJar>DLC Models.jar</modelJar>
+		<modelClass>com.mogan.model.netAgent.NetAgentGoogle</modelClass>
+		<model-properties>
+			<property name="gmailAccount" value="mogansweet@gmail.com"/>
+			<property name="gmailPwd" value="MOGANS4725333"/>
+			<property name="YAHOO_JP_WON_BID_MAIL" value="日雅-已得標"/>
+			<property name="YAHOO_JP_NEW_PRICE_MAIL" value="日雅-被超標"/>
+			<property name="YAHOO_JP_CANCEL_BID_MAIL" value="日雅-出價被取消"/>
+			<property name="YAHOO_JP_SELLER_ANS_MAIL" value="日雅-賣家回答"/>
+			<property name="YAHOO_JP_SELLER_CONTACT_MAIL" value="日雅-賣家聯絡"/>
+			<property name="YAHOO_JP_HIGHEST_BIDDER_MAIL" value="日雅-最高出價者"/>
+			<property name="YAHOO_JP_BUYER_DISCUSS_MAIL" value="日雅-買家揭示版"/>
+			<property name="YAHOO_JP_POST_ITEM_MAIL" value="日雅-手動上架"/>
+			<property name="YAHOO_JP_SOLD_MAIL" value="日雅-已賣出"/>
+			<property name="YAHOO_JP_AUTO_POST_ITEM_MAIL" value="日雅-自動上架"/>
+			<property name="YAHOO_JP_BUYER_ASK_MAIL" value="日雅-買家質問"/>
+			<property name="YAHOO_JP_BUYER_CONTACT_MAIL" value="日雅-買家聯絡"/>
+			<property name="YAHOO_JP_SELLER_DISCUSS_MAIL" value="日雅-賣家揭示版"/>
+			
+			<property name="YAHOO_JP_WEBSITE_ID" value="SWD-2009-0001"/>
+			<property name="日雅已賣出" value="http://192.168.1.66/common/class/SellAPI.php?appId=051b3fe6d815681c0bd487b55b7f4e7f&amp;action=BID_SUCCESS&amp;io_id=$MOGAN_ITEM_ORDER_ID&amp;args=$ARGS"/>
+		</model-properties>
+		<schedule-properties>
+			<load-on-startup>true</load-on-startup>
+			<interval>1</interval>
+		</schedule-properties>
+		<modelDiscription></modelDiscription>
+	</model>
+	<model>
+		<modelName>WebWalkService</modelName>
+		<modelJar>DLC Models.jar</modelJar>
+		<modelClass>com.mogan.model.WebWalker</modelClass>
+		<modelDiscription></modelDiscription>
+	</model>
+	<model>
+		<modelName>BidManager</modelName>
+		<modelJar>DLC Models.jar</modelJar>
+		<modelClass>com.mogan.model.BidManager</modelClass>
+		<model-properties>
+			<property name="mailSenderAddress" value="moganshopping@gmail.com"/>
+			<property name="mailSenderName" value="moganshopping"/>
+			<property name="mailCC" value="moganshopping@gmail.com;mogannibi@gmail.com"/>
+			<property name="imgServerPath" value="http://192.168.1.66/common/class/FileDataAPI.php?appId=051b3fe6d815681c0bd487b55b7f4e7f&amp;action=IMG_DATA&amp;source="/>
+			<property name="templetServerPath" value="http://192.168.1.66/common/class/FileDataAPI.php?appId=051b3fe6d815681c0bd487b55b7f4e7f&amp;action=SELL_FILE_DATA&amp;source="/>
+		</model-properties>
+		<modelDiscription></modelDiscription>
+	</model>
+	<model>
+		<modelName>FileService</modelName>
+		<modelJar>DLC Models.jar</modelJar>
+		<modelClass>com.mogan.model.FileService</modelClass>
+		<model-properties>
+			<property name="uploadPath" value="upload_Files"/>
+		</model-properties>
+		<modelDiscription></modelDiscription>
+	</model>
+	<model>
+		<modelName>ModelService</modelName>
+		<modelJar>DLC Models.jar</modelJar>
+		<modelClass>com.mogan.model.ModelService</modelClass>
+		<modelDiscription></modelDiscription>
+	</model>
+	<model>
+		<modelName>MailService</modelName>
+		<modelJar>DLC Models.jar</modelJar>
+		<modelClass>com.mogan.model.MailService</modelClass>
+		<modelDiscription></modelDiscription>
+		<model-properties>
+			<property name="fromName" value="摩根全球購物"/>
+			<property name="fromAdderss" value="ads@mogan.com.tw"/>
+			<property name="serverHost" value="adsx.mogan.com.tw"/>
+			<property name="serverPort" value="25"/>
+			<property name="account" value="mogan"/>
+			<property name="pwd" value="4725333"/>
+		</model-properties>
+	</model>
+	<model>
+		<modelName>NetAgentService</modelName>
+		<modelJar>DLC Models.jar</modelJar>
+		<modelClass>com.mogan.model.NetAgentManager</modelClass>
+		<modelDiscription></modelDiscription>
+	</model>
+</models>

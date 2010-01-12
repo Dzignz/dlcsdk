@@ -1,0 +1,64 @@
+/**
+ * 20090918 ver 0.1 �إ�mogan ext�M�Ϊ�xml�ѪRjs lib �^�Ǫ�xml�T�w��
+ * responseResult-���\�Υ���, responseMsg-��~�T��, responseData-�^�ǭ�,
+ * responseTime-����ɶ�
+ */
+var xr = new Ext.data.XmlReader({
+			totalRecords : 'responseRecords',
+			id : 'id',
+			record : 'response'
+		}, ['responseResult', 'responseMsg', 'responseData', 'responseTime']);
+
+var jr = new Ext.data.JsonReader({
+			totalRecords : 'responseRecords',
+			id : 'id',
+			// successProperty:'successProperty',
+			// root : 'response'
+			record : 'response'
+		}, ['responseResult', 'responseMsg', 'responseData', 'responseTime']);
+
+var jsonStore = new Ext.data.JsonStore({
+			fields : []
+		});
+
+function parserXML(xmlStr) {
+	var xmlDom;
+	xmlStr = xmlStr.replace(/^\s+|\s+$/g, "");
+	// 1.先把接收的xml(文字格式)前後去空格
+	if (window.ActiveXObject) {
+		// 2.先檢查是否是ie，window.ActiveXObject是ie獨有的物件,
+		// 在把接收的文字格式轉xml物件
+		xmlDom =CreateXMLDOM();
+		xmlDom.async = "false";
+		xmlDom.loadXML(xmlStr);
+	} else {
+		// 3.不是ie我暫時認定是firefox，就把接收的文字格式轉xml物件
+		parser = new DOMParser();
+		xmlDom = parser.parseFromString(xmlStr, "text/xml");
+	}
+
+	// var xmlDom = new ActiveXObject("MSXML2.DOMDocument");
+
+	// xmlDom.async = "false";
+	// xmlDom.loadXML(xmlStr);
+	var rs = xr.readRecords(xmlDom);
+	return rs;
+}
+
+function CreateXMLDOM() {//window平台專用XML解析物件
+	var ActiveX = new Array("MSXML2.DOMDocument.5.0", "MSXML2.DOMDocument.4.0",
+			"MSXML2.DOMDocument.3.0", "MSXML2.DOMDocument", "Microsoft.XMLDOM",
+			"MSXML.DOMDocument");
+	for (var i = 0; i < ActiveX.length; i++) {
+		try {
+			return new ActiveXObject(ActiveX[i]);
+		} catch (e) {
+		}
+	}
+	return null;
+}
+
+function parserJSON(jsonStr) {
+	// var rs = jr.readRecords(Ext.util.JSON.decode(jsonStr));
+	return Ext.util.JSON.decode(jsonStr);
+}

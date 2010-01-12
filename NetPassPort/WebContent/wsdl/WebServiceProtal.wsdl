@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wsdl:definitions targetNamespace="http://serviceProtal.mogan.com" xmlns:apachesoap="http://xml.apache.org/xml-soap" xmlns:impl="http://serviceProtal.mogan.com" xmlns:intf="http://serviceProtal.mogan.com" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:wsdlsoap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+<!--WSDL created by Apache Axis version: 1.4
+Built on Apr 22, 2006 (06:55:48 PDT)-->
+ <wsdl:types>
+  <schema elementFormDefault="qualified" targetNamespace="http://serviceProtal.mogan.com" xmlns="http://www.w3.org/2001/XMLSchema">
+   <element name="callService">
+    <complexType>
+     <sequence>
+      <element name="appId" type="xsd:string"/>
+      <element name="modelName" type="xsd:string"/>
+      <element name="action" type="xsd:string"/>
+      <element name="args" type="xsd:string"/>
+      <element name="returnType" type="xsd:string"/>
+     </sequence>
+    </complexType>
+   </element>
+   <element name="callServiceResponse">
+    <complexType>
+     <sequence>
+      <element name="callServiceReturn" type="xsd:string"/>
+     </sequence>
+    </complexType>
+   </element>
+  </schema>
+ </wsdl:types>
+
+   <wsdl:message name="callServiceResponse">
+
+      <wsdl:part element="impl:callServiceResponse" name="parameters"/>
+
+   </wsdl:message>
+
+   <wsdl:message name="callServiceRequest">
+
+      <wsdl:part element="impl:callService" name="parameters"/>
+
+   </wsdl:message>
+
+   <wsdl:portType name="WebServiceProtal">
+
+      <wsdl:operation name="callService">
+
+         <wsdl:input message="impl:callServiceRequest" name="callServiceRequest"/>
+
+         <wsdl:output message="impl:callServiceResponse" name="callServiceResponse"/>
+
+      </wsdl:operation>
+
+   </wsdl:portType>
+
+   <wsdl:binding name="WebServiceProtalSoapBinding" type="impl:WebServiceProtal">
+
+      <wsdlsoap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+
+      <wsdl:operation name="callService">
+
+         <wsdlsoap:operation soapAction=""/>
+
+         <wsdl:input name="callServiceRequest">
+
+            <wsdlsoap:body use="literal"/>
+
+         </wsdl:input>
+
+         <wsdl:output name="callServiceResponse">
+
+            <wsdlsoap:body use="literal"/>
+
+         </wsdl:output>
+
+      </wsdl:operation>
+
+   </wsdl:binding>
+
+   <wsdl:service name="WebServiceProtalService">
+
+      <wsdl:port binding="impl:WebServiceProtalSoapBinding" name="WebServiceProtal">
+
+         <wsdlsoap:address location="http://ftpx.mogan.com.tw/NetPassPort/services/WebServiceProtal"/>
+
+      </wsdl:port>
+
+   </wsdl:service>
+
+</wsdl:definitions>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?><!-- Use this file to deploy some handlers/chains and services      --><!-- Two ways to do this:                                           --><!--   java org.apache.axis.client.AdminClient deploy.wsdd          --><!--      after the axis server is running                          --><!-- or                                                             --><!--   java org.apache.axis.utils.Admin client|server deploy.wsdd   --><!--      from the same directory that the Axis engine runs         --><deployment xmlns="http://xml.apache.org/axis/wsdd/" xmlns:java="http://xml.apache.org/axis/wsdd/providers/java">
+
+  <!-- Services from WebServiceProtalService WSDL service -->
+
+  <service name="WebServiceProtal" provider="java:RPC" style="wrapped" use="literal">
+      <parameter name="wsdlTargetNamespace" value="http://serviceProtal.mogan.com"/>
+      <parameter name="wsdlServiceElement" value="WebServiceProtalService"/>
+      <parameter name="schemaQualified" value="http://serviceProtal.mogan.com"/>
+      <parameter name="wsdlServicePort" value="WebServiceProtal"/>
+      <parameter name="className" value="com.mogan.serviceProtal.WebServiceProtal"/>
+      <parameter name="wsdlPortType" value="WebServiceProtal"/>
+      <parameter name="typeMappingVersion" value="1.2"/>
+      <operation xmlns:operNS="http://serviceProtal.mogan.com" xmlns:retNS="http://serviceProtal.mogan.com" xmlns:rtns="http://www.w3.org/2001/XMLSchema" name="callService" qname="operNS:callService" returnQName="retNS:callServiceReturn" returnType="rtns:string" soapAction="">
+        <parameter xmlns:pns="http://serviceProtal.mogan.com" xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pns:appId" type="tns:string"/>
+        <parameter xmlns:pns="http://serviceProtal.mogan.com" xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pns:modelName" type="tns:string"/>
+        <parameter xmlns:pns="http://serviceProtal.mogan.com" xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pns:action" type="tns:string"/>
+        <parameter xmlns:pns="http://serviceProtal.mogan.com" xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pns:args" type="tns:string"/>
+        <parameter xmlns:pns="http://serviceProtal.mogan.com" xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pns:returnType" type="tns:string"/>
+      </operation>
+      <parameter name="allowedMethods" value="callService"/>
+
+  </service>
+</deployment>
