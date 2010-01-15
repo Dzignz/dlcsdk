@@ -25,14 +25,23 @@ import com.mogan.sys.model.ScheduleModelAdapter;
  * @author Dian
  */
 public class MsnTask extends ScheduleModelAdapter {
-	MsnBot msnBot;
 	static ModelManager modelManager = new ModelManager();
-
+//	static Map botMap=new HashMap();
+	
 	@Override
 	public void run() {
 		super.run();
-		sysLogin();
+		sysLogin();//檢查登入狀態
+		try {
+			Thread.sleep(1000*30);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		sysLogin();//檢查登入狀態
+		//檢查商品超標狀態
 		
+		System.out.println("[INFO] SCHEDULE MsnTask RUN.");
 	}
 
 	/**
@@ -46,9 +55,18 @@ public class MsnTask extends ScheduleModelAdapter {
 		Map botMap = getMsnBotMap();
 		for (int i = 0; i < accountList.size(); i++) {
 			Map accountMap = (Map) accountList.get(i);
-			MsnBotEx msnBotEx=(MsnBotEx) botMap.get("MSN_" + accountMap.get("email"));
+			MsnBotEx msnBotEx;
+			if (botMap.get("MSN_" + accountMap.get("email"))!=null){
+				System.out.println("[DEBUG] "+botMap);
+				System.out.println("[DEBUG] msn "+(botMap.get("MSN_" + accountMap.get("email")) instanceof MsnBotEx));
+				msnBotEx=(MsnBotEx) botMap.get("MSN_" + accountMap.get("email"));	
+			}else{
+				msnBotEx=new MsnBotEx();
+			}
+			
 			if (msnBotEx.getMsnStatus()!= MsnUserStatus.OFFLINE){
 				//在線上就跳過
+				System.out.println("[INFO] "+accountMap.get("email")+" already login.");
 				continue;
 			}
 			
@@ -62,7 +80,7 @@ public class MsnTask extends ScheduleModelAdapter {
 	/**
 	 * @return
 	 */
-	public Map getMsnBotMap() {
+	public Map<String,MsnBotEx> getMsnBotMap() {
 		if (this.getModelServletContext().getAttribute("MSNBot") == null) {
 			this.getModelServletContext().setAttribute("MSNBot", new HashMap());
 		}

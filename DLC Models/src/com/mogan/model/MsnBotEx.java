@@ -135,7 +135,11 @@ public class MsnBotEx {
 	}
 
 	public MsnUserStatus getMsnStatus(){
-		return messenger.getOwner().getStatus();
+		if (messenger==null||messenger.getOwner()==null){
+			return MsnUserStatus.OFFLINE;
+		}else{
+			return messenger.getOwner().getStatus();
+		}
 	}
 	
 	/**
@@ -170,6 +174,7 @@ public class MsnBotEx {
 		initMessenger(messenger);
 		messenger.login();
 	}
+
 
 	/**
 	 * <P>

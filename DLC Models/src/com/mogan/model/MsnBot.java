@@ -40,12 +40,14 @@ import com.mogan.sys.mail.SimpleMailSender;
  * 
  * @author Dian
  */
-public class MsnBot extends ProtoModel implements ServiceModelFace, Runnable {
+public class MsnBot extends ProtoModel implements ServiceModelFace {
 
 	final private String welcomMsg = "會員#MOGAN_USER_ID 您好\n歡迎使用 摩根小甜心 MSN 即時服務";
 	final private String welcomMsg_1 = "小甜心 不懂你的意思\n建議使用下列指令";
 	final private String newUser = "小甜心 還不認識你";
 	static NetAgentGoogle netAgentG = null;
+	static Map botMap=new HashMap();
+	
 	// private MsnMessenger messenger;
 	boolean run_flag = true;
 
@@ -70,7 +72,7 @@ public class MsnBot extends ProtoModel implements ServiceModelFace, Runnable {
 		this.getModelServletContext().setAttribute("MSNBot", botMap);
 	}
 
-	@Override
+	
 	public void run() {
 		System.out.println("MsnBot run.");
 		sysLogin();

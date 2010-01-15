@@ -58,6 +58,7 @@ public class NetAgent extends HttpClient {
 	public static final String YAHOO_JP_ACCOUNT = "login";
 	public static final String YAHOO_JP_PWD = "passwd";
 	public static final String YAHOO_JP_BID = "Bid";
+	/** 數量欄位 */
 	public static final String YAHOO_JP_QUANTITY = "Quantity";
 
 	public static final String YAHOO_JP_HISTORY_BID = "入札";

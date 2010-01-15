@@ -33,45 +33,61 @@ public class BidManager extends ProtoModel implements ServiceModelFace {
 	 * <p>
 	 * <font size=7 color=red>取得出價履歷，ACTION = GET_BID_LIST</font>
 	 * </p>
-	 * @param webSiteId <font color=red>WEB_SITE_ID </font> 網站ID
-	 * @param bidAccount <font color=red>BID_ACCOUNT</font> 下標或上架帳號
-	 * @param itemId <font color=red>ITEM_ID</font> 網站商品ID
-	 * @param listType <font color=red>LIST_TYPE</font> 清單類型 <ul>TOP_LIST 簡易清單</ul><ul>LOG_LIST完整清單</ul>
-	 * @param page <font color=red>PAGE</font> 頁數
+	 * 
+	 * @param webSiteId
+	 *            <font color=red>WEB_SITE_ID </font> 網站ID
+	 * @param bidAccount
+	 *            <font color=red>BID_ACCOUNT</font> 下標或上架帳號
+	 * @param itemId
+	 *            <font color=red>ITEM_ID</font> 網站商品ID
+	 * @param listType
+	 *            <font color=red>LIST_TYPE</font> 清單類型
+	 *            <ul>
+	 *            TOP_LIST 簡易清單
+	 *            </ul>
+	 *            <ul>
+	 *            LOG_LIST完整清單
+	 *            </ul>
+	 * @param page
+	 *            <font color=red>PAGE</font> 頁數
 	 * @return
 	 * @throws Exception
 	 */
 	private JSONArray getBidList(String webSiteId, String bidAccount,
-			String itemId,String listType,String page) throws Exception {
+			String itemId, String listType, String page) throws Exception {
 		JSONArray jArray = new JSONArray();
 		if (webSiteId.equals(YAHOO_JP_WEBSITE_ID)) {
 			NetAgentYJ agentYJ = new NetAgentYJ(this.getModelServletContext(),
 					this.getAppId());
-			jArray = agentYJ.getBidList(bidAccount, itemId,listType,page);
+			jArray = agentYJ.getBidList(bidAccount, itemId, listType, page);
 		}
 		return jArray;
 	}
-	
+
 	/**
 	 * <p>
 	 * <font size=7 color=red>取得高最出價者的帳號，ACTION = GET_HIGH_PRICE_ACCOUNT</font>
 	 * </p>
 	 * 
-	 * @param webSiteId <font color=red>WEB_SITE_ID </font> 網站ID
-	 * @param bidAccount <font color=red>BID_ACCOUNT</font> 下標帳號
-	 * @param itemId <font color=red>ITEM_ID</font> 網站商品ID
-	 * @param page <font color=red>PAGE</font> 頁數
+	 * @param webSiteId
+	 *            <font color=red>WEB_SITE_ID </font> 網站ID
+	 * @param bidAccount
+	 *            <font color=red>BID_ACCOUNT</font> 下標帳號
+	 * @param itemId
+	 *            <font color=red>ITEM_ID</font> 網站商品ID
+	 * @param page
+	 *            <font color=red>PAGE</font> 頁數
 	 * @return 最高出價者ID
 	 * @throws Exception
 	 */
 	private JSONArray getHighPriceAccount(String webSiteId, String bidAccount,
-			String itemId,String page) throws Exception {
+			String itemId, String page) throws Exception {
 		// TODO 商品發問
 		JSONArray jArray = new JSONArray();
 		if (webSiteId.equals(YAHOO_JP_WEBSITE_ID)) {
 			NetAgentYJ agentYJ = new NetAgentYJ(this.getModelServletContext(),
 					this.getAppId());
-			jArray = agentYJ.getHighPriceAccount(bidAccount, itemId,page);
+			jArray = agentYJ.getHighPriceAccount(bidAccount, itemId, page);
 		}
 		return jArray;
 	}
@@ -81,11 +97,15 @@ public class BidManager extends ProtoModel implements ServiceModelFace {
 	 * <font size=7 color=red>對商品發問，ACTION = SEND_QUESTION</font>
 	 * </p>
 	 * 
-	 * @param webSiteId  <font color=red>WEB_SITE_ID</font> 網站ID
-	 * @param questAccount <font color=red>QUEST_ACCOUNT</font> 發問的帳號
-	 * @param itemId <font color=red>ITEM_ID</font> 網站商品ID
-	 * @param question <font color=red></font> QUESTION問題
-	 * @return 
+	 * @param webSiteId
+	 *            <font color=red>WEB_SITE_ID</font> 網站ID
+	 * @param questAccount
+	 *            <font color=red>QUEST_ACCOUNT</font> 發問的帳號
+	 * @param itemId
+	 *            <font color=red>ITEM_ID</font> 網站商品ID
+	 * @param question
+	 *            <font color=red></font> QUESTION問題
+	 * @return
 	 * @throws Exception
 	 */
 	private JSONArray sendQusetion(String webSiteId, String questAccount,
@@ -136,7 +156,6 @@ public class BidManager extends ProtoModel implements ServiceModelFace {
 	 * <font size=7 color=red>重新上刊商品，針對已上刊過的商品，再次上刊，ACTION = RE_POST_ITEM</font>
 	 * </P>
 	 * 
-	 * 
 	 * @param itemOrderId
 	 *            <font color=red>[ITEM_ORDER_ID]</font>
 	 * @return 0-失敗，其他數字為yahoo 商品 ID
@@ -167,7 +186,6 @@ public class BidManager extends ProtoModel implements ServiceModelFace {
 	 * <P>
 	 * <font size=7 color=red>上刊商品，ACTION = POST_ITEM</font>
 	 * </P>
-	 * 
 	 * 
 	 * @param itemOrderId
 	 *            <font color=red>[ITEM_ORDER_ID]</font>
@@ -226,7 +244,6 @@ public class BidManager extends ProtoModel implements ServiceModelFace {
 	 * <P>
 	 * <font size=7 color=red>查詢資料，ACTION = LOAD_ITEMS</font>
 	 * </P>
-	 * 
 	 * 
 	 * @param dataClass
 	 *            資料類型
@@ -428,32 +445,48 @@ public class BidManager extends ProtoModel implements ServiceModelFace {
 				}
 			}
 		}
-		
-		JSONObject conditionJObj=JSONObject.fromObject(condition);
-		
-		if (conditionJObj.has("SEARCH_KEY") && conditionJObj.getString("SEARCH_KEY").length() > 0) {
-			//有設定篩選值
-			whereSql += " AND (user_name like '%" + conditionJObj.getString("SEARCH_KEY")
-			+ "%' OR item like '%" + conditionJObj.getString("SEARCH_KEY")
-			+ "%' OR item_id like '%" + conditionJObj.getString("SEARCH_KEY") + "%' OR no like '%"
-			+ conditionJObj.getString("SEARCH_KEY") + "%' OR end_date like '%" + conditionJObj.getString("SEARCH_KEY")
-			+ "%' OR sell_name like '%" + conditionJObj.getString("SEARCH_KEY")
-			+ "%' OR remittance like '%" + conditionJObj.getString("SEARCH_KEY")
-			+ "%' OR jyahooid like '%" + conditionJObj.getString("SEARCH_KEY")
-			+ "%' OR contact_type like '%" + conditionJObj.getString("SEARCH_KEY")
-			+ "%' OR title like '%" + conditionJObj.getString("SEARCH_KEY")
-			+ "%' OR renote like '%" + conditionJObj.getString("SEARCH_KEY") + "%' )";
+
+		JSONObject conditionJObj = JSONObject.fromObject(condition);
+
+		if (conditionJObj.has("SEARCH_KEY")
+				&& conditionJObj.getString("SEARCH_KEY").length() > 0) {
+			// 有設定篩選值
+			whereSql += " AND (user_name like '%"
+					+ conditionJObj.getString("SEARCH_KEY")
+					+ "%' OR item like '%"
+					+ conditionJObj.getString("SEARCH_KEY")
+					+ "%' OR item_id like '%"
+					+ conditionJObj.getString("SEARCH_KEY")
+					+ "%' OR no like '%"
+					+ conditionJObj.getString("SEARCH_KEY")
+					+ "%' OR end_date like '%"
+					+ conditionJObj.getString("SEARCH_KEY")
+					+ "%' OR sell_name like '%"
+					+ conditionJObj.getString("SEARCH_KEY")
+					+ "%' OR remittance like '%"
+					+ conditionJObj.getString("SEARCH_KEY")
+					+ "%' OR jyahooid like '%"
+					+ conditionJObj.getString("SEARCH_KEY")
+					+ "%' OR contact_type like '%"
+					+ conditionJObj.getString("SEARCH_KEY")
+					+ "%' OR title like '%"
+					+ conditionJObj.getString("SEARCH_KEY")
+					+ "%' OR renote like '%"
+					+ conditionJObj.getString("SEARCH_KEY") + "%' )";
 		}
-		
+
 		/*
-		if (conditionJObj.has("ACCOUNT_ID") && conditionJObj.getString("ACCOUNT_ID").length() > 0) {
-			//有設定篩選帳號 新版
-			whereSql += " AND jyahooid like '" + conditionJObj.getString("ACCOUNT_ID")+ "' ";
-		}*/
-		
-		if (conditionJObj.has("ACCOUNT") && conditionJObj.getString("ACCOUNT").length() > 0 && !conditionJObj.getString("ACCOUNT").equals("-")) {
-			//有設定篩選帳號 舊版
-			whereSql += " AND jyahooid like '" + conditionJObj.getString("ACCOUNT").replaceAll("-YAHOO JP", "")+ "' ";
+		 * if (conditionJObj.has("ACCOUNT_ID") && conditionJObj.getString("ACCOUNT_ID").length() > 0) { //有設定篩選帳號 新版 whereSql +=
+		 * " AND jyahooid like '" + conditionJObj.getString("ACCOUNT_ID")+ "' "; }
+		 */
+
+		if (conditionJObj.has("ACCOUNT")
+				&& conditionJObj.getString("ACCOUNT").length() > 0
+				&& !conditionJObj.getString("ACCOUNT").equals("-")) {
+			// 有設定篩選帳號 舊版
+			whereSql += " AND jyahooid like '"
+					+ conditionJObj.getString("ACCOUNT").replaceAll(
+							"-YAHOO JP", "") + "' ";
 		}
 
 		sql = sql + " WHERE `show` = 1 AND (" + whereSql + ") ORDER BY "
@@ -462,7 +495,7 @@ public class BidManager extends ProtoModel implements ServiceModelFace {
 		dataArray = conn.queryJSONArrayWithPage("mogan-tw", sql, startIndex,
 				pageSize);
 
-		System.out.println("[DEBUG] sql::"+sql);
+		System.out.println("[DEBUG] sql::" + sql);
 		jObj.put("Datas", dataArray);
 		jObj.put("Records", conn.getQueryDataSize("mogan-tw", sql));
 		jArray.add(jObj);
@@ -474,7 +507,6 @@ public class BidManager extends ProtoModel implements ServiceModelFace {
 	 * <font size=7 color=red>讀取商品連絡資料，ACTION = GET_ITEM_CONTACT_DATA</font>
 	 * </P>
 	 * 
-	 * 
 	 * @param webSiteId
 	 * @param bidAccount
 	 * @param itemId
@@ -482,17 +514,18 @@ public class BidManager extends ProtoModel implements ServiceModelFace {
 	 * @param sellerId
 	 * @param memberAccount
 	 * @return
-	 * @throws AccountNotExistException 
+	 * @throws AccountNotExistException
 	 */
 	public JSONArray getItemContactData(String webSiteId, String bidAccount,
 			String itemId, String transactionId, String sellerId,
-			String memberAccount,String dataSource ) throws AccountNotExistException {
+			String memberAccount, String dataSource)
+			throws AccountNotExistException {
 		JSONArray jArray = new JSONArray();
 		if (webSiteId.equals(YAHOO_JP_WEBSITE_ID)) {
 			NetAgentYJ agentYJ = new NetAgentYJ(this.getModelServletContext(),
 					this.getAppId());
 			jArray = agentYJ.getItemContactMsg(bidAccount, itemId,
-					transactionId, sellerId, memberAccount,dataSource);
+					transactionId, sellerId, memberAccount, dataSource);
 		}
 		return jArray;
 	}
@@ -502,12 +535,11 @@ public class BidManager extends ProtoModel implements ServiceModelFace {
 	 * <font size=7 color=red>讀取網頁上商品資料，ACTION = GET_ITEM_DATA</font>
 	 * </P>
 	 * 
-	 * 
 	 * @param webSiteId
 	 * @param bidAccount
 	 * @param itemId
 	 * @return
-	 * @throws AccountNotExistException 
+	 * @throws AccountNotExistException
 	 */
 	public JSONArray getItemData(String webSiteId, String bidAccount,
 			String itemId) throws AccountNotExistException {
@@ -525,14 +557,13 @@ public class BidManager extends ProtoModel implements ServiceModelFace {
 	 * <font size=7 color=red>讀取網頁上商品資料，ACTION = GET_ITEM_DATA</font>
 	 * </P>
 	 * 
-	 * 
 	 * @param webSiteId
 	 * @param bidAccount
 	 * @param itemId
 	 * @param won_id
 	 *            資料庫ID
 	 * @return
-	 * @throws AccountNotExistException 
+	 * @throws AccountNotExistException
 	 */
 	public JSONArray getItemData(String webSiteId, String bidAccount,
 			String itemId, String won_id) throws AccountNotExistException {
@@ -549,8 +580,7 @@ public class BidManager extends ProtoModel implements ServiceModelFace {
 	 * <P>
 	 * <font size=7 color=red>發送得標聯絡訊息，ACTION = SEND_WON_MESSAGE</font>
 	 * </P>
-	 * 不指定發送訊息方法，優先權為留言版>e-mail>揭示版
-	 * 回傳使用那種連絡方式，失敗或成功
+	 * 不指定發送訊息方法，優先權為留言版>e-mail>揭示版 回傳使用那種連絡方式，失敗或成功
 	 * 
 	 * @param webSiteId
 	 *            <font color=red>[WEB_SITE_ID]</font> YAHOO_JP_WEBSITE_ID=1
@@ -563,10 +593,11 @@ public class BidManager extends ProtoModel implements ServiceModelFace {
 	 * @param msg
 	 *            <font color=red>[MSG]</font> 訊息內容
 	 * @return CONTACT_TYPE,CONTACT_RESULTS<BR />CONTACT_TYPE 0=留言版，1=E-MAIL，2=揭示版 <BR />CONTACT_RESULTS 1=成功 0=失敗
-	 * @throws AccountNotExistException 
+	 * @throws AccountNotExistException
 	 */
 	public JSONArray sendWonMsg(String webSiteId, String bidAccount,
-			String itemId, String subject, String msg) throws AccountNotExistException {
+			String itemId, String subject, String msg)
+			throws AccountNotExistException {
 		JSONArray jArray = new JSONArray();
 		JSONObject jObj = new JSONObject();
 
@@ -577,8 +608,7 @@ public class BidManager extends ProtoModel implements ServiceModelFace {
 					this.getAppId());
 
 			// 取得連絡方法
-			contactType = agentYJ.getItemContactType(agentYJ.loadItemPage(
-					bidAccount, itemId));
+			contactType = agentYJ.getItemContactType(bidAccount, itemId);
 
 			if (contactType
 					.matches("^[\\w-]+(\\.[\\w-]+)*@[\\w-]+(\\.[\\w-]+)+$")) {
@@ -620,20 +650,34 @@ public class BidManager extends ProtoModel implements ServiceModelFace {
 	 *            <font color=red>[SEND_METHOD]</font> - 訊息傳送方法 0=留言版,1=e-mail 2=揭示版
 	 * @param subject
 	 *            <font color=red>[SUBJECT_A]</font> - 訊息標題或EMAIL標題<br>
-	 *            留言版 <ul>1=送付先住所、支払い、発送などについて</ul>
-	 *            		<ul>2=支払いが完了しました</ul>
-	 *            		<ul>3=商品を受け取りました</ul>
-	 *            		<ul>4=その他</ul>
-	 *            </br>
-	 *            揭示版 <ul>no=公開しない</ul>
-	 *            		<ul>yes=公開する</ul>
+	 *            留言版
+	 *            <ul>
+	 *            1=送付先住所、支払い、発送などについて
+	 *            </ul>
+	 *            <ul>
+	 *            2=支払いが完了しました
+	 *            </ul>
+	 *            <ul>
+	 *            3=商品を受け取りました
+	 *            </ul>
+	 *            <ul>
+	 *            4=その他
+	 *            </ul>
+	 *            </br> 揭示版
+	 *            <ul>
+	 *            no=公開しない
+	 *            </ul>
+	 *            <ul>
+	 *            yes=公開する
+	 *            </ul>
 	 * @param msg
 	 *            <font color=red>[MSG]</font> - 訊息內容
 	 * @return
-	 * @throws AccountNotExistException 
+	 * @throws AccountNotExistException
 	 */
 	public JSONArray snedMsg(String webSiteId, String bidAccount,
-			String itemId, String sendMethod, String subject, String msg) throws AccountNotExistException {
+			String itemId, String sendMethod, String subject, String msg)
+			throws AccountNotExistException {
 
 		if (webSiteId.equals(YAHOO_JP_WEBSITE_ID)) {
 			NetAgentYJ agentYJ = new NetAgentYJ(this.getModelServletContext(),
@@ -719,11 +763,12 @@ public class BidManager extends ProtoModel implements ServiceModelFace {
 	 * @return 下標結果，以數字表示 <br /> 0 - 無法判斷<br /> 1 - 下標成功，非最高出價<br /> 2 - 下標成功，已得標<br/> 3 - 下標成功，最高出價<br /> 4 - 無法下標<br /> - 下標失敗，錯誤出價(未完成)<br /> -
 	 *         下標失敗，已結標(未完成)<br /> - 下標失敗，無下標連結(未完成)<br /> - 下標失敗，評價不足(未完成)<br /> - 下標失敗，密碼錯誤(未完成)<br /> - 下標失敗，下標價過低(未完成)<br /> - 下標失敗，數量錯誤(未完成)<br
 	 *         /> - 下標失敗，無法下標(未完成)<br />
-	 * @throws AccountNotExistException 
+	 * @throws AccountNotExistException
 	 * @throws Exception
 	 */
 	public JSONArray buyItem(String webSiteId, String uId, String pwd,
-			java.lang.String itemURL, String qty) throws AccountNotExistException {
+			java.lang.String itemURL, String qty)
+			throws AccountNotExistException {
 		JSONArray jArray = new JSONArray();
 		if (webSiteId.equals(YAHOO_JP_WEBSITE_ID)) {
 			NetAgentYJ agentYJ = new NetAgentYJ(this.getModelServletContext(),
@@ -782,40 +827,42 @@ public class BidManager extends ProtoModel implements ServiceModelFace {
 
 	/**
 	 * 將訊息設為已讀
+	 * 
 	 * @param contactId
 	 * @return
 	 * @throws Exception
 	 */
 	public JSONArray setTransactionMsgReaded(String contactId) throws Exception {
 		DBConn conn = (DBConn) this.getModelServletContext().getAttribute(
-		"DBConn");
-		Map conditionMap=new HashMap();
+				"DBConn");
+		Map conditionMap = new HashMap();
 		conditionMap.put("contact_id", contactId);
-		Map dataMap=new HashMap();
+		Map dataMap = new HashMap();
 		dataMap.put("is_read", "1");
 		dataMap.put("read_date", new Date());
 		conn.update("mogan-DB", "item_contact_record", conditionMap, dataMap);
 		JSONArray jArray = new JSONArray();
 		NetAgentYJ agentYJ = new NetAgentYJ(this.getModelServletContext(), this
 				.getAppId());
-		return conn.queryJSONArray("mogan-DB", "SELECT * FROM view_item_contact_record WHERE contact_id='"+contactId+"'");
+		return conn.queryJSONArray("mogan-DB",
+				"SELECT * FROM view_item_contact_record WHERE contact_id='"
+						+ contactId + "'");
 	}
-	
-	
+
 	public JSONArray doAction(Map parameterMap) throws Exception {
 		JSONArray jArray = new JSONArray();
-		System.out.println("[INFO]BidManager ACTION start. " + this.getAct());		
-		
+		System.out.println("[INFO]BidManager ACTION start. " + this.getAct());
+
 		if (this.getAct().equals("UN_POST_ITEM")) {
 			String itemOrderId = (String) parameterMap.get("ITEM_ORDER_ID");
 			jArray = unpostItem(itemOrderId);
-		}else if (this.getAct().equals("READ_TRANSACTION_MSG")){
+		} else if (this.getAct().equals("READ_TRANSACTION_MSG")) {
 			String contactId = (String) parameterMap.get("CONTACT_ID");
 			jArray = setTransactionMsgReaded(contactId);
 		} else if (this.getAct().equals("GET_ITEM_DATA")) {
 			String webSiteId = (String) parameterMap.get("WEB_SITE_ID");
 			String bidAccount = (String) parameterMap.get("BID_ACCOUNT");
-			String itemId = (String) parameterMap.get("ITEM_ID");			
+			String itemId = (String) parameterMap.get("ITEM_ID");
 			jArray = getItemData(webSiteId, bidAccount, itemId);
 		} else if (this.getAct().equals("GET_BID_LIST")) {
 			String webSiteId = (String) parameterMap.get("WEB_SITE_ID");
@@ -823,13 +870,13 @@ public class BidManager extends ProtoModel implements ServiceModelFace {
 			String itemId = (String) parameterMap.get("ITEM_ID");
 			String listType = (String) parameterMap.get("LIST_TYPE");
 			String page = (String) parameterMap.get("PAGE");
-			jArray = getBidList(webSiteId, bidAccount, itemId,listType,page);
+			jArray = getBidList(webSiteId, bidAccount, itemId, listType, page);
 		} else if (this.getAct().equals("GET_HIGH_PRICE_ACCOUNT")) {
 			String webSiteId = (String) parameterMap.get("WEB_SITE_ID");
 			String bidAccount = (String) parameterMap.get("BID_ACCOUNT");
 			String itemId = (String) parameterMap.get("ITEM_ID");
 			String page = (String) parameterMap.get("PAGE");
-			jArray = getHighPriceAccount(webSiteId, bidAccount, itemId,page);
+			jArray = getHighPriceAccount(webSiteId, bidAccount, itemId, page);
 		} else if (this.getAct().equals("SEND_QUESTION")) {
 			String webSiteId = (String) parameterMap.get("WEB_SITE_ID");
 			String questAccount = (String) parameterMap.get("QUEST_ACCOUNT");
@@ -902,6 +949,7 @@ public class BidManager extends ProtoModel implements ServiceModelFace {
 		} else if (this.getAct().equals("GET_LOGIN_LIST")) {
 			jArray = getLoginList();
 		} else if (this.getAct().equals("LOAD_TRANSACTION_DATA")) {
+			long l0 = System.currentTimeMillis();
 			String bidAccount = (String) parameterMap.get("BID_ACCOUNT");
 			String itemId = (String) parameterMap.get("ITEM_ID");
 			String webSiteId = (String) parameterMap.get("WEB_SITE_ID");
@@ -911,22 +959,32 @@ public class BidManager extends ProtoModel implements ServiceModelFace {
 			String contactType = (String) parameterMap.get("CONTACT_TYPE");
 			String wonId = (String) parameterMap.get("WON_ID");
 			String dataSource = (String) parameterMap.get("DATA_SOURCE");
-
+			long l1 = System.currentTimeMillis();
 			JSONObject jItemObj = new JSONObject();
 			JSONObject jMsgObj = new JSONObject();
-			System.out.println("[DEBUG] getItemContactMsg:"+dataSource);
-			jMsgObj.put("Datas", getItemContactData(webSiteId, bidAccount,
-					itemId, transactionId, sellerId, memberAccount,dataSource));
+
+			jMsgObj
+					.put("Datas", getItemContactData(webSiteId, bidAccount,
+							itemId, transactionId, sellerId, memberAccount,
+							dataSource));
+			long l2 = System.currentTimeMillis();
 			jMsgObj.put("Records", jMsgObj.getJSONArray("Datas").size());
 			jItemObj.put("CONTACT_MSG", jMsgObj);
-			//if (contactType == null) {
-				// 未取得連絡方法
-				jMsgObj.put("Datas", getItemData(webSiteId, bidAccount, itemId,
-						wonId));
-				jMsgObj.put("Records", jMsgObj.getJSONArray("Datas").size());
-				jItemObj.put("ITEM_DATA", jMsgObj);
-			//}
+			// if (contactType == null) {
+			// 未取得連絡方法
+			jMsgObj.put("Datas", getItemData(webSiteId, bidAccount, itemId,
+					wonId));
+			jMsgObj.put("Records", jMsgObj.getJSONArray("Datas").size());
+			jItemObj.put("ITEM_DATA", jMsgObj);
+			
+			long l3 = System.currentTimeMillis();
+			System.out.println("[DEBUG] time 3-0:" + (l3-l0));
+			System.out.println("[DEBUG] time 3-0:" + (l3-l2));
+			System.out.println("[DEBUG] time 3-0:" + (l2-l1));
+			System.out.println("[DEBUG] time 3-0:" + (l1-l0));
+			// }
 			jArray.add(jItemObj);
+
 		} else if (this.getAct().equals("SEND_MESSAGE")) {
 			String webSiteId = (String) parameterMap.get("WEB_SITE_ID");
 			String bidAccount = (String) parameterMap.get("BID_ACCOUNT");
@@ -942,7 +1000,7 @@ public class BidManager extends ProtoModel implements ServiceModelFace {
 			}
 			jArray = snedMsg(webSiteId, bidAccount, itemId, sendMethod,
 					subject, msg);
-			sendWonMsg(webSiteId, bidAccount, itemId, subject, "XXXDIAN="+msg);
+			sendWonMsg(webSiteId, bidAccount, itemId, subject, "XXXDIAN=" + msg);
 		} else if (this.getAct().equals("SEND_WON_MESSAGE")) {
 			String webSiteId = (String) parameterMap.get("WEB_SITE_ID");
 			String bidAccount = (String) parameterMap.get("BID_ACCOUNT");

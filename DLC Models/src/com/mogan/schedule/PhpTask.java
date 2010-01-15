@@ -28,8 +28,10 @@ public class PhpTask extends ScheduleModelAdapter {
 		public void run() {
 			NetAgent nAgent = new NetAgent();
 			nAgent
-					.getDataWithGet("http://www.mogan.com.tw/web_atm/Myb2bDataLink.php?type="
+					.getDataWithGet("http://wwwx.mogan.com.tw/web_atm/Myb2bDataLink.php?type="
 							+ this.type);
+			System.out.println("[DEBUG] PHP TASK("+new Date()+"):"+nAgent.getResponseBody());
+			
 		}
 	}
 

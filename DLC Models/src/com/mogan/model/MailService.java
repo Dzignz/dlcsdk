@@ -184,6 +184,8 @@ public class MailService extends ProtoModel implements ServiceModelFace {
 		// threadsMap.get(this.MAIL_SENDER_THREAD + "_" + sessionId).toString();
 		SimpleMailSender sms = (SimpleMailSender) threadsMap
 				.get(this.MAIL_SENDER_THREAD + "_" + sessionId);
+		
+		System.out.println("sms::"+sms.getMailServerHost()+" "+sms.getMailServerPort()+" "+sms.getAccount()+" "+sms.getPwd());
 		// sms = (SimpleMailSender) threadsMap.get(this.MAIL_SENDER_THREAD + "_" + sessionId);
 
 		if (this.getAct().equals("RUN")) {

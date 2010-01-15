@@ -15,12 +15,10 @@ import com.mogan.sys.DBConn;
 import com.mogan.sys.model.ScheduleModelAdapter;
 
 public class GmailTask extends ScheduleModelAdapter {
-	
-	
-	final static private String GMAIL_ACCOUNT="GMAIL_ACCOUNT";
-	final static private String GMAIL_PWD="GMAIL_PWD";
-	
-	
+
+	final static private String GMAIL_ACCOUNT = "GMAIL_ACCOUNT";
+	final static private String GMAIL_PWD = "GMAIL_PWD";
+
 	/**** [買家通知] ****/
 	/** 日雅 - 買家通知 - 得標通知 */
 	final static private String YAHOO_JP_WON_BID_MAIL = "YAHOO_JP_WON_BID_MAIL";
@@ -54,47 +52,60 @@ public class GmailTask extends ScheduleModelAdapter {
 	/**** [網站代號] ****/
 	/** 日本雅虎代號 */
 	static final String YAHOO_JP_WEBSITE_ID = "YAHOO_JP_WEBSITE_ID";
-	/**	PHP_APP_ID */
+	/** PHP_APP_ID */
 	static final String PHP_APP_ID = "PHP_APP_ID";
-	/**	呼叫PHP操作URL */
+	/** 呼叫PHP操作URL */
 	static final String PHP_COMMON_ALERT_URL = "PHP_COMMON_ALERT_URL";
-	/**	商品賣出呼叫URL */
+	/** 商品賣出呼叫URL */
 	static final String PHP_SOLD_ALERT_URL = "PHP_SOLD_ALERT_URL";
-	
+
 	static NetAgentGoogle nAgentG;
-	
+
 	public void run() {
 		super.run();
 		try {
-			if (nAgentG==null){
-				nAgentG= new NetAgentGoogle(this.getProperty(GMAIL_ACCOUNT),this.getProperty(GMAIL_PWD));
+			if (nAgentG == null) {
+				nAgentG = new NetAgentGoogle(this.getProperty(GMAIL_ACCOUNT),
+						this.getProperty(GMAIL_PWD));
 			}
-			
+
 			/** 日雅-得標信 */
-			ArrayList msgList = nAgentG.getMail(this.getProperty(YAHOO_JP_WON_BID_MAIL));
-			logAlert(msgList, YAHOO_JP_WON_BID_MAIL,this.getProperty(YAHOO_JP_WEBSITE_ID));
-			msgList=new ArrayList();
-			
+			ArrayList msgList = nAgentG.getMail(this
+					.getProperty(YAHOO_JP_WON_BID_MAIL));
+			logAlert(msgList, YAHOO_JP_WON_BID_MAIL, this.getProperty(YAHOO_JP_WEBSITE_ID));
+			updateItemContactType(msgList,this.getProperty(YAHOO_JP_WEBSITE_ID));
+			msgList = new ArrayList();
+
 			/** 被超標信 */
-			msgList=nAgentG.getMail(this.getProperty(YAHOO_JP_NEW_PRICE_MAIL));
-			logAlert(msgList, YAHOO_JP_NEW_PRICE_MAIL,this.getProperty(YAHOO_JP_WEBSITE_ID));
-			msgList=new ArrayList();
-			
+			msgList = nAgentG
+					.getMail(this.getProperty(YAHOO_JP_NEW_PRICE_MAIL));
+			logAlert(msgList, YAHOO_JP_NEW_PRICE_MAIL, this
+					.getProperty(YAHOO_JP_WEBSITE_ID));
+			msgList = new ArrayList();
+
 			/** 被取消出價信 */
-			msgList=nAgentG.getMail(this.getProperty(YAHOO_JP_CANCEL_BID_MAIL));
-			logAlert(msgList, YAHOO_JP_CANCEL_BID_MAIL,this.getProperty(YAHOO_JP_CANCEL_BID_MAIL));
-			msgList=new ArrayList();
-			
+			msgList = nAgentG.getMail(this
+					.getProperty(YAHOO_JP_CANCEL_BID_MAIL));
+			logAlert(msgList, YAHOO_JP_CANCEL_BID_MAIL, this
+					.getProperty(YAHOO_JP_WEBSITE_ID));
+			msgList = new ArrayList();
+
 			/** 聯絡資料更新 */
-			msgList.addAll(nAgentG.getMail(this.getProperty(YAHOO_JP_SELLER_ANS_MAIL)));
-			msgList.addAll(nAgentG.getMail(this.getProperty(YAHOO_JP_SELLER_CONTACT_MAIL)));
-			msgList.addAll(nAgentG.getMail(this.getProperty(YAHOO_JP_SELLER_DISCUSS_MAIL)));
-			msgList.addAll(nAgentG.getMail(this.getProperty(YAHOO_JP_BUYER_ASK_MAIL)));
-			msgList.addAll(nAgentG.getMail(this.getProperty(YAHOO_JP_BUYER_CONTACT_MAIL)));
-			msgList.addAll(nAgentG.getMail(this.getProperty(YAHOO_JP_BUYER_DISCUSS_MAIL)));
-			updateItemContactMsg(msgList,this.getProperty(YAHOO_JP_WEBSITE_ID));
-			msgList=new ArrayList();
-			
+			msgList.addAll(nAgentG.getMail(this
+					.getProperty(YAHOO_JP_SELLER_ANS_MAIL)));
+			msgList.addAll(nAgentG.getMail(this
+					.getProperty(YAHOO_JP_SELLER_CONTACT_MAIL)));
+			msgList.addAll(nAgentG.getMail(this
+					.getProperty(YAHOO_JP_SELLER_DISCUSS_MAIL)));
+			msgList.addAll(nAgentG.getMail(this
+					.getProperty(YAHOO_JP_BUYER_ASK_MAIL)));
+			msgList.addAll(nAgentG.getMail(this
+					.getProperty(YAHOO_JP_BUYER_CONTACT_MAIL)));
+			msgList.addAll(nAgentG.getMail(this
+					.getProperty(YAHOO_JP_BUYER_DISCUSS_MAIL)));
+			updateItemContactMsg(msgList, this.getProperty(YAHOO_JP_WEBSITE_ID));
+			msgList = new ArrayList();
+
 			/** 未處理 */
 			nAgentG.getMail(this.getProperty(YAHOO_JP_AUTO_POST_ITEM_MAIL));
 
@@ -103,59 +114,67 @@ public class GmailTask extends ScheduleModelAdapter {
 			nAgentG.getMail(this.getProperty(YAHOO_JP_SOLD_ITEM_MAIL));
 
 			nAgentG.close();
-			
-			
+
 			/*
-			//** 更新得標通知 *
-			//nAgentG.updateBid2Won(nAgentG.getWonBidMail());
+			 * // 更新得標通知 //nAgentG.updateBid2Won(nAgentG.getWonBidMail()); // 更新競標聯絡資訊
+			 * nAgentG.updateItemContactMsg(nAgentG.getSellerContactMail());//留言版 nAgentG.updateItemContactMsg(nAgentG.getBuyerDiscussMail());//揭示版
+			 * nAgentG.getHighestPriceMail(); nAgentG.callPhpServer(nAgentG.getNewPriceMail()); nAgentG.getSellerAnsMail();
+			 * nAgentG.callPhpServer(nAgentG.getCancelMail()); nAgentG.getPostItemMail(); nAgentG.getAutoPostItemMail(); nAgentG.getSoldItemMail();
+			 * nAgentG.getBuyerAskMail(); nAgentG.getBuyerContactMail(); nAgentG.getSellerDiscussMail();
+			 */
 
-			//** 更新競標聯絡資訊 *
-			nAgentG.updateItemContactMsg(nAgentG.getSellerContactMail());//留言版
-			nAgentG.updateItemContactMsg(nAgentG.getBuyerDiscussMail());//揭示版
-
-			nAgentG.getHighestPriceMail();
-			
-			nAgentG.callPhpServer(nAgentG.getNewPriceMail());
-
-			nAgentG.getSellerAnsMail();
-			
-			
-			nAgentG.callPhpServer(nAgentG.getCancelMail());
-			
-
-			nAgentG.getPostItemMail();
-			nAgentG.getAutoPostItemMail();
-			nAgentG.getSoldItemMail();
-			nAgentG.getBuyerAskMail();
-			nAgentG.getBuyerContactMail();
-			nAgentG.getSellerDiscussMail();
-			*/
-			
 		} catch (NoSuchProviderException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
-	
+
 	/**
-	 * 更新商品聯絡資料
+	 * 更新商品聯絡方式
+	 * 
 	 * @param dataList
 	 * @param websiteId
 	 */
-	public void updateItemContactMsg(ArrayList<Map> dataList,String websiteId) {
-		if (dataList==null || dataList.size()==0){
-			return ;
+	public void updateItemContactType(ArrayList<Map> dataList, String websiteId) {
+		if (dataList == null || dataList.size() == 0) {
+			return;
 		}
-		System.out.println("[DEBUG] updateItemContactMsg::"+dataList.size());
-		DBConn conn = (DBConn) this.getModelServletContext().getAttribute(
-		"DBConn");
+
 		NetAgentYJ netAgentYJ = new NetAgentYJ(this.getModelServletContext(),
 				this.getAppId());
-		
 		for (int i = 0; i < dataList.size(); i++) {
 			Map<String, String> tempMap = dataList.get(i);
 			String itemId = (String) tempMap.get("ITEM_ID");
-			ArrayList<Map> itemOrderIdList = getItemOrderIds(websiteId, tempMap.get("ACCOUNT"), itemId);
+			ArrayList<Map> itemOrderIdList = getItemOrderIds(websiteId, tempMap
+					.get("ACCOUNT"), itemId);
+
+			for (int j = 0; j < itemOrderIdList.size(); j++) {
+				String itemOrderId = (String) itemOrderIdList.get(j).get(
+						"item_order_id");
+				
+				netAgentYJ.getItemContactType(itemOrderId);
+			}
+		}
+	}
+
+	/**
+	 * 更新商品聯絡資料
+	 * 
+	 * @param dataList
+	 * @param websiteId
+	 */
+	public void updateItemContactMsg(ArrayList<Map> dataList, String websiteId) {
+		if (dataList == null || dataList.size() == 0) {
+			return;
+		}
+		NetAgentYJ netAgentYJ = new NetAgentYJ(this.getModelServletContext(),
+				this.getAppId());
+
+		for (int i = 0; i < dataList.size(); i++) {
+			Map<String, String> tempMap = dataList.get(i);
+			String itemId = (String) tempMap.get("ITEM_ID");
+			ArrayList<Map> itemOrderIdList = getItemOrderIds(websiteId, tempMap
+					.get("ACCOUNT"), itemId);
 
 			for (int j = 0; j < itemOrderIdList.size(); j++) {
 				String itemOrderId = (String) itemOrderIdList.get(j).get(
@@ -169,26 +188,26 @@ public class GmailTask extends ScheduleModelAdapter {
 			}
 		}
 	}
-	
+
 	/**
 	 * 將動作記錄到system_alert
 	 * 
 	 * @param dataList
 	 * @param action
 	 */
-	public void logAlert(ArrayList dataList, String action,String websiteId) {
-		if (dataList==null || dataList.size()==0){
-			return ;
+	public void logAlert(ArrayList dataList, String action, String websiteId) {
+		if (dataList == null || dataList.size() == 0) {
+			return;
 		}
-		
+
 		DBConn conn = (DBConn) this.getModelServletContext().getAttribute(
 				"DBConn");
 		String autoNum = conn.getAutoNumber("mogan-DB", "SA-SEQ-01");
 		Map dataMap = new HashMap();
 		for (int i = 0; i < dataList.size(); i++) {
 			Map<String, String> tempMap = (Map) dataList.get(i);
-			ArrayList<Map> itemOrderIdList = getItemOrderIds(websiteId, tempMap.get("ACCOUNT"), tempMap
-					.get("ITEM_ID"));
+			ArrayList<Map> itemOrderIdList = getItemOrderIds(websiteId, tempMap
+					.get("ACCOUNT"), tempMap.get("ITEM_ID"));
 			for (int j = 0; j < itemOrderIdList.size(); j++) {
 				String itemOrderId = (String) itemOrderIdList.get(j).get(
 						"item_order_id");
@@ -200,10 +219,12 @@ public class GmailTask extends ScheduleModelAdapter {
 			}
 		}
 		NetAgent nAgent = new NetAgent();
-		nAgent.getDataWithGet(this.getProperty(PHP_COMMON_ALERT_URL)+"?appId="+this.getProperty(PHP_APP_ID)+"&action="+action+"&seq_no="+autoNum);
-		
+		nAgent.getDataWithGet(this.getProperty(PHP_COMMON_ALERT_URL)
+				+ "?appId=" + this.getProperty(PHP_APP_ID) + "&action="
+				+ action + "&seq_no=" + autoNum);
+
 	}
-	
+
 	/**
 	 * 複數商品可能有多個得標者
 	 * 
@@ -222,7 +243,5 @@ public class GmailTask extends ScheduleModelAdapter {
 						+ "' AND item_id='" + itemId + "'");
 		return dataList;
 	}
-
-
 
 }
