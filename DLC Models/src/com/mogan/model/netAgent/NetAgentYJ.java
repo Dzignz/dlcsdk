@@ -1142,14 +1142,12 @@ public class NetAgentYJ extends NetAgentModel implements BidFace {
 		Map orderMap=getOrderData(orderId);
 		String bidAccount=(String) orderMap.get("account");
 		String itemId=(String) orderMap.get("item_id");
-		System.out.println("[DEBUG] getItemContactType::"+orderId+" "+bidAccount+" "+itemId);
 		try {
 			contactType=getItemContactType(bidAccount,itemId,orderId);
 		} catch (AccountNotExistException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		System.out.println("[DEBUG] getItemContactType::"+orderId+" "+bidAccount+" "+itemId+" "+contactType);
 		return contactType;
 	}
 	

@@ -218,11 +218,17 @@ public class GmailTask extends ScheduleModelAdapter {
 				conn.newData("mogan-DB", "system_alert", dataMap);
 			}
 		}
+		
 		NetAgent nAgent = new NetAgent();
+		
 		nAgent.getDataWithGet(this.getProperty(PHP_COMMON_ALERT_URL)
 				+ "?appId=" + this.getProperty(PHP_APP_ID) + "&action="
 				+ action + "&seq_no=" + autoNum);
-
+		
+//		System.out.println("[DEBUG]"+nAgent.getResponseBody());
+		 System.out.println("[INFO] logAlert::"+this.getProperty(PHP_COMMON_ALERT_URL)
+					+ "?appId=" + this.getProperty(PHP_APP_ID) + "&action="
+					+ action + "&seq_no=" + autoNum);
 	}
 
 	/**
