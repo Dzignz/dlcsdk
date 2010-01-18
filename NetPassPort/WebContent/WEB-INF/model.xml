@@ -1,6 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <models>
 	<schedule>
+		<scheduleName>MsnTask</scheduleName>
+		<scheduleJar>DLC Models.jar</scheduleJar>
+		<scheduleClass>com.mogan.schedule.MsnTask</scheduleClass>
+		<scheduleDiscription></scheduleDiscription>
+		<load-on-startup>true</load-on-startup>
+		<loop>true</loop>
+		<interval>3</interval>
+	</schedule>
+	<schedule>
 		<scheduleName>GmailTask</scheduleName>
 		<scheduleJar>DLC Models.jar</scheduleJar>
 		<scheduleClass>com.mogan.schedule.GmailTask</scheduleClass>

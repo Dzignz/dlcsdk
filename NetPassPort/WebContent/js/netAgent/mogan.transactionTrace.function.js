@@ -217,32 +217,6 @@ Mogan.transactionTrace.loadBidItemData = function(grid, rowIndex, e) {
 					DATA_SOURCE : 'DB'
 				}
 			});
-
-	Ext.Ajax.request({
-				url : 'AjaxPortal',
-				callback : function() {
-					Ext.Msg.hide();
-				},
-				success : Mogan.transactionTrace.showBidItemData,
-				failure : function(response) {
-					Ext.Msg.alert("錯誤", "請向程式開發者詢問");
-				},
-				params : {
-					APP_ID : appId,
-					ACTION : "LOAD_TRANSACTION_DATA",
-					RETURN_TYPE : "JSON",
-					MODEL_NAME : "BidManager",
-					WEB_SITE_ID : "SWD-2009-0001",
-					BID_ACCOUNT : r.get("jyahooid"),
-					ITEM_ID : r.get("item_id"),
-					TRANSACTION_ID : '',
-					SELLER_ID : r.get("sell_name"),
-					WON_ID : r.get("id"),
-					CONTACT_TYPE : r.get("contact_type"),
-					MEMBER_ACCOUNT : r.get("user_name"),
-					DATA_SOURCE : 'WEB'
-				}
-			});
 }
 
 Mogan.transactionTrace.fixLoadBidItemsParams = function() {

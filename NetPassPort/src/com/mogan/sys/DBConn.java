@@ -317,7 +317,26 @@ public class DBConn extends HttpServlet {
 	}
 
 	/**
-	 * 以conditionMap查詢目前資料第數
+	 * 
+	 * @param connAlias
+	 * @param table
+	 * @param conditionMap
+	 * @return
+	 */
+	public ArrayList queryWithMap(String connAlias, String table, Map conditionMap) {
+		String sql = "SELECT * FROM " + table;
+		StringBuffer whereStr = new StringBuffer();
+		Map colStrctMap = queryTabelStructure(connAlias, table, conditionMap);
+
+		if (conditionMap.size() > 0) {
+			sql += " WHERE " + getSqlStr(conditionMap, colStrctMap);
+		}
+		return query(connAlias,sql);
+	}
+	
+	
+	/**
+	 * 以conditionMap查詢目前資料筆數
 	 * 
 	 * @param connAlias
 	 * @param table
@@ -333,7 +352,6 @@ public class DBConn extends HttpServlet {
 		if (conditionMap.size() > 0) {
 			sql += " WHERE " + getSqlStr(conditionMap, colStrctMap);
 		}
-
 		return getQueryDataSize(connAlias, sql);
 	}
 

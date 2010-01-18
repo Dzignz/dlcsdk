@@ -1,31 +1,36 @@
 Ext.onReady(function() {
-			var bodyPanel = new Ext.Panel({
-						title : 'Webwalk Service',
-						height : 800,
+			var viewport = new Ext.Viewport({
 						layout : 'border',
 						items : [{
-									region : 'north',
-									leyout : 'fit',
-									height : 45,
-									frame : true,
-									layout : 'hbox',
-									defaults : {
-										margins : '0 5 0 0'
-									},
-									items : Mogan.transactionTrace.createHeadPanel()
-								}, {
-									region : 'center',
-									items:Mogan.transactionTrace.createCenterPanel(),
-									layout : 'fit'
-								}, {
-									region : 'south',
-									frame : true,
-									items : [new Ext.form.Label({
-												text : 'init.....',
-												id : 'statusMsg'
-											})]
-								}]
+							region : 'center',
+							items : Mogan.transactionTrace
+									.createCaseListGridPanel(),
+							split : true,
+							collapsible : true,
+							layout : 'fit'
+
+						}, {
+							height : 300,
+							region : 'south',
+							split : true,
+							collapsible : true,
+							layout : 'fit',
+							// frame : true,//
+							items : Mogan.transactionTrace.createDetilPanel()
+						}]
 					});
-			
-			bodyPanel.render(document.body);
+			var el = Ext.get('comboSearchKey');
+			var keyNav = new Ext.KeyNav(el, {
+						enter : function(e) {
+						itemListStore
+								.load(Mogan.transactionTrace
+										.createLoadBidItemsParams(
+												itemListStore,
+												0,
+												50,
+												'',
+												'',
+												Mogan.transactionTrace.loadBidItemsData));
+						}
+					});
 		});

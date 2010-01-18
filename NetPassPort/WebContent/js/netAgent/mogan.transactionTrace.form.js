@@ -133,6 +133,7 @@ Mogan.transactionTrace.createCaseListGridPanel = function() {
 					id : 'comboSearchKey',
 					xtype : 'combo'
 				}, {
+					id:'butSearchOrder',
 					text : '搜尋 ',
 					iconCls : 'search',
 					scale : 'medium',
@@ -149,7 +150,7 @@ Mogan.transactionTrace.createCaseListGridPanel = function() {
 					}
 				}]
 	});
-
+	
 	var gridTextEditor = new Ext.form.TextField({
 				readOnly : true
 			});
@@ -164,15 +165,19 @@ Mogan.transactionTrace.createCaseListGridPanel = function() {
 							header : "新訊息",
 							dataIndex : 'new_msg',
 							width : 40
-						},/*
-							 * { header : "新訊息", dataIndex : 'id', width : 20, },
-							 */{
+						},{
+							header : "匯款狀況",
+							editor : new Ext.form.TextField({
+										readOnly : true
+									}),
+							dataIndex : 'status'
+						},{
 							header : "得標者",
 							dataIndex : 'user_name',
 							editor : new Ext.form.TextField({
 										readOnly : true
 									})
-						}, {
+						},  {
 							header : "下標帳號",
 							dataIndex : 'jyahooid',
 							editor : new Ext.form.TextField({
@@ -284,12 +289,6 @@ Mogan.transactionTrace.createCaseListGridPanel = function() {
 										readOnly : true
 									}),
 							dataIndex : 'creator'
-						}, {
-							header : "匯款狀況",
-							editor : new Ext.form.TextField({
-										readOnly : true
-									}),
-							dataIndex : 'status'
 						}]
 			});
 
@@ -362,7 +361,9 @@ Mogan.transactionTrace.createCaseListGridPanel = function() {
 	itemListStore.load(Mogan.transactionTrace.createLoadBidItemsParams(
 			itemListStore, 0, 50, '', '',
 			Mogan.transactionTrace.loadBidItemsData));
+			
 
+	
 	return grid;
 };
 
@@ -371,7 +372,8 @@ Mogan.transactionTrace.createCaseListGridPanel = function() {
  */
 Mogan.transactionTrace.createDetilPanel = function() {
 	var detilPanel = new Ext.TabPanel({
-				activeTab : 0,
+				activeTab : 1,
+//				layout : 'fit',
 				items : [{
 							title : '商品詳細資訊',
 							// html : 'A simple tab'
@@ -391,9 +393,6 @@ Mogan.transactionTrace.createDetilPanel = function() {
 	return detilPanel;
 };
 
-Mogan.transactionTrace.createItemDataPanel = function() {
-
-}
 
 Mogan.transactionTrace.createMsgPanel = function() {
 	var grid = new Ext.grid.EditorGridPanel({
@@ -403,8 +402,13 @@ Mogan.transactionTrace.createMsgPanel = function() {
 		trackMouseOver : true,
 		disableSelection : false,
 		loadMask : true,
+//		height:300,
+//		region: 'center',
+//		layout : 'fit',
+
 		viewConfig : {
-			forceFit : true,
+			autoFill : true,
+//			forceFit : true,
 			enableRowBody : true,
 			showPreview : true,
 			getRowClass : function(record, rowIndex, p, store) {
@@ -571,7 +575,7 @@ Mogan.transactionTrace.createMsgSenderPanel = function() {
 						}, {
 							xtype : 'textarea',
 							name : "MSG",
-							height : 200,
+							//height : 200,
 							anchor : '90%-100',
 							fieldLabel : '內容'
 						}, {
@@ -619,6 +623,8 @@ Mogan.transactionTrace.createMsgSenderPanel = function() {
  * 
  * @return {}
  */
+
+/*
 Mogan.transactionTrace.createCenterPanel = function() {
 	var centerPanel = new Ext.Panel({
 				layout : 'border',
@@ -642,6 +648,7 @@ Mogan.transactionTrace.createCenterPanel = function() {
 
 	return centerPanel;
 }
+*/
 
 /**
  * 
@@ -658,8 +665,9 @@ Mogan.transactionTrace.createItemPanel = function() {
 		defaults : {
 			width : 230
 		},
-		// height : 300,
-		layout : 'vbox',
+//		 height : 300,
+//		layout : 'vbox',
+		//layout : 'fit',
 		layoutConfig : {
 			align : 'stretch',
 			pack : 'start'
@@ -672,8 +680,6 @@ Mogan.transactionTrace.createItemPanel = function() {
 			text : '開啟舊版畫面',
 			scale : 'medium',
 			handler : function() {
-				// alert(Ext.getCmp("itemPanel").getForm().getValues()['no']);
-
 				window
 						.open(
 								'http://www.mogan.com.tw/adminv2/bidding_config_handle.php?rid='
@@ -742,7 +748,7 @@ Mogan.transactionTrace.createItemPanel = function() {
 									name : 'renote'
 								}]
 					}]
-		}, {
+		}/*, {
 			xtype : 'panel',
 			layout : 'column',
 			items : [{
@@ -869,7 +875,7 @@ Mogan.transactionTrace.createItemPanel = function() {
 									name : 'charge'
 								}]
 					}]
-		}],
+		}*/],
 		buttons : [{
 					text : 'Save'
 				}]

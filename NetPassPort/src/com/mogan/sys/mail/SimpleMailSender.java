@@ -215,6 +215,8 @@ public class SimpleMailSender implements Runnable {
 		// 判斷是否需要身份認證
 		MyAuthenticator authenticator = null;
 		Properties pro = mailInfo.getProperties();
+
+		
 		if (mailInfo.isValidate()) {
 			// 如果需要身份認證，則創建一個密碼驗證器
 			authenticator = new MyAuthenticator(mailInfo.getUserName(),
@@ -273,6 +275,7 @@ public class SimpleMailSender implements Runnable {
 		MyAuthenticator authenticator = null;
 		Properties pro = mailInfo.getProperties();
 		// 如果需要身份認證，則創建一個密碼驗證器
+		System.out.println("[DEBUG] mailInfo.isValidate()::"+mailInfo.isValidate());
 		if (mailInfo.isValidate()) {
 			authenticator = new MyAuthenticator(mailInfo.getUserName(),
 					mailInfo.getPassword());
