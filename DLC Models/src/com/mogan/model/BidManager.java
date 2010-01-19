@@ -289,7 +289,7 @@ public class BidManager extends ProtoModel implements ServiceModelFace {
 		if (dataClass.equals("SELL_ITEM")) {
 			sql = "SELECT * FROM view_sell_item_order";
 		} else if (dataClass.equals("BUY_ITEM")) {
-			sql = "SELECT id,user_name,item,item_id ,no, end_date,sell_name,tax,costed,locally,remittance,status,jyahooid,contact_type,title,renote FROM web_won ";
+			sql = "SELECT id,user_name,item,item_id ,no, end_date,sell_name,tax,costed,locally,remittance,status,jyahooid,contact_type,title,renote,total_item,total_unpay,total_unship FROM view_bid_item_order_v1 ";
 		}
 
 		// 判斷要顯示的狀態
@@ -404,7 +404,7 @@ public class BidManager extends ProtoModel implements ServiceModelFace {
 		// 下標帳號 jyahooid
 
 		// String sql = "SELECT user_name,item,item_id ,no, end_date,sell_name,costed,status,jyahooid FROM web_bidding ";
-		String sql = "SELECT id,user_name,item,item_id ,no, end_date,sell_name,tax,costed,locally,remittance,status,jyahooid,contact_type,title,renote FROM web_won ";
+		String sql = "SELECT id,user_name,item,item_id ,no, end_date,sell_name,tax,costed,locally,remittance,status,jyahooid,contact_type,title,renote,total_item,total_unpay,total_unship FROM view_bid_item_order_v1 ";
 
 		// 判斷要顯示的狀態
 		boolean statusConditionFlag = true;
@@ -622,12 +622,15 @@ public class BidManager extends ProtoModel implements ServiceModelFace {
 					subject = "no";
 				}
 			}
+			
 			agentYJ.setMailSenderName(this.getProperty("mailSenderName"));
 			agentYJ.setMailSenderAddress(this.getProperty("mailSenderAddress"));
 			agentYJ.setMailCC(this.getProperty("mailCC"));
+			
 			jObj.put("CONTACT_TYPE", sendMethod);
 			jObj.put("CONTACT_RESULTS", agentYJ.sendMsg(bidAccount, itemId,
 					sendMethod, subject, msg, contactType).getString(0));
+					
 		}
 		// 讀取商品頁面
 		jArray.add(jObj);
@@ -953,7 +956,7 @@ public class BidManager extends ProtoModel implements ServiceModelFace {
 			String bidAccount = (String) parameterMap.get("BID_ACCOUNT");
 			String itemId = (String) parameterMap.get("ITEM_ID");
 			String webSiteId = (String) parameterMap.get("WEB_SITE_ID");
-			String transactionId = (String) parameterMap.get("TRANSACTION_ID");
+			String transactionId = (String) parameterMap.get("ITEM_ORDER_ID");
 			String sellerId = (String) parameterMap.get("SELLER_ID");
 			String memberAccount = (String) parameterMap.get("MEMBER_ACCOUNT");
 			String contactType = (String) parameterMap.get("CONTACT_TYPE");
@@ -978,10 +981,6 @@ public class BidManager extends ProtoModel implements ServiceModelFace {
 			jItemObj.put("ITEM_DATA", jMsgObj);
 			
 			long l3 = System.currentTimeMillis();
-			System.out.println("[DEBUG] time 3-0:" + (l3-l0));
-			System.out.println("[DEBUG] time 3-0:" + (l3-l2));
-			System.out.println("[DEBUG] time 3-0:" + (l2-l1));
-			System.out.println("[DEBUG] time 3-0:" + (l1-l0));
 			// }
 			jArray.add(jItemObj);
 

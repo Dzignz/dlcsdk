@@ -1023,7 +1023,7 @@ public class NetAgentYJ extends NetAgentModel implements BidFace {
 		jArray = conn
 				.queryJSONArray(
 						"mogan-DB",
-						"SELECT msg_id,msg_from,msg_contact,msg_title,is_read,msg_date,msg_title,read_date,is_read_count,contact_id FROM view_item_contact_record WHERE item_id='"
+						"SELECT msg_id,msg_from,msg_category,msg_contact,msg_title,is_read,msg_date,msg_title,read_date,is_read_count,contact_id FROM view_item_contact_record WHERE item_id='"
 								+ itemId
 								+ "' and bid_account='"
 								+ bidAccount
@@ -1121,7 +1121,7 @@ public class NetAgentYJ extends NetAgentModel implements BidFace {
 		DBConn conn = (DBConn) this.getModelServletContext().getAttribute(
 		"DBConn");
 		Map conditionMap=new HashMap();
-		conditionMap.put("acccount", bidAccount);
+		conditionMap.put("account", bidAccount);
 		conditionMap.put("item_id", itemId);
 		ArrayList dataList=conn.queryWithMap("mogan-tw", "view_item_order_v1", conditionMap);
 		orderId=(String) ((Map)dataList.get(0)).get("item_order_id");
@@ -1352,6 +1352,7 @@ public class NetAgentYJ extends NetAgentModel implements BidFace {
 		JSONArray jArray = new JSONArray();
 		DBConn conn = (DBConn) this.getModelServletContext().getAttribute(
 				"DBConn");
+		
 		ArrayList orderList = conn.query("mogan-tw",
 				"SELECT * FROM view_bid_item_order WHERE item_order_id='"
 						+ itemOrderId + "'");
@@ -1419,7 +1420,8 @@ public class NetAgentYJ extends NetAgentModel implements BidFace {
 						}
 						discussMap.put("msg_id", msgId);
 						discussMap.put("msg_title", msgId);
-
+						discussMap.put("msg_category", "連絡掲示板");
+						
 						discussMap.put("msg_from", msgFrom);
 					} else if (discussionNodes.elementAt(i).toPlainTextString()
 							.matches("^\\s*")) {
@@ -1506,6 +1508,7 @@ public class NetAgentYJ extends NetAgentModel implements BidFace {
 					dataMap.put("msg_from", msgFrom);
 					dataMap.put("msg_contact", msgContact);
 					dataMap.put("msg_date", msgDate);
+					dataMap.put("msg_category", "取引ナビ");
 					conn.newData("mogan-DB", "item_contact_record", dataMap);
 				}
 			}
@@ -1546,7 +1549,8 @@ public class NetAgentYJ extends NetAgentModel implements BidFace {
 				transactionId);
 
 		if (dataSource.equals(this.DATA_SOURCE_WEB)) {
-
+			getItemContactMsg(transactionId);
+			/*
 			Map contactMap = new HashMap();
 			for (int i = 0; i < jDataArray.size(); i++) {
 				contactMap.put(jDataArray.getJSONObject(i).get("msg_id"),
@@ -1554,7 +1558,7 @@ public class NetAgentYJ extends NetAgentModel implements BidFace {
 			}
 
 			NetAgent nAgent = new NetAgent();
-			/* 設定帳號COOKIE */
+			//* 設定帳號COOKIE 
 			autoLogin(bidAccount);
 			Cookie[] cookies = getLoginSessionCookie(this.getAppId(),
 					bidAccount);
@@ -1693,14 +1697,6 @@ public class NetAgentYJ extends NetAgentModel implements BidFace {
 						conn
 								.newData("mogan-DB", "item_contact_record",
 										dataMap);
-						// 寫入資料庫
-
-						/*
-						 * conn .executSql( "mogan-DB",
-						 * "INSERT item_contact_record (contact_id,seller_id,member_account,bid_account,transaction_id,item_id,msg_id,msg_title,msg_from,msg_contact,msg_date) values("
-						 * + " getAutoNumber('BCR-ID-01')" + ",'" + sellerId + "','" + memberAccount + "','" + bidAccount + "','" + transactionId +
-						 * "','" + itemId + "','" + msgId + "','" + msgTitle + "','" + msgFrom + "','" + msgContact + "','" + msgdate + "')");
-						 */
 					}
 				}
 			} catch (ParserException e) {
@@ -1708,6 +1704,7 @@ public class NetAgentYJ extends NetAgentModel implements BidFace {
 				e.printStackTrace();
 			}
 			nAgent = null;
+			*/
 			jDataArray = getItemContactMsgFromDB(bidAccount, itemId,
 					transactionId);
 		}
