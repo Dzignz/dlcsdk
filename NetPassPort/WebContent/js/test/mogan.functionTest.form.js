@@ -87,6 +87,13 @@ createHeadPanel = function() {
 				handler : function() {
 					bidItem();
 				}
+			}),	new Ext.Button({
+				scale : 'medium',
+				text : '得標訊息測試',
+				id : 'btnWonItem',
+				handler : function() {
+					testWonMsg();
+				}
 			})]);
 	return btns;
 }

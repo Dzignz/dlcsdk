@@ -187,10 +187,10 @@ Mogan.transactionTrace.showBidItemData = function(response) {
  */
 Mogan.transactionTrace.loadBidItemData = function(grid, rowIndex, e) {
 	var r = grid.getStore().getAt(rowIndex);
-	var msg = Ext.Msg.wait("請稍待", "資料讀取中", {
+	/*var msg = Ext.Msg.wait("請稍待", "資料讀取中", {
 				text : 'wait...',
 				animate : true
-			});
+			});*/
 	// 先讀取資料庫的資料，再讀取網頁上的資料如有更新就會提示使用者
 	Ext.Ajax.request({
 				url : 'AjaxPortal',
@@ -209,7 +209,7 @@ Mogan.transactionTrace.loadBidItemData = function(grid, rowIndex, e) {
 					WEB_SITE_ID : "SWD-2009-0001",
 					BID_ACCOUNT : r.get("jyahooid"),
 					ITEM_ID : r.get("item_id"),
-					TRANSACTION_ID : '',
+					ITEM_ORDER_ID : r.get("no"),
 					SELLER_ID : r.get("sell_name"),
 					WON_ID : r.get("id"),
 					CONTACT_TYPE : r.get("contact_type"),
@@ -327,9 +327,9 @@ Mogan.transactionTrace.rendererReadMsg = function(value, metaData, record,
 
 	if (value == 0) {
 		btnHtml = "<input type='button' value='讀取' onclick=\"Mogan.transactionTrace.readMsg('"
-				+ record['data']['contact_id'] + "')\" />";
+				+ record['data']['contact_id'] + "')\" />"+record['data']['msg_category'];
 	} else {
-		btnHtml = "<input type='button' value='已讀取' disabled=true />";
+		btnHtml = "<input type='button' value='已讀取' disabled=true />"+record['data']['msg_category'];
 	}
 	return btnHtml;
 }

@@ -9,7 +9,7 @@ var itemListStore = new Ext.data.JsonStore({
 	remoteSort : true,
 	fields : ['id', 'user_name', 'item', 'item_id', 'no', 'end_date',
 			'sell_name', 'tax', 'costed', 'locally', 'remittance', 'status',
-			'jyahooid', 'contact_type', 'title', 'renote'],
+			'jyahooid', 'contact_type', 'title', 'renote','total_item','total_unpay','total_unship'],
 	proxy : new Ext.data.HttpProxy({
 		url : 'AjaxPortal?APP_ID='
 				+ appId
@@ -52,7 +52,7 @@ var msgRecordStore = new Ext.data.JsonStore({
 			idProperty : 'threadid',
 			remoteSort : true,
 			fields : ['contact_id', 'seller_id', 'member_account',
-					'bid_account', 'transaction_id', 'item_id', 'msg_id',
+					'bid_account', 'transaction_id', 'item_id','msg_category', 'msg_id',
 					'msg_title', 'msg_from', 'msg_contact', 'msg_date',
 					'is_read', 'read_date', 'note']
 		});
@@ -162,15 +162,14 @@ Mogan.transactionTrace.createCaseListGridPanel = function() {
 					// columns are not sortable by default
 				},
 				columns : [new Ext.grid.RowNumberer(), {
-							header : "新訊息",
+							header : " ",
 							dataIndex : 'new_msg',
-							width : 40
+							width : 20
 						},{
 							header : "匯款狀況",
-							editor : new Ext.form.TextField({
-										readOnly : true
-									}),
-							dataIndex : 'status'
+							editor : new Ext.form.TextField(),
+							dataIndex : 'status',
+							width : 30
 						},{
 							header : "得標者",
 							dataIndex : 'user_name',
@@ -180,43 +179,43 @@ Mogan.transactionTrace.createCaseListGridPanel = function() {
 						},  {
 							header : "下標帳號",
 							dataIndex : 'jyahooid',
-							editor : new Ext.form.TextField({
-										readOnly : true
-									})
+							editor : new Ext.form.TextField()
 						}, {
 							header : "摩根得標編號",
 							dataIndex : 'no',
 							width : 100,
-							editor : new Ext.form.TextField({
-										readOnly : true
-									})
+							editor : new Ext.form.TextField()
 						}, {
 							header : "結標日",
 							dataIndex : 'end_date',
 							width : 150,
-							editor : new Ext.form.TextField({
-										readOnly : true
-									})
+							editor : new Ext.form.TextField()
 						}, {
 							header : "商品ID",
 							dataIndex : 'item_id',
-							editor : new Ext.form.TextField({
-										readOnly : true
-									}),
+							editor : new Ext.form.TextField(),
 							width : 100
 						}, {
 							header : "商品名",
-							editor : new Ext.form.TextField({
-										readOnly : true
-									}),
+							editor : new Ext.form.TextField(),
 							dataIndex : 'item',
 							width : 250
 						}, {
 							header : "賣家帳號",
-							editor : new Ext.form.TextField({
-										readOnly : true
-									}),
+							editor : new Ext.form.TextField(),
 							dataIndex : 'sell_name'
+						}, {
+							header : "累計成交數量",
+							editor : new Ext.form.TextField(),
+							dataIndex : 'total_item'
+						}, {
+							header : "累計未付款數量",
+							editor : new Ext.form.TextField(),
+							dataIndex : 'total_unpay'
+						}, {
+							header : "累計未出貨數量",
+							editor : new Ext.form.TextField(),
+							dataIndex : 'total_unship'
 						}, {
 							header : "賣家 e-mail",
 							editor : new Ext.form.TextField({
@@ -411,6 +410,7 @@ Mogan.transactionTrace.createMsgPanel = function() {
 //			forceFit : true,
 			enableRowBody : true,
 			showPreview : true,
+			editor : new Ext.form.TextField(),
 			getRowClass : function(record, rowIndex, p, store) {
 				if (this.showPreview) {
 
@@ -425,7 +425,7 @@ Mogan.transactionTrace.createMsgPanel = function() {
 			}
 		},
 		columns : [{
-					header : "",
+					header : "訊息來源",
 					renderer : Mogan.transactionTrace.rendererReadMsg,
 					dataIndex : 'is_read',
 					width : 30,
@@ -433,17 +433,20 @@ Mogan.transactionTrace.createMsgPanel = function() {
 				}, {
 					header : "留言帳號",
 					dataIndex : 'msg_from',
+					editor : new Ext.form.TextField(),
 					width : 100,
 					sortable : true
 				}, {
 					header : "主旨",
 					dataIndex : 'msg_title',
+					editor : new Ext.form.TextField(),
 					width : 150,
 					// hidden : true,
 					sortable : true
 				}, {
 					header : "留言時間",
 					dataIndex : 'msg_date',
+					editor : new Ext.form.TextField(),
 					width : 70,
 					align : 'right',
 					sortable : true
@@ -452,6 +455,7 @@ Mogan.transactionTrace.createMsgPanel = function() {
 					dataIndex : 'read_date',
 					width : 70,
 					align : 'right',
+					editor : new Ext.form.TextField(),
 					renderer : Mogan.transactionTrace.rendererFixDate,
 					sortable : true
 				}],

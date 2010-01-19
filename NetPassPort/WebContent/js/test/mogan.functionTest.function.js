@@ -47,6 +47,38 @@ bidItem = function() {
 			});
 }
 
+
+testWonMsg = function() {
+		Ext.Ajax.request({
+				url : 'AjaxPortal',
+				callback : function() {
+					Ext.Msg.alert("訊息", "儲存完成");
+				},
+				success : function(response) {
+					var json = parserJSON(response.responseText);
+					if (json['responseResult'] == "failure") {
+						Ext.Msg.alert("錯誤", json['responseMsg']);
+					} else {
+						Ext.Msg.alert("成功", json['responseData']);
+					}
+				},
+				failure : function(response) {
+					addMsg("[錯誤]\tajax failure");
+				},
+				params : {
+					APP_ID : appId,
+					ACTION : "SEND_WON_MESSAGE",
+					RETURN_TYPE : "JSON",
+					MODEL_NAME : "BidManager",
+					WEB_SITE_ID:"SWD-2009-0001",
+					BID_ACCOUNT:"akekahua",
+					ITEM_ID:"d97218505",
+					SUBJECT:"0",
+					MSG:"Dian test"
+				}
+			});
+}
+
 testContact = function() {
 		Ext.Ajax.request({
 				url : 'AjaxPortal',

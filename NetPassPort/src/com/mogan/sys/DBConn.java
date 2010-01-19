@@ -329,7 +329,7 @@ public class DBConn extends HttpServlet {
 		Map colStrctMap = queryTabelStructure(connAlias, table, conditionMap);
 
 		if (conditionMap.size() > 0) {
-			sql += " WHERE " + getSqlStr(conditionMap, colStrctMap);
+			sql += " WHERE " + getSqlWhereStr(conditionMap, colStrctMap);
 		}
 		return query(connAlias,sql);
 	}
@@ -370,6 +370,55 @@ public class DBConn extends HttpServlet {
 	}
 
 	/**
+	 * 
+	 * @param jData
+	 * @param colStrctMap
+	 * @return
+	 */
+	public String getSqlWhereStr(Map jData, Map colStrctMap) {
+		StringBuffer dataBuffer = new StringBuffer();
+		Iterator itData = jData.keySet().iterator();
+		for (; itData.hasNext();) {
+			String colName = (String) itData.next();
+			String newData = "";
+			Map colMap = (Map) colStrctMap.get(colName);
+			
+			switch (((Integer) colMap.get("columnType")).intValue()) {
+			case -1: // LONGVARCHAR
+			case 1: // CHAR
+			case 12: // VARCHAR
+				newData = colName + "='" + jData.get(colName) + "'";
+				break;
+			case 8: // DOUBLE
+			case 6: // FLOAT
+			case 5: // SMALLINT
+			case 4: // INTEGER
+			case 2: // NUMERIC
+			case -5: // BIGINT
+			case -6: // TINYINT
+				newData = colName + "=" + jData.get(colName) + "";
+				break;
+			case 91: // DATE
+			case 92: // TIME
+			case 93: // TIMESTAMP
+				SysCalendar calendar = new SysCalendar();
+				newData = colName
+						+ "='"
+						+ calendar.getFormatDate((Date) jData.get(colName),
+								SysCalendar.yyyy_MM_dd_HH_mm_ss_Mysql) + "'";
+				break;
+			default:
+				newData = colName + "='" + jData.get(colName) + "'";
+			}
+			if (dataBuffer.length() > 0) {
+				dataBuffer.append(" AND ");
+			}
+			dataBuffer.append(newData);
+		}
+		return dataBuffer.toString();
+	}
+	
+	/**
 	 * TODO 時間格式的欄位尚未完全測試完畢 組合出符合欄位結構的SQL語法
 	 * 
 	 * @param jData
@@ -385,6 +434,7 @@ public class DBConn extends HttpServlet {
 			String colName = (String) itData.next();
 			String newData = "";
 			Map colMap = (Map) colStrctMap.get(colName);
+			
 			switch (((Integer) colMap.get("columnType")).intValue()) {
 			case -1: // LONGVARCHAR
 			case 1: // CHAR
@@ -452,6 +502,7 @@ public class DBConn extends HttpServlet {
 			sql += columnName;
 		}
 		sql += " FROM " + tableName + " WHERE 1=2";
+		
 		try {
 			stmt = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
 					ResultSet.CONCUR_READ_ONLY);
@@ -460,12 +511,12 @@ public class DBConn extends HttpServlet {
 			int numberOfColumns = rsMetaData.getColumnCount();
 			for (int i = 1; i < numberOfColumns + 1; i++) {
 				Map tempMap = new HashMap();
-				tempMap.put("columnName", rsMetaData.getColumnName(i));
+				tempMap.put("columnName", rsMetaData.getColumnLabel(i));
 				tempMap.put("tableName", rsMetaData.getTableName(i));
 				tempMap.put("columnTypeName", rsMetaData.getColumnTypeName(i));
 				tempMap.put("columnType", Integer.valueOf(rsMetaData
 						.getColumnType(i)));
-				colStrctMap.put(rsMetaData.getColumnName(i), tempMap);
+				colStrctMap.put(rsMetaData.getColumnLabel(i), tempMap);
 				// 記錄欄位型態
 			}
 		} catch (SQLException e) {
