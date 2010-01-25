@@ -221,14 +221,15 @@ public class GmailTask extends ScheduleModelAdapter {
 		
 		NetAgent nAgent = new NetAgent();
 		
+		System.out.println("[INFO] logAlert URL::"+this.getProperty(PHP_COMMON_ALERT_URL)
+				+ "?appId=" + this.getProperty(PHP_APP_ID) + "&action="
+				+ action + "&seq_no=" + autoNum);
 		nAgent.getDataWithGet(this.getProperty(PHP_COMMON_ALERT_URL)
 				+ "?appId=" + this.getProperty(PHP_APP_ID) + "&action="
 				+ action + "&seq_no=" + autoNum);
-		
+		//System.out.println("[INFO] logAlert::"+nAgent.getResponseBody());
 //		System.out.println("[DEBUG]"+nAgent.getResponseBody());
-		 System.out.println("[INFO] logAlert::"+this.getProperty(PHP_COMMON_ALERT_URL)
-					+ "?appId=" + this.getProperty(PHP_APP_ID) + "&action="
-					+ action + "&seq_no=" + autoNum);
+		 
 	}
 
 	/**

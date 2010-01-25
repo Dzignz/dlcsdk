@@ -14,7 +14,8 @@ import org.dom4j.Element;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
-import com.mogan.serviceProtal.Schedule;
+import com.mogan.serviceProtal.ScheduleProtal;
+import com.mogan.serviceProtal.ScheduleProtal;
 import com.mogan.sys.ModelFace;
 import com.mogan.sys.ModelManager;
 import com.mogan.sys.ProtoModel;
@@ -53,7 +54,7 @@ public class ModelService extends ProtoModel implements ServiceModelFace {
 	 */
 	private JSONArray stopSchedule(String scheduleName){
 		JSONArray jArray = new JSONArray();
-		Schedule.stopSchedule(scheduleName);
+		ScheduleProtal.stopSchedule(scheduleName);
 		return jArray;
 	}
 	
@@ -64,7 +65,7 @@ public class ModelService extends ProtoModel implements ServiceModelFace {
 	 */
 	private JSONArray startSchedule(String scheduleName){
 		JSONArray jArray = new JSONArray();
-		Schedule.startSchedule(scheduleName,this.getAppId(),this.getModelServletContext());
+		ScheduleProtal.startSchedule(scheduleName,this.getAppId(),this.getModelServletContext());
 		return jArray;
 	}
 	
@@ -114,7 +115,7 @@ public class ModelService extends ProtoModel implements ServiceModelFace {
 			jObj.put("create_Date", e.elementText("create_Date"));
 			ScheduleModelAdapter scheduleModel = (ScheduleModelAdapter) modelManager
 					.getScheduleModel(e.elementText("scheduleName"));
-			jObj.put("status", Schedule.getScheduleStatus(e
+			jObj.put("status", ScheduleProtal.getScheduleStatus(e
 					.elementText("scheduleName")));
 			if ( scheduleModel.getExecuteDate()!=null){
 				

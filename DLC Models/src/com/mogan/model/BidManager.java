@@ -289,7 +289,7 @@ public class BidManager extends ProtoModel implements ServiceModelFace {
 		if (dataClass.equals("SELL_ITEM")) {
 			sql = "SELECT * FROM view_sell_item_order";
 		} else if (dataClass.equals("BUY_ITEM")) {
-			sql = "SELECT id,user_name,item,item_id ,no, end_date,sell_name,tax,costed,locally,remittance,status,jyahooid,contact_type,title,renote,total_item,total_unpay,total_unship FROM view_bid_item_order_v1 ";
+			sql = "SELECT id,user_name,item,item_id ,item_order_id, end_date,sell_name,tax,costed,locally,remittance,status,jyahooid,contact_type,title,renote,total_item,total_unpay,total_unship FROM view_bid_item_order_v1 ";
 		}
 
 		// 判斷要顯示的狀態
@@ -338,7 +338,7 @@ public class BidManager extends ProtoModel implements ServiceModelFace {
 			whereSql += " item_name like '%" + condition
 					+ "%' OR e_varchar06 like '%" + condition
 					+ "%' OR e_int04 like '%" + condition
-					+ "%' OR no e_int07 '%" + condition
+					+ "%' OR e_int07 '%" + condition
 					+ "%' OR e_int02 like '%" + condition
 					+ "%' OR e_varchar12 like '%" + condition
 					+ "%' OR e_varchar13 like '%" + condition
@@ -404,7 +404,7 @@ public class BidManager extends ProtoModel implements ServiceModelFace {
 		// 下標帳號 jyahooid
 
 		// String sql = "SELECT user_name,item,item_id ,no, end_date,sell_name,costed,status,jyahooid FROM web_bidding ";
-		String sql = "SELECT id,user_name,item,item_id ,no, end_date,sell_name,tax,costed,locally,remittance,status,jyahooid,contact_type,title,renote,total_item,total_unpay,total_unship FROM view_bid_item_order_v1 ";
+		String sql = "SELECT id,user_name,item,item_id ,item_order_id, end_date,sell_name,tax,costed,locally,remittance,status,jyahooid,contact_type,title,renote,total_item,total_unpay,total_unship FROM view_bid_item_order_v1 ";
 
 		// 判斷要顯示的狀態
 		boolean statusConditionFlag = true;
@@ -457,7 +457,7 @@ public class BidManager extends ProtoModel implements ServiceModelFace {
 					+ conditionJObj.getString("SEARCH_KEY")
 					+ "%' OR item_id like '%"
 					+ conditionJObj.getString("SEARCH_KEY")
-					+ "%' OR no like '%"
+					+ "%' OR item_order_id like '%"
 					+ conditionJObj.getString("SEARCH_KEY")
 					+ "%' OR end_date like '%"
 					+ conditionJObj.getString("SEARCH_KEY")
@@ -572,6 +572,25 @@ public class BidManager extends ProtoModel implements ServiceModelFace {
 			NetAgentYJ agentYJ = new NetAgentYJ(this.getModelServletContext(),
 					this.getAppId());
 			jArray = agentYJ.getItemData(bidAccount, itemId, won_id);
+		}
+		return jArray;
+	}
+	
+	/**
+	 * 取得商品的order form
+	 * @param webSiteId
+	 * @param bidAccount
+	 * @param itemId
+	 * @return
+	 * @throws AccountNotExistException 
+	 */
+	public JSONArray getItemOrderForm(String webSiteId, String bidAccount,
+			String itemId,String sellerAccount) throws AccountNotExistException{
+		JSONArray jArray = new JSONArray();
+		if (webSiteId.equals(YAHOO_JP_WEBSITE_ID)) {
+			NetAgentYJ agentYJ = new NetAgentYJ(this.getModelServletContext(),
+					this.getAppId());
+			jArray=agentYJ.getItemOrderForm(bidAccount,itemId,sellerAccount);
 		}
 		return jArray;
 	}
@@ -923,6 +942,14 @@ public class BidManager extends ProtoModel implements ServiceModelFace {
 			}
 			jArray = loadBidItems(startIndex, pageSize, statusCondition,
 					condition, orderBy, dir);
+		} else if (this.getAct().equals("SEND_ITEM_ORDER_FORM")) {
+			System.out.println("[DEBUG] SEND_ITEM_ORDER_FORM::"+parameterMap);
+		} else if (this.getAct().equals("GET_ITEM_ORDER_FORM")) {
+			String webSiteId = parameterMap.get("WEB_SITE_ID").toString();
+			String uId = (String) parameterMap.get("UID");
+			String itemId = (String) parameterMap.get("ITEM_ID");
+			String sellerAccount = (String) parameterMap.get("SELLER_ACCOUNT");
+			jArray = getItemOrderForm(webSiteId,uId,itemId,sellerAccount);
 		} else if (this.getAct().equals("LOGIN")) {
 			String webSiteId = parameterMap.get("WEB_SITE_ID").toString();
 			String uId = (String) parameterMap.get("UID");
@@ -952,7 +979,7 @@ public class BidManager extends ProtoModel implements ServiceModelFace {
 		} else if (this.getAct().equals("GET_LOGIN_LIST")) {
 			jArray = getLoginList();
 		} else if (this.getAct().equals("LOAD_TRANSACTION_DATA")) {
-			long l0 = System.currentTimeMillis();
+
 			String bidAccount = (String) parameterMap.get("BID_ACCOUNT");
 			String itemId = (String) parameterMap.get("ITEM_ID");
 			String webSiteId = (String) parameterMap.get("WEB_SITE_ID");
@@ -962,7 +989,7 @@ public class BidManager extends ProtoModel implements ServiceModelFace {
 			String contactType = (String) parameterMap.get("CONTACT_TYPE");
 			String wonId = (String) parameterMap.get("WON_ID");
 			String dataSource = (String) parameterMap.get("DATA_SOURCE");
-			long l1 = System.currentTimeMillis();
+
 			JSONObject jItemObj = new JSONObject();
 			JSONObject jMsgObj = new JSONObject();
 
@@ -970,7 +997,7 @@ public class BidManager extends ProtoModel implements ServiceModelFace {
 					.put("Datas", getItemContactData(webSiteId, bidAccount,
 							itemId, transactionId, sellerId, memberAccount,
 							dataSource));
-			long l2 = System.currentTimeMillis();
+
 			jMsgObj.put("Records", jMsgObj.getJSONArray("Datas").size());
 			jItemObj.put("CONTACT_MSG", jMsgObj);
 			// if (contactType == null) {
@@ -979,8 +1006,6 @@ public class BidManager extends ProtoModel implements ServiceModelFace {
 					wonId));
 			jMsgObj.put("Records", jMsgObj.getJSONArray("Datas").size());
 			jItemObj.put("ITEM_DATA", jMsgObj);
-			
-			long l3 = System.currentTimeMillis();
 			// }
 			jArray.add(jItemObj);
 
@@ -999,7 +1024,7 @@ public class BidManager extends ProtoModel implements ServiceModelFace {
 			}
 			jArray = snedMsg(webSiteId, bidAccount, itemId, sendMethod,
 					subject, msg);
-			sendWonMsg(webSiteId, bidAccount, itemId, subject, "XXXDIAN=" + msg);
+			sendWonMsg(webSiteId, bidAccount, itemId, subject, msg);
 		} else if (this.getAct().equals("SEND_WON_MESSAGE")) {
 			String webSiteId = (String) parameterMap.get("WEB_SITE_ID");
 			String bidAccount = (String) parameterMap.get("BID_ACCOUNT");

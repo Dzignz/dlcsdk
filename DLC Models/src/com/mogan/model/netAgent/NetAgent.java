@@ -382,6 +382,19 @@ public class NetAgent extends HttpClient {
 
 	}
 
+	public NodeList getHtmlNodeList() throws ParserException {
+		NodeList nodes;
+		try {
+			parser.setInputHTML(this.getResponseBody());
+			nodes = parser.parse(null);
+		} catch (ParserException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			throw e;
+		}
+		return nodes;
+	}
+	
 	public NodeList filterItem(NodeFilter filter) throws ParserException {
 		NodeList nodes;
 		try {
