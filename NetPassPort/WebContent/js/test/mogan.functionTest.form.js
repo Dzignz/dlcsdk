@@ -94,6 +94,20 @@ createHeadPanel = function() {
 				handler : function() {
 					testWonMsg();
 				}
+			}),	new Ext.Button({
+				scale : 'medium',
+				text : '登入測試',
+				id : 'btnLoginYj',
+				handler : function() {
+					logYj();
+				}
+			}),	new Ext.Button({
+				scale : 'medium',
+				text : '登入測試',
+				id : 'btnGetItemOrderForm',
+				handler : function() {
+					getItemOrderForm();
+				}
 			})]);
 	return btns;
 }

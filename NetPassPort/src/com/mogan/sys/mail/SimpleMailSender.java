@@ -276,6 +276,8 @@ public class SimpleMailSender implements Runnable {
 		Properties pro = mailInfo.getProperties();
 		// 如果需要身份認證，則創建一個密碼驗證器
 		System.out.println("[DEBUG] mailInfo.isValidate()::"+mailInfo.isValidate());
+		System.out.println("[DEBUG] mailInfo.getMailServerHost()::"+mailInfo.getMailServerHost());
+		System.out.println("[DEBUG] mailInfo.getMailServerPort()::"+mailInfo.getMailServerPort());
 		if (mailInfo.isValidate()) {
 			authenticator = new MyAuthenticator(mailInfo.getUserName(),
 					mailInfo.getPassword());

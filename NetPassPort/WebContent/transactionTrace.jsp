@@ -15,6 +15,9 @@
 
 <script type="text/javascript" src="js/ext-base.js"></script>
 <script type="text/javascript" src="js/ext-all.js"></script>
+
+<script type="text/javascript" src="js/mogan/mogan.template.selectedCell.js"></script>
+
 <script type="text/javascript" src="js/ext-lang-zh_TW.js"></script>
 <script type="text/javascript" src="js/ext-mogan.js"></script>
 
@@ -42,7 +45,7 @@ var accountJSONData = <% out.println(accountData); %>;
 <script type="text/javascript" src="js/netAgent/mogan.transactionTrace.init.js"></script>
 </head>
 <body>
-
+<div id="window-itemOrderForm-YAHOOJP"></div>
 
 
 </body>

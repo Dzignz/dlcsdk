@@ -14,6 +14,81 @@ var loadBidItemsParams = {
 	DIR : 'DESC'
 };
 
+/**
+ * 登入日本yahoo
+ */
+logYj = function() {
+		Ext.Ajax.request({
+				url : 'AjaxPortal',
+				callback : function() {
+					Ext.Msg.alert("訊息", "儲存完成");
+				},
+				success : function(response) {
+					var json = parserJSON(response.responseText);
+					if (json['responseResult'] == "failure") {
+						Ext.Msg.alert("錯誤", json['responseMsg']);
+					} else {
+						Ext.Msg.alert("成功", json['responseData']);
+					}
+				},
+				failure : function(response) {
+					addMsg("[錯誤]\tajax failure");
+				},
+				params : {
+					APP_ID : appId,
+					ACTION : "LOGIN",
+					RETURN_TYPE : "JSON",
+					MODEL_NAME : "BidManager",
+					WEB_SITE_ID:"SWD-2009-0001",
+					UID:"gWHmYjuK",
+					PWD:"87KSJ0ST"
+				}
+			});
+}
+
+/**
+ * 取得商品orderform
+ */
+getItemOrderForm = function() {
+		Ext.Ajax.request({
+				url : 'AjaxPortal',
+				callback : function() {
+					Ext.Msg.alert("訊息", "儲存完成");
+				},
+				success : function(response) {
+					var json = parserJSON(response.responseText);
+					if (json['responseResult'] == "failure") {
+						Ext.Msg.alert("錯誤", json['responseMsg']);
+					} else {
+							var win = new Ext.Window({
+										el:'window-itemOrderForm-YAHOOJP',
+										layout:'fit',
+										html : json['responseData'][0],
+										width : 800,
+										height : 600,
+										closeAction:'hide',
+										modal : true
+										
+									});
+							win.show();
+					}
+				},
+				failure : function(response) {
+					addMsg("[錯誤]\tajax failure");
+				},
+				params : {
+					APP_ID : appId,
+					ACTION : "GET_ITEM_ORDER_FORM",
+					RETURN_TYPE : "JSON",
+					MODEL_NAME : "BidManager",
+					WEB_SITE_ID:"SWD-2009-0001",
+					UID:"gWHmYjuK",
+					ITEM_ID:'c231442059'
+				}
+			});
+}
+
+
 bidItem = function() {
 		Ext.Ajax.request({
 				url : 'AjaxPortal',

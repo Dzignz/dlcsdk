@@ -91,8 +91,10 @@ public class AjaxPortal extends HttpServlet {
 			System.out.println("[DEBUG] params#" + i + " " + key );
 			i++;
 		}
-
-		String act = req.getParameter("ACTION").toUpperCase();
+		System.out.println("[DEBUG] ACTION-0#");
+		
+		String act = "";
+		System.out.println("[DEBUG] ACTION-1#");
 		String returnType = req.getParameter("RETURN_TYPE");
 
 		if (returnType == null) {
@@ -100,15 +102,16 @@ public class AjaxPortal extends HttpServlet {
 		}
 
 		if (!SysKernel.checkAppId(req, res)) {
-			act = "NON";// 非正確 APP ID，無法進行動作
-			System.out.println("[訊息] APP ID 未通過驗證.(AjaxPortal 發出)");
-		}
-
-		if (act.equals("NON")) {
+			// 非正確 APP ID，無法進行動作
+			System.out.println("[INFO] APP ID 未通過驗證.(AjaxPortal 發出)");
 			responseData = "";
 			responseRecord = "0";
-			responseMsg = "APP ID not Verified";
-		} else {
+			responseMsg = "Wrong APP ID not Verified.";
+		} else if (req.getParameter("ACTION")==null) {
+			responseData = "";
+			responseRecord = "0";
+			responseMsg = "ACTION not find.";			
+		}else{
 			loadModel(req, res);
 		}
 
@@ -128,7 +131,6 @@ public class AjaxPortal extends HttpServlet {
 			stringBuffer.append(jsonResponse.toString());
 		} else {
 			XMLSerializer xs = new XMLSerializer();
-			XStream xStream = new XStream(new DomDriver());
 			stringBuffer.append(xs.write(jsonResponse));
 		}
 		out.println(stringBuffer);
@@ -144,8 +146,7 @@ public class AjaxPortal extends HttpServlet {
 	 * @param res
 	 */
 	private void loadModel(HttpServletRequest req, HttpServletResponse res) {
-		int i=0;
-		URL url1;
+		
 		String modelName = req.getParameter("MODEL_NAME");
 		ModelManager modelManager = new ModelManager();
 		ProtoModel serviceModel = modelManager.getServiceModel(modelName);

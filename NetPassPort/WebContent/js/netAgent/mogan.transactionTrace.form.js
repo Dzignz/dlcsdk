@@ -7,9 +7,10 @@ var itemListStore = new Ext.data.JsonStore({
 	idProperty : 'threadid',
 	id : 'itemListStore',
 	remoteSort : true,
-	fields : ['id', 'user_name', 'item', 'item_id', 'no', 'end_date',
-			'sell_name', 'tax', 'costed', 'locally', 'remittance', 'status',
-			'jyahooid', 'contact_type', 'title', 'renote','total_item','total_unpay','total_unship'],
+	fields : ['id', 'user_name', 'item', 'item_id', 'item_order_id',
+			'end_date', 'sell_name', 'tax', 'costed', 'locally', 'remittance',
+			'status', 'jyahooid', 'contact_type', 'title', 'renote',
+			'total_item', 'total_unpay', 'total_unship'],
 	proxy : new Ext.data.HttpProxy({
 		url : 'AjaxPortal?APP_ID='
 				+ appId
@@ -24,8 +25,10 @@ var itemListStore = new Ext.data.JsonStore({
 });
 
 var accountListStore = new Ext.data.Store({
-			reader:new  Ext.data.JsonReader({root : 'root'},['bid_id','account','diaplay_account']),
-			proxy :new Ext.data.MemoryProxy(accountJSONData)
+			reader : new Ext.data.JsonReader({
+						root : 'root'
+					}, ['bid_id', 'account', 'diaplay_account']),
+			proxy : new Ext.data.MemoryProxy(accountJSONData)
 		});
 accountListStore.load();
 
@@ -52,9 +55,9 @@ var msgRecordStore = new Ext.data.JsonStore({
 			idProperty : 'threadid',
 			remoteSort : true,
 			fields : ['contact_id', 'seller_id', 'member_account',
-					'bid_account', 'transaction_id', 'item_id','msg_category', 'msg_id',
-					'msg_title', 'msg_from', 'msg_contact', 'msg_date',
-					'is_read', 'read_date', 'note']
+					'bid_account', 'transaction_id', 'item_id', 'msg_category',
+					'msg_id', 'msg_title', 'msg_from', 'msg_contact',
+					'msg_date', 'is_read', 'read_date', 'note']
 		});
 
 /**
@@ -121,7 +124,7 @@ Mogan.transactionTrace.createCaseListGridPanel = function() {
 		items : ['-', {
 					store : accountListStore,
 					displayField : 'diaplay_account',
-					model:'local',
+					model : 'local',
 					valueField : 'bid_id',
 					id : 'comboAccount',
 					triggerAction : 'all',
@@ -133,7 +136,7 @@ Mogan.transactionTrace.createCaseListGridPanel = function() {
 					id : 'comboSearchKey',
 					xtype : 'combo'
 				}, {
-					id:'butSearchOrder',
+					id : 'butSearchOrder',
 					text : '搜尋 ',
 					iconCls : 'search',
 					scale : 'medium',
@@ -150,7 +153,7 @@ Mogan.transactionTrace.createCaseListGridPanel = function() {
 					}
 				}]
 	});
-	
+
 	var gridTextEditor = new Ext.form.TextField({
 				readOnly : true
 			});
@@ -165,24 +168,24 @@ Mogan.transactionTrace.createCaseListGridPanel = function() {
 							header : " ",
 							dataIndex : 'new_msg',
 							width : 20
-						},{
+						}, {
 							header : "匯款狀況",
 							editor : new Ext.form.TextField(),
 							dataIndex : 'status',
 							width : 30
-						},{
+						}, {
 							header : "得標者",
 							dataIndex : 'user_name',
 							editor : new Ext.form.TextField({
 										readOnly : true
 									})
-						},  {
+						}, {
 							header : "下標帳號",
 							dataIndex : 'jyahooid',
 							editor : new Ext.form.TextField()
 						}, {
 							header : "摩根得標編號",
-							dataIndex : 'no',
+							dataIndex : 'item_order_id',
 							width : 100,
 							editor : new Ext.form.TextField()
 						}, {
@@ -360,9 +363,7 @@ Mogan.transactionTrace.createCaseListGridPanel = function() {
 	itemListStore.load(Mogan.transactionTrace.createLoadBidItemsParams(
 			itemListStore, 0, 50, '', '',
 			Mogan.transactionTrace.loadBidItemsData));
-			
 
-	
 	return grid;
 };
 
@@ -371,8 +372,10 @@ Mogan.transactionTrace.createCaseListGridPanel = function() {
  */
 Mogan.transactionTrace.createDetilPanel = function() {
 	var detilPanel = new Ext.TabPanel({
-				activeTab : 1,
-//				layout : 'fit',
+				activeTab : 0,
+				id : 'DetilPanel',
+				disabled : true,
+				// layout : 'fit',
 				items : [{
 							title : '商品詳細資訊',
 							// html : 'A simple tab'
@@ -387,11 +390,23 @@ Mogan.transactionTrace.createDetilPanel = function() {
 							layout : 'fit',
 							items : Mogan.transactionTrace
 									.createMsgSenderPanel()
+						}, {
+							title : 'order form',
+							id : 'tabItemOrderForm',
+							// layout : 'fit',
+							items : [{
+										xtype : 'button',
+										scale : 'medium',
+										text : '開啟オーダーフォーム(Order Form)',
+										id : 'btnOrderFrom',
+										handler : function() {
+											Mogan.transactionTrace.getItemOrderForm ();
+										}
+									}]
 						}]
 			});
 	return detilPanel;
 };
-
 
 Mogan.transactionTrace.createMsgPanel = function() {
 	var grid = new Ext.grid.EditorGridPanel({
@@ -401,27 +416,32 @@ Mogan.transactionTrace.createMsgPanel = function() {
 		trackMouseOver : true,
 		disableSelection : false,
 		loadMask : true,
-//		height:300,
-//		region: 'center',
-//		layout : 'fit',
+		sm : new Ext.grid.RowSelectionModel({
+					singleSelect : true
+				}),
 
 		viewConfig : {
 			autoFill : true,
-//			forceFit : true,
+			// forceFit : true,
 			enableRowBody : true,
 			showPreview : true,
 			editor : new Ext.form.TextField(),
 			getRowClass : function(record, rowIndex, p, store) {
 				if (this.showPreview) {
-
 					p.body = '<p><input type="button" value="複製到賣方資訊" onclick="Mogan.transactionTrace.copyConactDataToRenote('
 							+ rowIndex
 							+ ')"/></p>'
 							+ '<p>'
 							+ record.data.msg_contact + '</p>';
-					return 'x-grid3-row-expanded';
+					return 'mogan-selectable';
 				}
 				return 'x-grid3-row-collapsed';
+			},
+			templates : {
+				cell : new Ext.Template(
+						'<td class="x-grid3-col x-grid3-cell x-grid3-td-{id} mogan-selectable {css}" style="{style}" tabIndex="0" {cellAttr}>',
+						'<div class="x-grid3-cell-inner x-grid3-col-{id}" {attr}>{value}</div>',
+						'</td>')
 			}
 		},
 		columns : [{
@@ -491,7 +511,7 @@ Mogan.transactionTrace.createMsgSenderPanel = function() {
 							['3', '商品を受け取りました'], ['4', 'その他']]],
 			['1', 'e-mail', []],
 			['2', '揭示版', [['no', '公開しない'], ['yes', '公開する']]]];
-	// var msgCategoryData = [['1', '留言板'], ['2', 'e-Mail'], ['3', '揭示板']];
+
 	var msgCategoryStore = new Ext.data.SimpleStore({// 下拉式選單資料
 		fields : ['value', 'text', 'data'],
 		data : msgCategoryData
@@ -577,44 +597,26 @@ Mogan.transactionTrace.createMsgSenderPanel = function() {
 							disabled : true,
 							fieldLabel : ''
 						}, {
+							id : 'textareaMsgContent',
 							xtype : 'textarea',
 							name : "MSG",
-							//height : 200,
+							// height : 200,
 							anchor : '90%-100',
 							fieldLabel : '內容'
 						}, {
 							xtype : 'hidden',
-							id : 'hiddenMsgItemId',
-							name : 'ITEM_ID',
+							id : 'hiddenItemOrderId',
+							name : 'ITEM_ORDER_ID',
 							value : ''
-						}, {
-							xtype : 'hidden',
-							id : 'hiddenBidAccount',
-							name : 'BID_ACCOUNT',
-							value : ""
-						}, {
-							xtype : 'hidden',
-							name : 'WEB_SITE_ID',
-							value : 'SWD-2009-0001'
-						}, {
-							xtype : 'hidden',
-							name : 'ACTION',
-							value : 'SEND_MESSAGE'
-						}, {
-							xtype : 'hidden',
-							name : 'APP_ID',
-							value : appId
-						}, {
-							xtype : 'hidden',
-							name : 'MODEL_NAME',
-							value : "BidManager"
 						}],
 				buttons : [{
 							text : '送出',
 							handler : function() {
-								Ext.getCmp("msgSenderPanel").getForm().submit({
-											method : 'POST'
-										});
+								Mogan.transactionTrace.sendMsg();
+								/*
+								 * Ext.getCmp("msgSenderPanel").getForm().submit({
+								 * method : 'POST' });
+								 */
 							}
 						}]
 			})
@@ -629,30 +631,15 @@ Mogan.transactionTrace.createMsgSenderPanel = function() {
  */
 
 /*
-Mogan.transactionTrace.createCenterPanel = function() {
-	var centerPanel = new Ext.Panel({
-				layout : 'border',
-				items : [{
-							title : '案件列表',
-							region : 'north',
-							html : 'grid',
-							height : 250,
-							split : true,
-							collapsible : true,
-							layout : 'fit',
-							items : Mogan.transactionTrace
-									.createCaseListGridPanel()
-						}, {
-							region : 'center',
-							layout : 'fit',
-							title : '案件詳細資訊',
-							items : Mogan.transactionTrace.createDetilPanel()
-						}]
-			});
-
-	return centerPanel;
-}
-*/
+ * Mogan.transactionTrace.createCenterPanel = function() { var centerPanel = new
+ * Ext.Panel({ layout : 'border', items : [{ title : '案件列表', region : 'north',
+ * html : 'grid', height : 250, split : true, collapsible : true, layout :
+ * 'fit', items : Mogan.transactionTrace .createCaseListGridPanel() }, { region :
+ * 'center', layout : 'fit', title : '案件詳細資訊', items :
+ * Mogan.transactionTrace.createDetilPanel() }] });
+ * 
+ * return centerPanel; }
+ */
 
 /**
  * 
@@ -669,9 +656,9 @@ Mogan.transactionTrace.createItemPanel = function() {
 		defaults : {
 			width : 230
 		},
-//		 height : 300,
-//		layout : 'vbox',
-		//layout : 'fit',
+		// height : 300,
+		// layout : 'vbox',
+		// layout : 'fit',
 		layoutConfig : {
 			align : 'stretch',
 			pack : 'start'
@@ -715,7 +702,13 @@ Mogan.transactionTrace.createItemPanel = function() {
 									xtype : 'hidden',
 									width : 400,
 									name : 'no'
-								}, {
+								},
+								 {
+									xtype : 'hidden',
+									width : 400,
+									name : 'isOrderForm'
+								},
+									{
 									fieldLabel : '商品名稱',
 									width : 400,
 									name : 'item'
@@ -752,134 +745,7 @@ Mogan.transactionTrace.createItemPanel = function() {
 									name : 'renote'
 								}]
 					}]
-		}/*, {
-			xtype : 'panel',
-			layout : 'column',
-			items : [{
-						title : '相關費用',
-						xtype : 'fieldset',
-						labelWidth : 75,
-						bodyStyle : 'margin:5px 5px 5px 5px;',
-						style : {
-							'margin-right' : '10px'
-						},
-						defaultType : 'textfield',
-						autoHeight : true,
-						// border : false,
-						items : [{
-									fieldLabel : '得標價格(日)',
-									name : 'costed'
-								}, {
-									fieldLabel : '當地運費(日)',
-									name : 'locally'
-								}, {
-									fieldLabel : '匯款費用(日)',
-									name : 'remittance'
-								}, {
-									fieldLabel : '稅金費用(日)',
-									name : 'tax'
-								}, {
-									fieldLabel : '其他費用(日)',
-									name : 'other'
-								}, {
-									fieldLabel : '手續費用(台)',
-									name : 'charge'
-								}]
-					}, {
-						title : '匯款確認',
-						xtype : 'fieldset',
-						disabled : true,
-						labelWidth : 75,
-						bodyStyle : 'margin:5px 5px 5px 5px',
-						style : {
-							'margin-right' : '10px'
-						},
-						defaultType : 'textfield',
-						autoHeight : true,
-						// border : false,
-						items : [{
-									fieldLabel : '得標價格(日)',
-									name : 'costed'
-								}, {
-									fieldLabel : '當地運費(日)',
-									name : 'locally'
-								}, {
-									fieldLabel : '匯款費用(日)',
-									name : 'remittance'
-								}, {
-									fieldLabel : '稅金費用(日)',
-									name : 'tax'
-								}, {
-									fieldLabel : '其他費用(日)',
-									name : 'other'
-								}, {
-									fieldLabel : '手續費用(台)',
-									name : 'charge'
-								}]
-					}, {
-						title : '匯款',
-						xtype : 'fieldset',
-						disabled : true,
-						labelWidth : 75,
-						bodyStyle : 'margin:5px 5px 5px 5px',
-						style : {
-							'margin-right' : '10px'
-						},
-						defaultType : 'textfield',
-						autoHeight : true,
-						// border : false,
-						items : [{
-									fieldLabel : '得標價格(日)',
-									name : 'costed'
-								}, {
-									fieldLabel : '當地運費(日)',
-									name : 'locally'
-								}, {
-									fieldLabel : '匯款費用(日)',
-									name : 'remittance'
-								}, {
-									fieldLabel : '稅金費用(日)',
-									name : 'tax'
-								}, {
-									fieldLabel : '其他費用(日)',
-									name : 'other'
-								}, {
-									fieldLabel : '手續費用(台)',
-									name : 'charge'
-								}]
-					}, {
-						title : '物流同捆',
-						xtype : 'fieldset',
-						disabled : true,
-						labelWidth : 75,
-						bodyStyle : 'margin:5px 5px 5px 5px',
-						style : {
-							'margin-right' : '10px'
-						},
-						defaultType : 'textfield',
-						autoHeight : true,
-						// border : false,
-						items : [{
-									fieldLabel : '得標價格(日)',
-									name : 'costed'
-								}, {
-									fieldLabel : '當地運費(日)',
-									name : 'locally'
-								}, {
-									fieldLabel : '匯款費用(日)',
-									name : 'remittance'
-								}, {
-									fieldLabel : '稅金費用(日)',
-									name : 'tax'
-								}, {
-									fieldLabel : '其他費用(日)',
-									name : 'other'
-								}, {
-									fieldLabel : '手續費用(台)',
-									name : 'charge'
-								}]
-					}]
-		}*/],
+		}],
 		buttons : [{
 					text : 'Save'
 				}]

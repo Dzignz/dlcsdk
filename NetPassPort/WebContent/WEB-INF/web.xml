@@ -154,17 +154,17 @@
   </servlet-mapping>
   <servlet>
     <description></description>
-    <display-name>Schedule</display-name>
-    <servlet-name>Schedule</servlet-name>
-    <servlet-class>com.mogan.serviceProtal.Schedule2</servlet-class>
+    <display-name>ScheduleProtal</display-name>
+    <servlet-name>ScheduleProtal</servlet-name>
+    <servlet-class>com.mogan.serviceProtal.ScheduleProtal</servlet-class>
     <init-param>
       <param-name>APP_ID</param-name>
       <param-value>26b782eb04abbd54efba0dcf854b158d</param-value>
     </init-param>
   </servlet>
   <servlet-mapping>
-    <servlet-name>Schedule</servlet-name>
-    <url-pattern>/Schedule</url-pattern>
+    <servlet-name>ScheduleProtal</servlet-name>
+    <url-pattern>/ScheduleProtal</url-pattern>
   </servlet-mapping>
   <servlet>
     <description></description>
@@ -175,5 +175,15 @@
   <servlet-mapping>
     <servlet-name>logTest</servlet-name>
     <url-pattern>/logTest</url-pattern>
+  </servlet-mapping>
+  <servlet>
+    <description></description>
+    <display-name>ProxyProtal</display-name>
+    <servlet-name>ProxyProtal</servlet-name>
+    <servlet-class>com.mogan.serviceProtal.ProxyProtal</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>ProxyProtal</servlet-name>
+    <url-pattern>/ProxyProtal</url-pattern>
   </servlet-mapping>
 </web-app>

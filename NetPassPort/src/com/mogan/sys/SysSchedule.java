@@ -7,7 +7,7 @@ import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 
-import com.mogan.serviceProtal.Schedule;
+import com.mogan.serviceProtal.ScheduleProtal;
 
 /**
  * Servlet implementation class SysSchedule

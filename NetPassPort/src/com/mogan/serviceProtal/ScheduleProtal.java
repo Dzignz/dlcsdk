@@ -24,7 +24,7 @@ import com.mogan.sys.model.ScheduleModelAdapter;
 /**
  * Servlet implementation class Schedule2
  */
-public class Schedule extends HttpServlet {
+public class ScheduleProtal extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	final private static String APP_ID = "APP_ID";
 
@@ -45,7 +45,7 @@ public class Schedule extends HttpServlet {
 	/**
 	 * @see HttpServlet#HttpServlet()
 	 */
-	public Schedule() {
+	public ScheduleProtal() {
 		super();
 		// TODO Auto-generated constructor stub
 		// initSchedule();

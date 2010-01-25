@@ -1,18 +1,30 @@
 .video {
-    background-image: url(../../resources/mogan/images/1255403311_mix_video.png) !important;
-}
-.mail {
-    background:transparent url(../../resources/mogan/images/1258352253_send.png) no-repeat top left;
-    height:32px;
-    width:32px;
-}
-.search {
-    background-image: url(../../resources/mogan/images/1259213867_system-search.png) !important;    
-    height:32px;
-    width:32px;
+	background-image:
+		url(../../resources/mogan/images/1255403311_mix_video.png) !important;
 }
 
-.mogan-item-id{
-	font-size:15px;
-	color:#FF0000;
+.mail {
+	background: transparent
+		url(../../resources/mogan/images/1258352253_send.png) no-repeat top
+		left;
+	height: 32px;
+	width: 32px;
+}
+
+.search {
+	background-image:
+		url(../../resources/mogan/images/1259213867_system-search.png)
+		!important;
+	height: 32px;
+	width: 32px;
+}
+
+.mogan-item-id {
+	font-size: 15px;
+	color: #FF0000;
+}
+
+.mogan-selectable,.mogan-selectable * {
+	-moz-user-select: text !important;
+	-khtml-user-select: text !important;
 }

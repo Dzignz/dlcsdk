@@ -55,7 +55,7 @@ Mogan.transactionTrace.createLoadBidItemsParams = function(store, startIndex,
 }
 
 /**
- * 初始化資料
+ * 點選列表資料，初始化資料
  * 
  * @param {}
  *            grid
@@ -65,15 +65,54 @@ Mogan.transactionTrace.createLoadBidItemsParams = function(store, startIndex,
  *            e
  */
 Mogan.transactionTrace.clickItem = function(grid, rowIndex, e) {
+
 	var r = grid.getStore().getAt(rowIndex);
-	Mogan.transactionTrace.loadBidItemData(grid, rowIndex, e);
-	Mogan.transactionTrace.setSenderData(r);
+	Mogan.transactionTrace.loadBidItemData(grid, rowIndex, e);// 將資料顯示基本資料Tab
+	Mogan.transactionTrace.setSenderData(r);// 設定訊息發送Tab
+	//Mogan.transactionTrace.getItemOrderForm(r);// 設定訊息發送Tab
 	// Ext.get(itemFrame).src="http://www.mogan.com.tw/adminv2/bidding_config_handle.php?rid=38282";
 
 }
 
-Mogan.transactionTrace.searchData = function(index) {
+/**
+ * 取得商品order form
+ * 
+ * @param {}
+ *            record
+ */
+Mogan.transactionTrace.getItemOrderForm = function(record) {
+	/**
+	 * if 需要填order form{ 讀取網頁上的order form }else{ 顯示不必填寫的畫面或是讓TAB失效 }
+	 * 
+	 */
+	
+	Ext.getCmp("tabItemOrderForm").setDisabled(true);
+	var itemPanel=Ext.getCmp("itemPanel");
+//	Ext.getCmp("itemPanel").getForm().getValues()['item_id']
+//	Ext.getCmp("itemPanel").getForm().getValues()['jyahooid']
+//	Ext.getCmp("itemPanel").getForm().getValues()['sell_name']
 
+	if (false || itemPanel.getForm().getValues()['isOrderForm']) {
+
+	} else {
+		var win = new Ext.Window({
+					el : 'window-itemOrderForm-YAHOOJP',
+					layout : 'fit',
+			
+					html : "<iframe src='./ProxyProtal?APP_ID="+appId+"&MODEL_NAME=ItemOrderFormYJ&ACTION=GET_ORDER_FORM&BID_ACCOUNT=" +
+							Ext.getCmp("itemPanel").getForm().getValues()['item_id']+"&" +
+									"ITEM_ID="+Ext.getCmp("itemPanel").getForm().getValues()['item_id']+"&" +
+									"SELLER_ACCOUNT="+Ext.getCmp("itemPanel").getForm().getValues()['sell_name']+"'" +
+											" style='width:100%; height:100%;' frameborder='0' />",
+					width : 800,
+					height : 600,
+					closeAction : 'close',
+					autoScroll : true,
+					modal : true
+
+				});
+		win.show();
+	}
 }
 
 /**
@@ -187,15 +226,14 @@ Mogan.transactionTrace.showBidItemData = function(response) {
  */
 Mogan.transactionTrace.loadBidItemData = function(grid, rowIndex, e) {
 	var r = grid.getStore().getAt(rowIndex);
-	/*var msg = Ext.Msg.wait("請稍待", "資料讀取中", {
-				text : 'wait...',
-				animate : true
-			});*/
 	// 先讀取資料庫的資料，再讀取網頁上的資料如有更新就會提示使用者
+	// DetilPanel
+	Ext.getCmp('DetilPanel').setDisabled(true);
 	Ext.Ajax.request({
 				url : 'AjaxPortal',
 				callback : function() {
 					Ext.Msg.hide();
+					Ext.getCmp('DetilPanel').setDisabled(false);
 				},
 				success : Mogan.transactionTrace.showBidItemData,
 				failure : function(response) {
@@ -209,7 +247,7 @@ Mogan.transactionTrace.loadBidItemData = function(grid, rowIndex, e) {
 					WEB_SITE_ID : "SWD-2009-0001",
 					BID_ACCOUNT : r.get("jyahooid"),
 					ITEM_ID : r.get("item_id"),
-					ITEM_ORDER_ID : r.get("no"),
+					ITEM_ORDER_ID : r.get("item_order_id"),
 					SELLER_ID : r.get("sell_name"),
 					WON_ID : r.get("id"),
 					CONTACT_TYPE : r.get("contact_type"),
@@ -238,8 +276,59 @@ Mogan.transactionTrace.getloadBidItemsURL = function(store, options) {
 	store.proxy.setUrl('AjaxPortal?' + Ext.urlEncode(loadBidItemsParams));
 }
 
-Mogan.transactionTrace.sendMsg = function(value) {
+/**
+ * 發送訊息
+ * 
+ * @param {}
+ *            value
+ */
+Mogan.transactionTrace.sendMsg = function() {
 
+	var textareaMsgContent = Ext.getCmp("textareaMsgContent");// 留言內容
+	var textfieldMsgTitle = Ext.getCmp("textfieldMsgTitle");// MAIL TITLE
+	var comboMsgTitle = Ext.getCmp("comboMsgTitle");// 製定格式 TITLE
+	var comboMsgCategory = Ext.getCmp("comboMsgCategory");// 留言方式
+	var hiddenItemOrderId = Ext.getCmp("hiddenItemOrderId");
+
+	// Ext.Msg.alert('DEBUG',"item order id:"+hiddenItemOrderId.getValue()+"<br
+	// /> msg category:"+comboMsgCategory.getValue() +"<br /> msg title
+	// a:"+comboMsgTitle.getValue()+"<br /> msg title
+	// b:"+textfieldMsgTitle.getValue() +"<br />
+	// msg:"+textareaMsgContent.getValue())
+
+	Ext.Ajax.request({
+				url : 'AjaxPortal',
+				callback : function() {
+					// Ext.Msg.hide();
+				},
+				success : function(response) {
+					var json = parserJSON(response.responseText);
+					if (json['responseResult'] == "failure") {
+						Ext.Msg.alert("錯誤", json['responseMsg']);
+					} else {
+						Ext.Msg.confirm("請確認", "訊息已發出，是否將清空已發出的訊息", function(
+										btn, text) {
+									if (btn == 'yes') {
+										textareaMsgContent.setValue("");
+									}
+								});
+					}
+				},
+				failure : function(response) {
+					Ext.Msg.alert("錯誤", "請向程式開發者詢問");
+				},
+				params : {
+					APP_ID : appId,
+					ACTION : "SEND_MESSAGE",
+					RETURN_TYPE : "JSON",
+					MODEL_NAME : "BidManager",
+					ITEM_ORDER_ID : '',
+					MSG : '',
+					SEND_METHOD : '',
+					SUBJECT_B : '',
+					SUBJECT_A : ''
+				}
+			});
 }
 
 /**
@@ -310,9 +399,17 @@ Mogan.transactionTrace.fixComboMsgTitle = function(comboBox) {
 Mogan.transactionTrace.setSenderData = function(record) {
 	Ext.getCmp("labelMsgItemId").setText("商品ID: " + record.get("item_id"));
 	Ext.getCmp("labelMsgItemName").setText("商品名稱: " + record.get("item"));
+	// Ext.getCmp("hiddenMsgItemId").setValue(record.get("item_id"));
+	Ext.getCmp("hiddenItemOrderId").setValue(record.get("item_order_id"));
 
-	Ext.getCmp("hiddenMsgItemId").setValue(record.get("item_id"));
-	Ext.getCmp("hiddenBidAccount").setValue(record.get("jyahooid"));
+	if (record.get("contact_type").indexOf("@") > 0) {
+		Ext.getCmp("comboMsgCategory").setValue('1');
+	} else {
+		Ext.getCmp("comboMsgCategory").setValue('0');
+	}
+	Mogan.transactionTrace.fixComboMsgTitle(Ext.getCmp("comboMsgCategory"));
+	Ext.getCmp("textareaMsgContent").setValue('');
+	// Ext.getCmp("hiddenBidAccount").setValue(record.get("jyahooid"));
 }
 
 /**
@@ -327,9 +424,12 @@ Mogan.transactionTrace.rendererReadMsg = function(value, metaData, record,
 
 	if (value == 0) {
 		btnHtml = "<input type='button' value='讀取' onclick=\"Mogan.transactionTrace.readMsg('"
-				+ record['data']['contact_id'] + "')\" />"+record['data']['msg_category'];
+				+ record['data']['contact_id']
+				+ "')\" />"
+				+ record['data']['msg_category'];
 	} else {
-		btnHtml = "<input type='button' value='已讀取' disabled=true />"+record['data']['msg_category'];
+		btnHtml = "<input type='button' value='已讀取' disabled=true />"
+				+ record['data']['msg_category'];
 	}
 	return btnHtml;
 }

@@ -11,7 +11,7 @@ import javax.servlet.ServletContext;
 import net.sf.json.JSONArray;
 
 import com.mogan.exception.schedule.ScheduleNonInitException;
-import com.mogan.serviceProtal.Schedule;
+import com.mogan.serviceProtal.ScheduleProtal;
 import com.mogan.sys.ModelManager;
 import com.mogan.sys.ProtoModel;
 import com.mogan.sys.ServiceModelFace;
@@ -54,6 +54,7 @@ public abstract class ScheduleModelAdapter extends TimerTask implements Schedule
 		//以分鐘為單位
 		this.intervalMinute=Long.parseLong(intervalMinute.toString())*1000*60;
 	}
+	
 	/** 取得重覆執行間隔時間 */
 	@Override
 	public long getInterval(){

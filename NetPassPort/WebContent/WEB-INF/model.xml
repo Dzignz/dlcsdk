@@ -1,6 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <models>
 	<schedule>
+		<scheduleName>PhpNonBidAlert</scheduleName>
+		<scheduleJar>DLC Models.jar</scheduleJar>
+		<scheduleClass>com.mogan.schedule.PhpNonBidAlert</scheduleClass>
+		<scheduleDiscription></scheduleDiscription>
+		<load-on-startup>true</load-on-startup>
+		<loop>true</loop>
+		<interval>60</interval>
+		<schedule-properties>
+			<property name="PHP_NON_BID_ALERT_URL" value="http://192.168.1.66/common/class/BiddingAutoActionTaiwanAPI.php?action=YAHOO_JP_NOT_WON_MAIL&amp;appId=051b3fe6d815681c0bd487b55b7f4e7f"/>
+		</schedule-properties>
+	</schedule>
+	<schedule>
 		<scheduleName>MsnTask</scheduleName>
 		<scheduleJar>DLC Models.jar</scheduleJar>
 		<scheduleClass>com.mogan.schedule.MsnTask</scheduleClass>
@@ -49,6 +61,12 @@
 		<loop>true</loop>
 		<interval>3</interval>
 	</schedule>
+	<model>
+		<modelName>ItemOrderFormYJ</modelName>
+		<modelJar>DLC Models.jar</modelJar>
+		<modelClass>com.mogan.model.ItemOrderFormYJ</modelClass>
+		<modelDiscription></modelDiscription>
+	</model>	
 	<model>
 		<modelName>SMSModel</modelName>
 		<modelJar>DLC Models.jar</modelJar>
