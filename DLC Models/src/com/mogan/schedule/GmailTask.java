@@ -4,10 +4,12 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 
 import javax.mail.NoSuchProviderException;
 
 import com.mogan.exception.NetAgent.AccountNotExistException;
+import com.mogan.model.SMSModel;
 import com.mogan.model.netAgent.NetAgent;
 import com.mogan.model.netAgent.NetAgentGoogle;
 import com.mogan.model.netAgent.NetAgentYJ;
@@ -64,6 +66,7 @@ public class GmailTask extends ScheduleModelAdapter {
 	public void run() {
 		super.run();
 		try {
+
 			if (nAgentG == null) {
 				nAgentG = new NetAgentGoogle(this.getProperty(GMAIL_ACCOUNT),
 						this.getProperty(GMAIL_PWD));
@@ -122,13 +125,43 @@ public class GmailTask extends ScheduleModelAdapter {
 			 * nAgentG.callPhpServer(nAgentG.getCancelMail()); nAgentG.getPostItemMail(); nAgentG.getAutoPostItemMail(); nAgentG.getSoldItemMail();
 			 * nAgentG.getBuyerAskMail(); nAgentG.getBuyerContactMail(); nAgentG.getSellerDiscussMail();
 			 */
-
-		} catch (NoSuchProviderException e) {
+			
+			updateGmailStatus("OK");
+			
+		} catch (Exception e) {
 			// TODO Auto-generated catch block
+			updateGmailStatus("NOT_OK");
 			e.printStackTrace();
+			SMSModel sms=new SMSModel();
+			Properties p=new Properties();
+			p.setProperty("LOG_SERVER_URL", "http://sms.smse.com.tw");
+			p.setProperty("SEND_SERVER_URL", "http://smsmo.smse.com.tw");
+			p.setProperty("SEND_TEXT", "/STANDARD/sms_fu.asp");
+			p.setProperty("QUERY_LOG", "/STANDARD/TVRVRE_FU_B.ASP");
+			p.setProperty("ACCOUNT", "MORGAN");
+			p.setProperty("PWD", "24266676");
+			sms.setProperties(p);
+
+			sms.sendText("0910054930", "吳宗翰","ERR_GmailTask","GmailTask 當掉了!!!_"+e.getMessage());
+			sms=null;
 		}
 	}
 
+	/**
+	 * 
+	 * @param status
+	 */
+	public void updateGmailStatus(String status){
+		DBConn conn = (DBConn) this.getModelServletContext().getAttribute(
+		"DBConn");
+		Map conditionMap=new HashMap();
+		Map dataMap=new HashMap();
+		dataMap.put("config_value", status);
+		conditionMap.put("config_id", "SC-1002-00001");
+		conditionMap.put("config_key", "GMAIL_STATUS");
+		conn.update("mogan-DB", "system_config", conditionMap, dataMap);
+	}
+	
 	/**
 	 * 更新商品聯絡方式
 	 * 
@@ -142,12 +175,13 @@ public class GmailTask extends ScheduleModelAdapter {
 
 		NetAgentYJ netAgentYJ = new NetAgentYJ(this.getModelServletContext(),
 				this.getAppId());
+		
 		for (int i = 0; i < dataList.size(); i++) {
 			Map<String, String> tempMap = dataList.get(i);
 			String itemId = (String) tempMap.get("ITEM_ID");
 			ArrayList<Map> itemOrderIdList = getItemOrderIds(websiteId, tempMap
 					.get("ACCOUNT"), itemId);
-
+			
 			for (int j = 0; j < itemOrderIdList.size(); j++) {
 				String itemOrderId = (String) itemOrderIdList.get(j).get(
 						"item_order_id");
@@ -208,12 +242,20 @@ public class GmailTask extends ScheduleModelAdapter {
 			Map<String, String> tempMap = (Map) dataList.get(i);
 			ArrayList<Map> itemOrderIdList = getItemOrderIds(websiteId, tempMap
 					.get("ACCOUNT"), tempMap.get("ITEM_ID"));
-			for (int j = 0; j < itemOrderIdList.size(); j++) {
-				String itemOrderId = (String) itemOrderIdList.get(j).get(
-						"item_order_id");
-				dataMap.put("item_order_id", itemOrderId);
-				dataMap.put("alert", action);
+			if (itemOrderIdList.size()>0){
+				for (int j = 0; j < itemOrderIdList.size(); j++) {
+					String itemOrderId = (String) itemOrderIdList.get(j).get(
+							"item_order_id");
+					dataMap.put("item_order_id", itemOrderId);
+					dataMap.put("alert", action);
+					dataMap.put("create_date", new Date());
+					dataMap.put("seq_no", autoNum);
+					conn.newData("mogan-DB", "system_alert", dataMap);
+				}
+			}else{
+				dataMap.put("alert", "YAHOO_UNDEFINED");
 				dataMap.put("create_date", new Date());
+				dataMap.put("info", "YAHOO ACCOUNT:"+tempMap.get("ACCOUNT")+", ITEM ID:"+ tempMap.get("ITEM_ID"));
 				dataMap.put("seq_no", autoNum);
 				conn.newData("mogan-DB", "system_alert", dataMap);
 			}
@@ -224,11 +266,11 @@ public class GmailTask extends ScheduleModelAdapter {
 		System.out.println("[INFO] logAlert URL::"+this.getProperty(PHP_COMMON_ALERT_URL)
 				+ "?appId=" + this.getProperty(PHP_APP_ID) + "&action="
 				+ action + "&seq_no=" + autoNum);
+		
 		nAgent.getDataWithGet(this.getProperty(PHP_COMMON_ALERT_URL)
 				+ "?appId=" + this.getProperty(PHP_APP_ID) + "&action="
 				+ action + "&seq_no=" + autoNum);
-		//System.out.println("[INFO] logAlert::"+nAgent.getResponseBody());
-//		System.out.println("[DEBUG]"+nAgent.getResponseBody());
+
 		 
 	}
 
@@ -248,6 +290,9 @@ public class GmailTask extends ScheduleModelAdapter {
 				"SELECT item_order_id FROM view_bid_item_order WHERE website_id='"
 						+ webSiteId + "' AND account='" + account
 						+ "' AND item_id='" + itemId + "'");
+		System.out.println("[DEBUG] getItemOrderIds::"+"SELECT item_order_id FROM view_bid_item_order WHERE website_id='"
+				+ webSiteId + "' AND account='" + account
+				+ "' AND item_id='" + itemId + "'");
 		return dataList;
 	}
 

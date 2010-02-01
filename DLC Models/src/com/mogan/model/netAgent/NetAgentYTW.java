@@ -34,10 +34,10 @@ public class NetAgentYTW extends NetAgentModel {
 			{
 				//得到值節點的值
 				//若包含關鍵字，則簡單打印出來文本
-				if (node.toPlainTextString().equals("價格超低！！YOVICA迷你LED投影機,投射40吋看電影超過癮 WII PS3 XBOX 可接電視 ")){
-					System.out.println("[info] "+key+" ::"+node.toPlainTextString());	
+				if (node.toPlainTextString().equals("價格超低！！YOVICA迷你LED投影機,投射40吋!看電影/電玩超過癮 WII PS3 XBOX ")){
+					System.out.println("[info] "+key+" ::"+node.toPlainTextString());
 				}else if (node.toPlainTextString().equals("【。西門町。】___【 XBOX 360 HDMI硬碟版+震動手把 】___【門號價下殺 ↘$188元】")){
-					System.out.println("[info] "+key+" ::"+node.toPlainTextString());	
+					System.out.println("[info] "+key+" ::"+node.toPlainTextString());
 				}else if (node.toPlainTextString().equals("小李電子王國【P3078】xbox 360 高清音頻RCA線 ")){
 					System.out.println("[info] "+key+" ::"+node.toPlainTextString());
 				}else{
@@ -61,7 +61,6 @@ public class NetAgentYTW extends NetAgentModel {
 		JSONArray jArray=new JSONArray();
 		NetAgentYTW ntw = new NetAgentYTW();
 		NetAgent nAgent = new NetAgent();
-		
 		
 		nAgent.getDataWithGet("http://tw.search.bid.yahoo.com/search/ac?p=XBOX&ei=UTF-8");
 

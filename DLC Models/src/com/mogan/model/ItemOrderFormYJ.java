@@ -27,8 +27,9 @@ public class ItemOrderFormYJ extends ProtoModel implements ProxyModelFace {
 	 * 
 	 * @param postMap
 	 * @return
+	 * @throws AccountNotExistException 
 	 */
-	private String getOrderFormPreview(Map postMap){
+	private String getOrderFormPreview(Map postMap) throws AccountNotExistException{
 		NetAgentYJ agentYJ = new NetAgentYJ(this.getModelServletContext(),
 				this.getAppId());
 		String bidAccount=(String) postMap.get("UID");
@@ -41,8 +42,9 @@ public class ItemOrderFormYJ extends ProtoModel implements ProxyModelFace {
 	 * 
 	 * @param postMap
 	 * @return
+	 * @throws AccountNotExistException 
 	 */
-	private String postOrderForm(Map postMap){
+	private String postOrderForm(Map postMap) throws AccountNotExistException{
 		NetAgentYJ agentYJ = new NetAgentYJ(this.getModelServletContext(),
 				this.getAppId());
 		String bidAccount=(String) postMap.get("UID");
@@ -59,6 +61,7 @@ public class ItemOrderFormYJ extends ProtoModel implements ProxyModelFace {
 			String bidId=(String) parameterMap.get("BID_ACCOUNT");
 			String itemId=(String) parameterMap.get("ITEM_ID");
 			String sellerAccount=(String) parameterMap.get("SELLER_ACCOUNT");
+			System.out.println("[DEBUG] GET_ORDER_FORM:"+parameterMap);	
 			htmlStr=getOrderForm(bidId,itemId,sellerAccount);
 		}else if (this.getAct().equals("GET_ORDER_FORM_PREVIEW")){
 			htmlStr=getOrderFormPreview(parameterMap);

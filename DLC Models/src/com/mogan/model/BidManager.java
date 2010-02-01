@@ -15,6 +15,7 @@ import org.htmlparser.util.ParserException;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
+import com.mogan.dataBean.BidItemOrderBean;
 import com.mogan.exception.NetAgent.AccountNotExistException;
 import com.mogan.model.netAgent.NetAgentYJ;
 import com.mogan.sys.DBConn;
@@ -94,13 +95,13 @@ public class BidManager extends ProtoModel implements ServiceModelFace {
 
 	/**
 	 * <p>
-	 * <font size=7 color=red>對商品發問，ACTION = SEND_QUESTION</font>
+	 * <font size=7 color=red>對商品發問，ACTION = ASK_QUESTION</font>
 	 * </p>
 	 * 
 	 * @param webSiteId
 	 *            <font color=red>WEB_SITE_ID</font> 網站ID
 	 * @param questAccount
-	 *            <font color=red>QUEST_ACCOUNT</font> 發問的帳號
+	 *            <font color=red>AGENT_ACCOUNT</font> 發問的帳號
 	 * @param itemId
 	 *            <font color=red>ITEM_ID</font> 網站商品ID
 	 * @param question
@@ -108,14 +109,14 @@ public class BidManager extends ProtoModel implements ServiceModelFace {
 	 * @return
 	 * @throws Exception
 	 */
-	private JSONArray sendQusetion(String webSiteId, String questAccount,
+	private JSONArray askQusetion(String webSiteId, String agentAccount,
 			String itemId, String question) throws Exception {
 		// TODO 商品發問
 		JSONArray jArray = new JSONArray();
 		if (webSiteId.equals(YAHOO_JP_WEBSITE_ID)) {
 			NetAgentYJ agentYJ = new NetAgentYJ(this.getModelServletContext(),
 					this.getAppId());
-			jArray = agentYJ.sendQuestion(questAccount, itemId, question);
+			jArray = agentYJ.askQuestion(agentAccount, itemId, question);
 		}
 		return jArray;
 	}
@@ -284,12 +285,13 @@ public class BidManager extends ProtoModel implements ServiceModelFace {
 		// 匯款進度 status 0已得標未處理 1已取得賣家連絡資料 2完成匯款 3日本收貨完成 4日本出貨完成 5台灣收貨完成 6會員結帳完成 7台灣出貨完成
 		// 下標帳號 jyahooid
 
+		
 		// String sql = "SELECT user_name,item,item_id ,no, end_date,sell_name,costed,status,jyahooid FROM web_bidding ";
 		String sql = "";
 		if (dataClass.equals("SELL_ITEM")) {
 			sql = "SELECT * FROM view_sell_item_order";
 		} else if (dataClass.equals("BUY_ITEM")) {
-			sql = "SELECT id,user_name,item,item_id ,item_order_id, end_date,sell_name,tax,costed,locally,remittance,status,jyahooid,contact_type,title,renote,total_item,total_unpay,total_unship FROM view_bid_item_order_v1 ";
+			sql = "SELECT id,user_name,item,item_id ,item_order_id, end_date,sell_name,tax,costed,locally,remittance,status,agent_account,contact_type,title,renote,total_item,total_unpay,total_unship,order_form_status,realname FROM view_bid_item_order_v1 ";
 		}
 
 		// 判斷要顯示的狀態
@@ -336,6 +338,8 @@ public class BidManager extends ProtoModel implements ServiceModelFace {
 
 		} else {
 			whereSql += " item_name like '%" + condition
+			
+			+ "%' OR realname like '%" + condition
 					+ "%' OR e_varchar06 like '%" + condition
 					+ "%' OR e_int04 like '%" + condition
 					+ "%' OR e_int07 '%" + condition
@@ -402,9 +406,9 @@ public class BidManager extends ProtoModel implements ServiceModelFace {
 		// 匯款帳戶
 		// 匯款進度 status 0已得標未處理 1已取得賣家連絡資料 2完成匯款 3日本收貨完成 4日本出貨完成 5台灣收貨完成 6會員結帳完成 7台灣出貨完成
 		// 下標帳號 jyahooid
-
+		System.out.println("[DEBUG] loadItems::"+condition);
 		// String sql = "SELECT user_name,item,item_id ,no, end_date,sell_name,costed,status,jyahooid FROM web_bidding ";
-		String sql = "SELECT id,user_name,item,item_id ,item_order_id, end_date,sell_name,tax,costed,locally,remittance,status,jyahooid,contact_type,title,renote,total_item,total_unpay,total_unship FROM view_bid_item_order_v1 ";
+		String sql = "SELECT id,user_name,item,item_id ,item_order_id, end_date,sell_name,tax,costed,locally,remittance,status,agent_account ,contact_type,title,renote,total_item,total_unpay,total_unship,order_form_status,realname FROM view_bid_item_order_v1 ";
 
 		// 判斷要顯示的狀態
 		boolean statusConditionFlag = true;
@@ -445,12 +449,12 @@ public class BidManager extends ProtoModel implements ServiceModelFace {
 				}
 			}
 		}
-
 		JSONObject conditionJObj = JSONObject.fromObject(condition);
 
 		if (conditionJObj.has("SEARCH_KEY")
 				&& conditionJObj.getString("SEARCH_KEY").length() > 0) {
 			// 有設定篩選值
+			String searchKey=conditionJObj.getString("SEARCH_KEY");
 			whereSql += " AND (user_name like '%"
 					+ conditionJObj.getString("SEARCH_KEY")
 					+ "%' OR item like '%"
@@ -465,14 +469,17 @@ public class BidManager extends ProtoModel implements ServiceModelFace {
 					+ conditionJObj.getString("SEARCH_KEY")
 					+ "%' OR remittance like '%"
 					+ conditionJObj.getString("SEARCH_KEY")
-					+ "%' OR jyahooid like '%"
+					+ "%' OR agent_account like '%"
 					+ conditionJObj.getString("SEARCH_KEY")
 					+ "%' OR contact_type like '%"
 					+ conditionJObj.getString("SEARCH_KEY")
 					+ "%' OR title like '%"
 					+ conditionJObj.getString("SEARCH_KEY")
+					+ "%' OR realname like '%"
+					+ conditionJObj.getString("SEARCH_KEY")
 					+ "%' OR renote like '%"
 					+ conditionJObj.getString("SEARCH_KEY") + "%' )";
+			
 		}
 
 		/*
@@ -484,7 +491,7 @@ public class BidManager extends ProtoModel implements ServiceModelFace {
 				&& conditionJObj.getString("ACCOUNT").length() > 0
 				&& !conditionJObj.getString("ACCOUNT").equals("-")) {
 			// 有設定篩選帳號 舊版
-			whereSql += " AND jyahooid like '"
+			whereSql += " AND agent_account like '"
 					+ conditionJObj.getString("ACCOUNT").replaceAll(
 							"-YAHOO JP", "") + "' ";
 		}
@@ -709,6 +716,33 @@ public class BidManager extends ProtoModel implements ServiceModelFace {
 		JSONArray jArray = new JSONArray();
 		return jArray;
 	}
+	
+	
+	/**
+	 * 
+	 * @param itemOrderId
+	 * @param sendMethod
+	 * @param subject
+	 * @param msg
+	 * @return
+	 * @throws AccountNotExistException 
+	 */
+	public JSONArray snedMsg(String itemOrderId, String sendMethod, String subject, String msg) throws AccountNotExistException{
+		DBConn conn = (DBConn) this.getModelServletContext().getAttribute(
+		"DBConn");
+		BidItemOrderBean bidItemOrderBean= new BidItemOrderBean(conn,itemOrderId);
+		
+		JSONArray jArray = new JSONArray();
+		Map<String,String> dataMap=bidItemOrderBean.getDataMap();
+		String webSiteId=dataMap.get("website_id");
+		String bidAccount=dataMap.get("agent_account");
+		String itemId=dataMap.get("item_id");
+		snedMsg( webSiteId,  bidAccount, itemId,  sendMethod,  subject,  msg);
+		
+		
+		return jArray;
+	}
+			
 
 	/**
 	 * <p>
@@ -904,7 +938,7 @@ public class BidManager extends ProtoModel implements ServiceModelFace {
 			String questAccount = (String) parameterMap.get("QUEST_ACCOUNT");
 			String itemId = (String) parameterMap.get("ITEM_ID");
 			String question = (String) parameterMap.get("QUESTION");
-			jArray = sendQusetion(webSiteId, questAccount, itemId, question);
+			jArray = askQusetion(webSiteId, questAccount, itemId, question);
 		} else if (this.getAct().equals("REPOST_ITEM")) {
 			String itemOrderId = (String) parameterMap.get("ITEM_ORDER_ID");
 			jArray = repostItem(itemOrderId);
@@ -919,7 +953,7 @@ public class BidManager extends ProtoModel implements ServiceModelFace {
 			String statusCondition = (String) parameterMap
 					.get("STATUS_CONDITION");
 			String dataClass = (String) parameterMap.get("DATA_CLASS");
-			String condition = (String) parameterMap.get("CONDITION");
+			String condition = (String) parameterMap.get("CONDITION_KEY");
 			String orderBy = (String) parameterMap.get("ORDER_BY");
 			String dir = (String) parameterMap.get("DIR");
 			if (dir == null) {
@@ -934,7 +968,7 @@ public class BidManager extends ProtoModel implements ServiceModelFace {
 					.get("PAGE_SIZE"));
 			String statusCondition = (String) parameterMap
 					.get("STATUS_CONDITION");
-			String condition = (String) parameterMap.get("CONDITION");
+			String condition = (String) parameterMap.get("CONDITION_KEY");
 			String orderBy = (String) parameterMap.get("ORDER_BY");
 			String dir = (String) parameterMap.get("DIR");
 			if (dir == null) {
@@ -1013,6 +1047,7 @@ public class BidManager extends ProtoModel implements ServiceModelFace {
 			String webSiteId = (String) parameterMap.get("WEB_SITE_ID");
 			String bidAccount = (String) parameterMap.get("BID_ACCOUNT");
 			String itemId = (String) parameterMap.get("ITEM_ID");
+			String itemOrderId = (String) parameterMap.get("ITEM_ORDER_ID");
 
 			String sendMethod = (String) parameterMap.get("SEND_METHOD");
 			String subject = (String) parameterMap.get("SUBJECT_A");
@@ -1022,9 +1057,12 @@ public class BidManager extends ProtoModel implements ServiceModelFace {
 			} else {
 				subject = (String) parameterMap.get("SUBJECT_A");
 			}
+			jArray = snedMsg(itemOrderId, sendMethod, subject, msg);
+			/*
 			jArray = snedMsg(webSiteId, bidAccount, itemId, sendMethod,
 					subject, msg);
-			sendWonMsg(webSiteId, bidAccount, itemId, subject, msg);
+					*/
+//			sendWonMsg(webSiteId, bidAccount, itemId, subject, msg);
 		} else if (this.getAct().equals("SEND_WON_MESSAGE")) {
 			String webSiteId = (String) parameterMap.get("WEB_SITE_ID");
 			String bidAccount = (String) parameterMap.get("BID_ACCOUNT");

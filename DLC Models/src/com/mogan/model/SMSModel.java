@@ -23,7 +23,16 @@ public class SMSModel extends ProtoModel implements ServiceModelFace {
 	private final static String QUERY_LOG = "QUERY_LOG";
 	private final static String ACCOUNT = "ACCOUNT";
 	private final static String PWD = "PWD";
+	private final static String CLASS_NAME = "SMSModel";
 
+	/*
+	public SMSModel(){
+		ModelManager.
+		serviceModel.setProperties(modelManager.getModelProperties(this.getClass().getName()));
+		this.setProperties(p)
+	}
+	*/
+	
 	@Override
 	public JSONArray doAction(Map parameterMap) throws Exception {
 		// TODO Auto-generated method stub
@@ -41,6 +50,16 @@ public class SMSModel extends ProtoModel implements ServiceModelFace {
 		return jArray;
 	}
 
+	public JSONArray sendText(String number,String name,String checkKey,String msg){
+		JSONArray numberJarray=new JSONArray();
+		JSONObject jObj=new JSONObject();
+		jObj.put("NUMBER", number);
+		jObj.put("NAME", name);
+		jObj.put("CHECK_KEY", checkKey);
+		numberJarray.add(jObj);
+		return sendText(numberJarray,msg);
+	}
+	
 	/**
 	 * <p>
 	 * <font size=7 color=red>發送簡訊，ACTION = SEND_TEXT</font>
@@ -86,14 +105,27 @@ public class SMSModel extends ProtoModel implements ServiceModelFace {
 				names.append(";");
 			}
 			if (jObj.has("NAME")) {
-				names.append(jObj.getString("NAME"));
+				try {
+					names.append(URLEncoder.encode(jObj.getString("NAME"), "big5"));
+				} catch (UnsupportedEncodingException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+					names.append(jObj.getString("NAME"));
+				}
+				
 			}
 
 			if (checkKey.length() > 0) {
 				checkKey.append(";");
 			}
 			if (jObj.has("CHECK_KEY")) {
-				checkKey.append(jObj.getString("CHECK_KEY"));
+				try {
+					checkKey.append(URLEncoder.encode(jObj.getString("CHECK_KEY"), "big5"));
+				} catch (UnsupportedEncodingException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+					checkKey.append(jObj.getString("CHECK_KEY"));
+				}
 			}
 		}
 

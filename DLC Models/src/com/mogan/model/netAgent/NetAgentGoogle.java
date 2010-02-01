@@ -181,6 +181,7 @@ public class NetAgentGoogle extends NetAgentModel implements Runnable {
 		Folder inbox = null;
 		try {
 			// Store用來收信,Store類實現特定郵件協議上的讀、寫、監視、查找等操作。
+		
 			if (!store.isConnected()) {
 				System.out.println("[DEBUG] getMailFolder:"+folderName+" "+store.isConnected());
 				store.connect();
