@@ -39,18 +39,26 @@ Mogan.transactionTrace.createLoadBidItemsParams = function(store, startIndex,
 			PAGE_SIZE : pageSize,
 			ORDER_BY : orderBy,
 			STATUS_CONDITION : statusCondition,
-			CONDITION : ''
+			CONDITION_KEY : Ext.encode({
+		SEARCH_KEY : Ext.getCmp('comboSearchKey').getValue(),
+		ACCOUNT_ID : Ext.getCmp('comboAccount').getValue(),
+		ACCOUNT : Ext.getCmp('comboAccount').getRawValue()
+	})
 		},
 		add : false,
 		scope : store,
 		callback : callbackFunction
 	};
+	/*
 	var conditionObj = {
 		SEARCH_KEY : Ext.getCmp('comboSearchKey').getValue(),
 		ACCOUNT_ID : Ext.getCmp('comboAccount').getValue(),
 		ACCOUNT : Ext.getCmp('comboAccount').getRawValue()
 	};
+	
 	loadBidItemsParams.CONDITION = Ext.encode(conditionObj);
+	*/
+//	alert(loadBidItemsParams.CONDITION);
 	return loadParams;
 }
 
@@ -69,48 +77,122 @@ Mogan.transactionTrace.clickItem = function(grid, rowIndex, e) {
 	var r = grid.getStore().getAt(rowIndex);
 	Mogan.transactionTrace.loadBidItemData(grid, rowIndex, e);// 將資料顯示基本資料Tab
 	Mogan.transactionTrace.setSenderData(r);// 設定訊息發送Tab
-	//Mogan.transactionTrace.getItemOrderForm(r);// 設定訊息發送Tab
+	Mogan.transactionTrace.loadItemOrderForm();// 設定訊息發送Tab
+	// Mogan.transactionTrace.getItemOrderForm(r);// 設定訊息發送Tab
 	// Ext.get(itemFrame).src="http://www.mogan.com.tw/adminv2/bidding_config_handle.php?rid=38282";
 
 }
 
 /**
- * 取得商品order form
+ * 讀取商品 order form
  * 
  * @param {}
  *            record
  */
-Mogan.transactionTrace.getItemOrderForm = function(record) {
+Mogan.transactionTrace.loadItemOrderForm = function() {
+	var itemPanel = Ext.getCmp("itemPanel");
+	Ext.getCmp("tabItemOrderForm").setDisabled(true);
+	if (itemPanel.getForm().getValues()['order_form_status']==0) {
+		Ext.getCmp("DetilPanel").setActiveTab(0);
+		Ext.getCmp("tabItemOrderForm").html = itemPanel.getForm().getValues()['order_form_status'];
+	} else {
+		/*
+		Ext.DomHelper.append('tab-iframe-window-1', {
+					tag : 'div',
+					id : 'tab-YJ-orderForm'
+				});*/
+		Ext.DomHelper.overwrite('tab-iframe-window-1', {
+					tag : 'iframe',
+					src : './ProxyProtal?APP_ID='
+				+ appId
+				+ "&MODEL_NAME=ItemOrderFormYJ&ACTION=GET_ORDER_FORM&BID_ACCOUNT="
+				+ Ext.getCmp("itemPanel").getForm().getValues()['agent_account']
+				+ "&"
+				+ "ITEM_ID="
+				+ Ext.getCmp("itemPanel").getForm().getValues()['item_id']
+				+ "&"
+				+ "SELLER_ACCOUNT="
+				+ Ext.getCmp("itemPanel").getForm().getValues()['sell_name'],
+				style:'width:100%; height:100%;',
+				frameborder:'0'
+				});
+				/*
+		Ext.getDoc('tab-YJ-orderForm').innerHtml="<iframe src='./ProxyProtal?APP_ID="
+				+ appId
+				+ "&MODEL_NAME=ItemOrderFormYJ&ACTION=GET_ORDER_FORM&BID_ACCOUNT="
+				+ Ext.getCmp("itemPanel").getForm().getValues()['account']
+				+ "&"
+				+ "ITEM_ID="
+				+ Ext.getCmp("itemPanel").getForm().getValues()['item_id']
+				+ "&"
+				+ "SELLER_ACCOUNT="
+				+ Ext.getCmp("itemPanel").getForm().getValues()['sell_name']
+				+ "'" + " style='width:100%; height:100%;' frameborder='0' />";
+				/*
+		Ext.getCmp("tabItemOrderForm").html ="";
+		Ext.getCmp("tabItemOrderForm").html = "<iframe src='./ProxyProtal?APP_ID="
+				+ appId
+				+ "&MODEL_NAME=ItemOrderFormYJ&ACTION=GET_ORDER_FORM&BID_ACCOUNT="
+				+ Ext.getCmp("itemPanel").getForm().getValues()['account']
+				+ "&"
+				+ "ITEM_ID="
+				+ Ext.getCmp("itemPanel").getForm().getValues()['item_id']
+				+ "&"
+				+ "SELLER_ACCOUNT="
+				+ Ext.getCmp("itemPanel").getForm().getValues()['sell_name']
+				+ "'" + " style='width:100%; height:100%;' frameborder='0' />";
+				*/
+//				Ext.getCmp("tabItemOrderForm").html ="";
+		Ext.getCmp("tabItemOrderForm").setDisabled(false);
+	}
+}
+
+/**
+ * 開啟商品order form
+ * 
+ * @param {}
+ *            record
+ */
+Mogan.transactionTrace.openItemOrderForm = function(record) {
 	/**
 	 * if 需要填order form{ 讀取網頁上的order form }else{ 顯示不必填寫的畫面或是讓TAB失效 }
 	 * 
 	 */
-	
-	Ext.getCmp("tabItemOrderForm").setDisabled(true);
-	var itemPanel=Ext.getCmp("itemPanel");
-//	Ext.getCmp("itemPanel").getForm().getValues()['item_id']
-//	Ext.getCmp("itemPanel").getForm().getValues()['jyahooid']
-//	Ext.getCmp("itemPanel").getForm().getValues()['sell_name']
 
+	// Ext.getCmp("tabItemOrderForm").setDisabled(true);
+	var itemPanel = Ext.getCmp("itemPanel");
+	// Ext.getCmp("itemPanel").getForm().getValues()['item_id']
+	// Ext.getCmp("itemPanel").getForm().getValues()['jyahooid']
+	// Ext.getCmp("itemPanel").getForm().getValues()['sell_name']
 	if (false || itemPanel.getForm().getValues()['isOrderForm']) {
 
 	} else {
-		var win = new Ext.Window({
-					el : 'window-itemOrderForm-YAHOOJP',
-					layout : 'fit',
-			
-					html : "<iframe src='./ProxyProtal?APP_ID="+appId+"&MODEL_NAME=ItemOrderFormYJ&ACTION=GET_ORDER_FORM&BID_ACCOUNT=" +
-							Ext.getCmp("itemPanel").getForm().getValues()['item_id']+"&" +
-									"ITEM_ID="+Ext.getCmp("itemPanel").getForm().getValues()['item_id']+"&" +
-									"SELLER_ACCOUNT="+Ext.getCmp("itemPanel").getForm().getValues()['sell_name']+"'" +
-											" style='width:100%; height:100%;' frameborder='0' />",
-					width : 800,
-					height : 600,
-					closeAction : 'close',
-					autoScroll : true,
-					modal : true
-
+		Ext.DomHelper.append('iframe-window', {
+					tag : 'div',
+					id : 'YJ-orderForm'
 				});
+		var win = new Ext.Window({
+			el : 'YJ-orderForm',
+			layout : 'fit',
+
+			html : "<iframe src='./ProxyProtal?APP_ID="
+					+ appId
+					+ "&MODEL_NAME=ItemOrderFormYJ&ACTION=GET_ORDER_FORM&BID_ACCOUNT="
+					+ Ext.getCmp("itemPanel").getForm().getValues()['agent_account']
+					+ "&"
+					+ "ITEM_ID="
+					+ Ext.getCmp("itemPanel").getForm().getValues()['item_id']
+					+ "&"
+					+ "SELLER_ACCOUNT="
+					+ Ext.getCmp("itemPanel").getForm().getValues()['sell_name']
+					+ "'"
+					+ " style='width:100%; height:100%;' frameborder='0' />",
+			width : 800,
+			height : 600,
+			closeAction : 'close',
+			autoScroll : true,
+			modal : true
+		});
 		win.show();
 	}
 }
@@ -245,7 +327,7 @@ Mogan.transactionTrace.loadBidItemData = function(grid, rowIndex, e) {
 					RETURN_TYPE : "JSON",
 					MODEL_NAME : "BidManager",
 					WEB_SITE_ID : "SWD-2009-0001",
-					BID_ACCOUNT : r.get("jyahooid"),
+					BID_ACCOUNT : r.get("agent_account"),
 					ITEM_ID : r.get("item_id"),
 					ITEM_ORDER_ID : r.get("item_order_id"),
 					SELLER_ID : r.get("sell_name"),
@@ -286,7 +368,7 @@ Mogan.transactionTrace.sendMsg = function() {
 
 	var textareaMsgContent = Ext.getCmp("textareaMsgContent");// 留言內容
 	var textfieldMsgTitle = Ext.getCmp("textfieldMsgTitle");// MAIL TITLE
-	var comboMsgTitle = Ext.getCmp("comboMsgTitle");// 製定格式 TITLE
+	var comboMsgTitle = Ext.getCmp("comboMsgTitle");// 標準格式 TITLE
 	var comboMsgCategory = Ext.getCmp("comboMsgCategory");// 留言方式
 	var hiddenItemOrderId = Ext.getCmp("hiddenItemOrderId");
 
@@ -322,11 +404,12 @@ Mogan.transactionTrace.sendMsg = function() {
 					ACTION : "SEND_MESSAGE",
 					RETURN_TYPE : "JSON",
 					MODEL_NAME : "BidManager",
-					ITEM_ORDER_ID : '',
-					MSG : '',
-					SEND_METHOD : '',
-					SUBJECT_B : '',
-					SUBJECT_A : ''
+					ITEM_ORDER_ID : hiddenItemOrderId.getValue(),
+					WEB_SITE_ID : "SWD-2009-0001",
+					MSG : textareaMsgContent.getValue(),
+					SEND_METHOD : comboMsgCategory.getValue(),
+					SUBJECT_B : textfieldMsgTitle.getValue(),
+					SUBJECT_A : comboMsgTitle.getValue()
 				}
 			});
 }
@@ -410,6 +493,24 @@ Mogan.transactionTrace.setSenderData = function(record) {
 	Mogan.transactionTrace.fixComboMsgTitle(Ext.getCmp("comboMsgCategory"));
 	Ext.getCmp("textareaMsgContent").setValue('');
 	// Ext.getCmp("hiddenBidAccount").setValue(record.get("jyahooid"));
+}
+
+/**
+ * 修正 OrderForm按鈕
+ */
+Mogan.transactionTrace.rendererOrderForm = function(value) {
+	var html = "";
+	/*
+	 * if (value == 0) { html = "<img src='' />"; } else { html = "<img src=''
+	 * />"; }
+	 */
+	if (value == "1") {
+		html = "<img src='./resources/mogan/images/form_edit.png' />";
+	} else {
+		html = "<img src='./resources/mogan/images/form_edit_pale.png' />";
+	}
+	// html=value;
+	return html;
 }
 
 /**

@@ -9,8 +9,17 @@
 		<loop>true</loop>
 		<interval>60</interval>
 		<schedule-properties>
-			<property name="PHP_NON_BID_ALERT_URL" value="http://192.168.1.66/common/class/BiddingAutoActionTaiwanAPI.php?action=YAHOO_JP_NOT_WON_MAIL&amp;appId=051b3fe6d815681c0bd487b55b7f4e7f"/>
+			<property name="PHP_NON_BID_ALERT_URL" value="http://192.168.1.66/class/common/BiddingAutoActionTaiwanAPI.php?action=YAHOO_JP_NOT_WON_MAIL&amp;appId=051b3fe6d815681c0bd487b55b7f4e7f"/>
 		</schedule-properties>
+	</schedule>
+	<schedule>
+		<scheduleName>JpServerTest</scheduleName>
+		<scheduleJar>DLC Models.jar</scheduleJar>
+		<scheduleClass>com.mogan.schedule.JpServerTest</scheduleClass>
+		<scheduleDiscription></scheduleDiscription>
+		<load-on-startup>true</load-on-startup>
+		<loop>true</loop>
+		<interval>5</interval>
 	</schedule>
 	<schedule>
 		<scheduleName>MsnTask</scheduleName>
@@ -47,8 +56,8 @@
 			<property name="YAHOO_JP_SELLER_DISCUSS_MAIL" value="日雅-賣家揭示版"/>
 			
 			<property name="YAHOO_JP_WEBSITE_ID" value="SWD-2009-0001"/>
-			<property name="PHP_SOLD_ALERT_URL" value="http://192.168.1.66/common/class/SellAPI.php?appId=051b3fe6d815681c0bd487b55b7f4e7f&amp;action=BID_SUCCESS&amp;io_id=$MOGAN_ITEM_ORDER_ID&amp;args=$ARGS"/>
-			<property name="PHP_COMMON_ALERT_URL" value="http://192.168.1.66/common/class/BiddingAutoActionTaiwanAPI.php"/>
+			<property name="PHP_SOLD_ALERT_URL" value="http://192.168.1.66/class/common/SellAPI.php?appId=051b3fe6d815681c0bd487b55b7f4e7f&amp;action=BID_SUCCESS&amp;io_id=$MOGAN_ITEM_ORDER_ID&amp;args=$ARGS"/>
+			<property name="PHP_COMMON_ALERT_URL" value="http://192.168.1.66/class/common/BiddingAutoActionTaiwanAPI.php"/>
 			<property name="PHP_APP_ID" value="051b3fe6d815681c0bd487b55b7f4e7f"/>
 		</schedule-properties>
 	</schedule>
@@ -66,7 +75,7 @@
 		<modelJar>DLC Models.jar</modelJar>
 		<modelClass>com.mogan.model.ItemOrderFormYJ</modelClass>
 		<modelDiscription></modelDiscription>
-	</model>	
+	</model>
 	<model>
 		<modelName>SMSModel</modelName>
 		<modelJar>DLC Models.jar</modelJar>

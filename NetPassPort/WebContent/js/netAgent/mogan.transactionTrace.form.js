@@ -7,10 +7,11 @@ var itemListStore = new Ext.data.JsonStore({
 	idProperty : 'threadid',
 	id : 'itemListStore',
 	remoteSort : true,
-	fields : ['id', 'user_name', 'item', 'item_id', 'item_order_id',
-			'end_date', 'sell_name', 'tax', 'costed', 'locally', 'remittance',
-			'status', 'jyahooid', 'contact_type', 'title', 'renote',
-			'total_item', 'total_unpay', 'total_unship'],
+	fields : ['id', 'user_name', 'realname', 'item', 'item_id',
+			'item_order_id', 'end_date', 'sell_name', 'tax', 'costed',
+			'locally', 'remittance', 'status', 'agent_account', 'contact_type',
+			'title', 'renote', 'total_item', 'total_unpay', 'total_unship',
+			'order_form_status'],
 	proxy : new Ext.data.HttpProxy({
 		url : 'AjaxPortal?APP_ID='
 				+ appId
@@ -173,15 +174,19 @@ Mogan.transactionTrace.createCaseListGridPanel = function() {
 							editor : new Ext.form.TextField(),
 							dataIndex : 'status',
 							width : 30
-						}, {
-							header : "得標者",
+						},  {
+							header : "會員帳號",
 							dataIndex : 'user_name',
 							editor : new Ext.form.TextField({
 										readOnly : true
 									})
+						},{
+							header : "會員名稱",
+							editor : new Ext.form.TextField(),
+							dataIndex : 'realname'
 						}, {
 							header : "下標帳號",
-							dataIndex : 'jyahooid',
+							dataIndex : 'agent_account',
 							editor : new Ext.form.TextField()
 						}, {
 							header : "摩根得標編號",
@@ -232,29 +237,9 @@ Mogan.transactionTrace.createCaseListGridPanel = function() {
 									}),
 							dataIndex : 'contact_type'
 						}, {
-							header : "e-mail通知",
-							editor : new Ext.form.TextField({
-										readOnly : true
-									}),
-							dataIndex : 'creator'
-						}, {
-							header : "留言版通知",
-							editor : new Ext.form.TextField({
-										readOnly : true
-									}),
-							dataIndex : 'creator'
-						}, {
 							header : "填寫交易form",
-							editor : new Ext.form.TextField({
-										readOnly : true
-									}),
-							dataIndex : 'creator'
-						}, {
-							header : "填寫堨示板",
-							editor : new Ext.form.TextField({
-										readOnly : true
-									}),
-							dataIndex : 'creator'
+							renderer : Mogan.transactionTrace.rendererOrderForm,
+							dataIndex : 'order_form_status'
 						}, {
 							header : "消費稅",
 							editor : new Ext.form.TextField({
@@ -393,16 +378,8 @@ Mogan.transactionTrace.createDetilPanel = function() {
 						}, {
 							title : 'order form',
 							id : 'tabItemOrderForm',
-							// layout : 'fit',
-							items : [{
-										xtype : 'button',
-										scale : 'medium',
-										text : '開啟オーダーフォーム(Order Form)',
-										id : 'btnOrderFrom',
-										handler : function() {
-											Mogan.transactionTrace.getItemOrderForm ();
-										}
-									}]
+							contentEl : 'tab-iframe-window-1',
+							layout : 'fit'
 						}]
 			});
 	return detilPanel;
@@ -667,17 +644,30 @@ Mogan.transactionTrace.createItemPanel = function() {
 		defaultType : 'textfield',
 		// http://www.mogan.com.tw/adminv2/bidding_config_handle.php?rid=38658
 		items : [{
-			xtype : 'button',
-			text : '開啟舊版畫面',
-			scale : 'medium',
-			handler : function() {
-				window
-						.open(
-								'http://www.mogan.com.tw/adminv2/bidding_config_handle.php?rid='
-										+ Ext.getCmp("itemPanel").getForm()
-												.getValues()['no'],
-								'height=100, width=400, top=0, left=0, toolbar=no, menubar=no, scrollbars=no, resizable=no,location=n o, status=no');
-			}
+			xtype : 'panel',
+			layout : 'column',
+			width : '100%',
+			items : [{
+				xtype : 'button',
+				text : '開啟舊版畫面',
+				scale : 'medium',
+				handler : function() {
+					window
+							.open(
+									'http://www.mogan.com.tw/adminv2/bidding_config_handle.php?rid='
+											+ Ext.getCmp("itemPanel").getForm()
+													.getValues()['no'],
+									'height=100, width=400, top=0, left=0, toolbar=no, menubar=no, scrollbars=no, resizable=no,location=n o, status=no');
+				}
+			}, {
+				xtype : 'button',
+				text : '開啟オーダーフォーム(Order Form)',
+				scale : 'medium',
+				style : 'padding:0px 5px 0px',
+				handler : function() {
+					Mogan.transactionTrace.openItemOrderForm();
+				}
+			}]
 		}, {
 			xtype : 'panel',
 			layout : 'column',
@@ -702,13 +692,11 @@ Mogan.transactionTrace.createItemPanel = function() {
 									xtype : 'hidden',
 									width : 400,
 									name : 'no'
-								},
-								 {
+								}, {
 									xtype : 'hidden',
 									width : 400,
-									name : 'isOrderForm'
-								},
-									{
+									name : 'order_form_status'
+								}, {
 									fieldLabel : '商品名稱',
 									width : 400,
 									name : 'item'
@@ -717,7 +705,7 @@ Mogan.transactionTrace.createItemPanel = function() {
 									name : 'item_id'
 								}, {
 									fieldLabel : '下標帳號',
-									name : 'jyahooid'
+									name : 'agent_account'
 								}, {
 									fieldLabel : '會員帳號',
 									name : 'user_name'

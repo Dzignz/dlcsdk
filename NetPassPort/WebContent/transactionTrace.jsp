@@ -45,8 +45,8 @@ var accountJSONData = <% out.println(accountData); %>;
 <script type="text/javascript" src="js/netAgent/mogan.transactionTrace.init.js"></script>
 </head>
 <body>
-<div id="window-itemOrderForm-YAHOOJP"></div>
-
+<div id="iframe-window"></div>
+<div id="tab-iframe-window-1" style="width:100%; height:100%;"></div>
 
 </body>
 </html>

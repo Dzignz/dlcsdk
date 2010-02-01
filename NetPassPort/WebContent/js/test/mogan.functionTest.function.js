@@ -68,7 +68,6 @@ getItemOrderForm = function() {
 										height : 600,
 										closeAction:'hide',
 										modal : true
-										
 									});
 							win.show();
 					}

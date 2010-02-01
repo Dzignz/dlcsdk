@@ -40,7 +40,7 @@ public class ModelManager extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	private static String modelFilePath;
 	private static ServletContext servletContext;
-
+	private static Document Mdeldocument;
 	/**
 	 * @see HttpServlet#HttpServlet()
 	 */

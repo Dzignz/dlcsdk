@@ -18,7 +18,11 @@ public abstract class ProtoModel extends HttpServlet {
 	private String modelClass="";
 	private String modelDiscription="";
 	private String sessionId="";
-
+	
+	public ProtoModel(){
+		
+		
+	}
 	
 	/**
 	 * @param p the p to set

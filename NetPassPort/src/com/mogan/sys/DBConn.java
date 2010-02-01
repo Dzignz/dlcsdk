@@ -201,7 +201,7 @@ public class DBConn extends HttpServlet {
 
 		String sql = "UPDATE " + table + " SET "
 				+ getSqlStr(dataMap, colStrctMap) + " WHERE "
-				+ getSqlStr(conditionMap, colStrctMap);
+				+ getSqlWhereStr(conditionMap, colStrctMap);
 		executSql(connAlias, sql);
 		return jArray;
 	}

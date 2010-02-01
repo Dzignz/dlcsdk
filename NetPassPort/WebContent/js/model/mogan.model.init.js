@@ -1,15 +1,9 @@
 Ext.onReady(function() {
-			var bodyPanel = new Ext.Panel({
-						buttons : [{
-									text : 'text'
-								}]
-					});
-
-			var bodyPanel = new Ext.Panel({
-						title : 'Model Service',
-						height : 500,
+			var viewport = new Ext.Viewport({
 						layout : 'border',
+						title : 'Model Service',
 						items : [{
+							
 									region : 'north',
 									frame : true,
 									anchor : '100%',
@@ -47,8 +41,6 @@ Ext.onReady(function() {
 											})]
 								}]
 					});
-			bodyPanel.render(document.body);
 			Mogan.model.loadModelData();
 		});
-
 
