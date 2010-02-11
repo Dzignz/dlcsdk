@@ -9,6 +9,7 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -82,45 +83,23 @@ public class DBConn extends HttpServlet {
 	}
 
 	synchronized public String getAutoNumber(String connAlias, String idName) {
-		ArrayList<Map> numList=query("mogan-DB", "SELECT getAutoNumber('SA-SEQ-01') as num");
-		String autoNum=(String) numList.get(0).get("num");
+		ArrayList<Map> numList = query("mogan-DB",
+				"SELECT getAutoNumber('SA-SEQ-01') as num");
+		String autoNum = (String) numList.get(0).get("num");
 		return autoNum;
 	}
-	
-	/*
-	synchronized public String getAutoNumber(String connAlias, String idName) {
-		ArrayList dataList = query(connAlias,
-				"SELECT * FROM sys_table_id_index where id_name='" + idName
-						+ "'");
 
-		if (dataList.size() > 0) {
-			Map rowMap = (Map) dataList.get(0);
-			String lastValue = (String) rowMap.get("last_value");
-			String frontRule = (String) rowMap.get("front_rule");
-			String indexRule = (String) rowMap.get("index_rule");
-			String newId = frontRule.substring(0, frontRule.lastIndexOf("-"));
-			newId += "-"
-					+ getDate(frontRule
-							.substring(frontRule.lastIndexOf("-") + 1));
-			java.text.DecimalFormat df = new java.text.DecimalFormat(indexRule);
-			if (lastValue == null)
-				lastValue = "";
-			if (lastValue.startsWith(newId)) {
-				newId += "-"
-						+ df
-								.format(Integer
-										.valueOf(lastValue.substring(lastValue
-												.lastIndexOf("-") + 1)) + 1);
-			} else {
-				newId += "-" + df.format(Integer.valueOf(indexRule) + 1);
-			}
-			this.executSql(connAlias,
-					"UPDATE sys_table_id_index SET last_value='" + newId
-							+ "' WHERE id_name='" + idName + "'");
-			return newId;
-		}
-		return String.valueOf(System.currentTimeMillis());
-	}*/
+	/*
+	 * synchronized public String getAutoNumber(String connAlias, String idName) { ArrayList dataList = query(connAlias,
+	 * "SELECT * FROM sys_table_id_index where id_name='" + idName + "'"); if (dataList.size() > 0) { Map rowMap = (Map) dataList.get(0); String
+	 * lastValue = (String) rowMap.get("last_value"); String frontRule = (String) rowMap.get("front_rule"); String indexRule = (String)
+	 * rowMap.get("index_rule"); String newId = frontRule.substring(0, frontRule.lastIndexOf("-")); newId += "-" + getDate(frontRule
+	 * .substring(frontRule.lastIndexOf("-") + 1)); java.text.DecimalFormat df = new java.text.DecimalFormat(indexRule); if (lastValue == null)
+	 * lastValue = ""; if (lastValue.startsWith(newId)) { newId += "-" + df .format(Integer .valueOf(lastValue.substring(lastValue .lastIndexOf("-") +
+	 * 1)) + 1); } else { newId += "-" + df.format(Integer.valueOf(indexRule) + 1); } this.executSql(connAlias,
+	 * "UPDATE sys_table_id_index SET last_value='" + newId + "' WHERE id_name='" + idName + "'"); return newId; } return
+	 * String.valueOf(System.currentTimeMillis()); }
+	 */
 
 	/**
 	 * 執行SQL語法
@@ -142,7 +121,7 @@ public class DBConn extends HttpServlet {
 
 			flag = stmt.execute(sql);
 		} catch (SQLException e) {
-			System.out.println("[ERR] SQLException:"+sql);
+			System.out.println("[ERR] SQLException:" + sql);
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (UnsupportedEncodingException e) {
@@ -219,23 +198,24 @@ public class DBConn extends HttpServlet {
 			Map dataMap) {
 		JSONArray jArray = new JSONArray();
 
-		if (conditionMap!=null && conditionMap.size()>0 && querySizeWithMap(connAlias, table, conditionMap) > 0) {
+		if (conditionMap != null && conditionMap.size() > 0
+				&& querySizeWithMap(connAlias, table, conditionMap) > 0) {
 			update(connAlias, table, conditionMap, dataMap);
 		} else {
-			newData(connAlias,table,dataMap);
+			newData(connAlias, table, dataMap);
 		}
 
 		return jArray;
 	}
-	
+
 	/**
-	 * 
 	 * @param connAlias
 	 * @param table
 	 * @param dataMap
 	 * @return
 	 */
-	public JSONArray newData(String connAlias, String table,Map<String,String> dataMap) {
+	public JSONArray newData(String connAlias, String table,
+			Map<String, String> dataMap) {
 		JSONArray jArray = new JSONArray();
 
 		Map colStrctMap = queryTabelStructure(connAlias, table, dataMap);
@@ -250,33 +230,32 @@ public class DBConn extends HttpServlet {
 			Map indexMap = (Map) indexList.get(i);
 			String columnName = (String) indexMap.get("column_name");
 			String value = (String) indexMap.get("id_name");
-			//欄位
+			// 欄位
 			if (columnStr.length() > 0) {
 				columnStr.append(",");
-			}			
+			}
 			columnStr.append(columnName);
-			
-			
+
 			if (valueStr.length() > 0) {
 				valueStr.append(",");
 			}
 			if (dataMap.containsKey(columnName)) {
-				//傳入的資料有指定值
-				value= dataMap.get(columnName);
+				// 傳入的資料有指定值
+				value = dataMap.get(columnName);
 				dataMap.remove(columnName);
-				valueStr.append(" '" + value + "'");	
-			}else{
-				//傳入資料未指定值，使用自動編號
-				valueStr.append(" getAutoNumber('" + value + "')");	
+				valueStr.append(" '" + value + "'");
+			} else {
+				// 傳入資料未指定值，使用自動編號
+				valueStr.append(" getAutoNumber('" + value + "')");
 			}
 
 		}
-		
-		//設定其他欄位內容
+
+		// 設定其他欄位內容
 		Iterator it = dataMap.keySet().iterator();
 		for (; it.hasNext();) {
 			String columnName = (String) it.next();
-			if (dataMap.get(columnName)==null){
+			if (dataMap.get(columnName) == null) {
 				continue;
 			}
 			if (columnStr.length() > 0) {
@@ -289,41 +268,43 @@ public class DBConn extends HttpServlet {
 			}
 			valueStr.append("'" + fixSqlValue(dataMap.get(columnName)) + "'");
 		}
-		
-		//組合SQL字串
-		String insertSql = "INSERT " + table +" ( "+ columnStr+" ) values ("+valueStr+")";
-		this.executSql(connAlias,insertSql);
+
+		// 組合SQL字串
+		String insertSql = "INSERT " + table + " ( " + columnStr
+				+ " ) values (" + valueStr + ")";
+		this.executSql(connAlias, insertSql);
 		return jArray;
 	}
-	
+
 	/**
 	 * 修正特殊字元
+	 * 
 	 * @param value
 	 * @return
 	 */
-	private Object fixSqlValue(Object value){
-		if (value==null){
+	private Object fixSqlValue(Object value) {
+		if (value == null) {
 			return value;
 		}
-		if (value instanceof String){
-			value=((String)value).replaceAll("'", "''");	
+		if (value instanceof String) {
+			value = ((String) value).replaceAll("'", "''");
 		}
-		if (value instanceof Date){
+		if (value instanceof Date) {
 			SysCalendar calendar = new SysCalendar();
-			value= SysCalendar.getFormatDate((Date) value,
+			value = SysCalendar.getFormatDate((Date) value,
 					SysCalendar.yyyy_MM_dd_HH_mm_ss_Mysql);
 		}
 		return value;
 	}
 
 	/**
-	 * 
 	 * @param connAlias
 	 * @param table
 	 * @param conditionMap
 	 * @return
 	 */
-	public ArrayList queryWithMap(String connAlias, String table, Map conditionMap) {
+	public ArrayList queryWithMap(String connAlias, String table,
+			Map conditionMap) {
 		String sql = "SELECT * FROM " + table;
 		StringBuffer whereStr = new StringBuffer();
 		Map colStrctMap = queryTabelStructure(connAlias, table, conditionMap);
@@ -331,10 +312,9 @@ public class DBConn extends HttpServlet {
 		if (conditionMap.size() > 0) {
 			sql += " WHERE " + getSqlWhereStr(conditionMap, colStrctMap);
 		}
-		return query(connAlias,sql);
+		return query(connAlias, sql);
 	}
-	
-	
+
 	/**
 	 * 以conditionMap查詢目前資料筆數
 	 * 
@@ -345,12 +325,12 @@ public class DBConn extends HttpServlet {
 	 * @return
 	 */
 	public int querySizeWithMap(String connAlias, String table, Map conditionMap) {
-		String sql = "SELECT COUNT(*) AS COUNT FROM " + table;
+		String sql = "SELECT * FROM " + table;
 		StringBuffer whereStr = new StringBuffer();
 		Map colStrctMap = queryTabelStructure(connAlias, table, conditionMap);
 
 		if (conditionMap.size() > 0) {
-			sql += " WHERE " + getSqlStr(conditionMap, colStrctMap);
+			sql += " WHERE " + getSqlWhereStr(conditionMap, colStrctMap);
 		}
 		return getQueryDataSize(connAlias, sql);
 	}
@@ -370,7 +350,6 @@ public class DBConn extends HttpServlet {
 	}
 
 	/**
-	 * 
 	 * @param jData
 	 * @param colStrctMap
 	 * @return
@@ -382,7 +361,11 @@ public class DBConn extends HttpServlet {
 			String colName = (String) itData.next();
 			String newData = "";
 			Map colMap = (Map) colStrctMap.get(colName);
-			
+
+			if (colStrctMap.get(colName) ==null){
+				/** 如果沒有這個欄位就pass*/
+				continue;
+			}
 			switch (((Integer) colMap.get("columnType")).intValue()) {
 			case -1: // LONGVARCHAR
 			case 1: // CHAR
@@ -402,10 +385,28 @@ public class DBConn extends HttpServlet {
 			case 92: // TIME
 			case 93: // TIMESTAMP
 				SysCalendar calendar = new SysCalendar();
-				newData = colName
-						+ "='"
-						+ calendar.getFormatDate((Date) jData.get(colName),
-								SysCalendar.yyyy_MM_dd_HH_mm_ss_Mysql) + "'";
+				if (jData.get(colName) instanceof String) {
+					try {
+						SysCalendar.getFormatDate((String) jData.get(colName),
+								SysCalendar.yyyy_MM_dd_HH_mm_ss_Mysql);
+						newData = colName
+								+ "='"
+								+ SysCalendar.getFormatDate((String) jData
+										.get(colName),
+										SysCalendar.yyyy_MM_dd_HH_mm_ss_Mysql)
+								+ "'";
+					} catch (ParseException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+
+				} else if (jData.get(colName) instanceof Date) {
+					newData = colName
+							+ "='"
+							+ calendar.getFormatDate((Date) jData.get(colName),
+									SysCalendar.yyyy_MM_dd_HH_mm_ss_Mysql)
+							+ "'";
+				}
 				break;
 			default:
 				newData = colName + "='" + jData.get(colName) + "'";
@@ -417,7 +418,7 @@ public class DBConn extends HttpServlet {
 		}
 		return dataBuffer.toString();
 	}
-	
+
 	/**
 	 * TODO 時間格式的欄位尚未完全測試完畢 組合出符合欄位結構的SQL語法
 	 * 
@@ -435,6 +436,10 @@ public class DBConn extends HttpServlet {
 			String newData = "";
 			Map colMap = (Map) colStrctMap.get(colName);
 			
+			if (colStrctMap.get(colName) ==null){
+				/** 如果沒有這個欄位就pass*/
+				continue;
+			}
 			switch (((Integer) colMap.get("columnType")).intValue()) {
 			case -1: // LONGVARCHAR
 			case 1: // CHAR
@@ -453,11 +458,31 @@ public class DBConn extends HttpServlet {
 			case 91: // DATE
 			case 92: // TIME
 			case 93: // TIMESTAMP
+
 				SysCalendar calendar = new SysCalendar();
-				newData = colName
-						+ "='"
-						+ calendar.getFormatDate((Date) jData.get(colName),
-								SysCalendar.yyyy_MM_dd_HH_mm_ss_Mysql) + "'";
+				if (jData.get(colName) instanceof String) {
+					try {
+						SysCalendar.getFormatDate((String) jData.get(colName),
+								SysCalendar.yyyy_MM_dd_HH_mm_ss_Mysql);
+						newData = colName
+								+ "='"
+								+ SysCalendar.getFormatDate((String) jData
+										.get(colName),
+										SysCalendar.yyyy_MM_dd_HH_mm_ss_Mysql)
+								+ "'";
+					} catch (ParseException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+
+				} else if (jData.get(colName) instanceof Date) {
+					newData = colName
+							+ "='"
+							+ calendar.getFormatDate((Date) jData.get(colName),
+									SysCalendar.yyyy_MM_dd_HH_mm_ss_Mysql)
+							+ "'";
+				}
+
 				break;
 			default:
 				newData = colName + "='" + jData.get(colName) + "'";
@@ -481,16 +506,15 @@ public class DBConn extends HttpServlet {
 	public Map queryTabelStructure(String connAlias, String tableName,
 			Map columnMap) {
 		Map colStrctMap = new HashMap();
-		if (columnMap==null || columnMap.size()==0){
+		if (columnMap == null || columnMap.size() == 0) {
 			return colStrctMap;
 		}
 		Connection conn = getConnection(connAlias);
 		Statement stmt = null;
 		ResultSet rst = null;
 
-		
-		String sql = "SELECT ";
-
+		String sql = "SELECT * FROM "+ tableName + " WHERE 1=2";
+/*
 		Iterator it = columnMap.keySet().iterator();
 
 		String columnName = null;
@@ -502,7 +526,7 @@ public class DBConn extends HttpServlet {
 			sql += columnName;
 		}
 		sql += " FROM " + tableName + " WHERE 1=2";
-		
+*/
 		try {
 			stmt = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
 					ResultSet.CONCUR_READ_ONLY);

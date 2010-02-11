@@ -84,16 +84,7 @@ public class AjaxPortal extends HttpServlet {
 		responseTime = "";
 		responseRecord = "";
 		Map tempMap = req.getParameterMap();
-		System.out.println("[DEBUG] req::" + req.getCharacterEncoding());
-		System.out.println("[DEBUG] req::" + req.getContentType());
-		System.out.println("[DEBUG] req::" + req.getMethod());
-		System.out.println("[DEBUG] req::" + req.getUserPrincipal());
 
-		Enumeration e=req.getHeaderNames();
-		for (;e.hasMoreElements();){
-			String eName=(String) e.nextElement();
-			System.out.println("[DEBUG] Header Enumeration::" + eName+" "+req.getHeader(eName)+" "+req.getHeaders(eName));
-		}
 		
 		System.out.println("[DEBUG] ParameterMap::" + tempMap.size());
 		Iterator it = tempMap.keySet().iterator();
@@ -103,10 +94,7 @@ public class AjaxPortal extends HttpServlet {
 			System.out.println("[DEBUG] params#" + i + " " + key );
 			i++;
 		}
-		System.out.println("[DEBUG] ACTION-0#");
-		
 		String act = "";
-		System.out.println("[DEBUG] ACTION-1#");
 		String returnType = req.getParameter("RETURN_TYPE");
 
 		if (returnType == null) {
@@ -178,9 +166,7 @@ public class AjaxPortal extends HttpServlet {
 				Iterator iter = set.iterator();
 				while (iter.hasNext()) {
 					Entry n = (Entry) iter.next();
-					System.out.println("[DEBUG] params::"+req.getParameter(n.getKey().toString()));
 					params.put(n.getKey().toString(), req.getParameter(n.getKey().toString()));
-//					params.put(n.getKey().toString(), new String(req.getParameter(n.getKey().toString()).getBytes("iso-8859-1"),"UTF-8"));
 				}
 				jArray = ((ServiceModelFace) serviceModel).doAction(params);
 				responseData = jArray.toString();

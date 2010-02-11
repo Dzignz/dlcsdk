@@ -1,6 +1,7 @@
 package com.mogan.sys;
 
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -30,15 +31,28 @@ public class SysCalendar {
 		return calendar.getTime();
 	}
 
+
+	
 	public String getFormatDate() {
 		return dateFormat.format(calendar.getTime());
 	}
 	
 	
-	public String getFormatDate(Date d) {
-		return dateFormat.format(d);
+	public String getFormatDate(Object obj) {
+		return dateFormat.format(obj);
 	}
 	
+	/**
+	 * 傳入日期字串，轉換為取得符合格式的日期字串
+	 * @param dateStr
+	 * @return
+	 * @throws ParseException 
+	 */
+	static public String getFormatDate(String dateStr,String formatString ) throws ParseException {
+		DateFormat dateFormat=new SimpleDateFormat(formatString);
+		dateFormat=setDateFormat(dateFormat,formatString);
+		return  dateFormat.format(dateFormat.parse(dateStr));
+	}
 	
 	static public String getFormatDate(Date d, String formatString) {
 		DateFormat dateFormat=new SimpleDateFormat(formatString);

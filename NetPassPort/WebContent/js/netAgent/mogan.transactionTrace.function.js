@@ -9,7 +9,10 @@ var loadBidItemsParams = {
 	MODEL_NAME : "BidManager",
 	RETURN_TYPE : "JSON",
 	STATUS_CONDITION : statusCondition,
-	CONDITION : '',
+	SEARCH_KEY:'',
+	CONDITION_KEY : '',
+	START_INDEX : 0,
+	PAGE_SIZE : 50,
 	ORDER_BY : 'end_date',
 	DIR : 'DESC'
 };
@@ -28,37 +31,28 @@ var loadBidItemsParams = {
  */
 Mogan.transactionTrace.createLoadBidItemsParams = function(store, startIndex,
 		pageSize, orderBy, condition, callbackFunction) {
-
+	
 	var loadParams = {
 		params : {
 			APP_ID : appId,
 			ACTION : "LOAD_BID_ITEMS",
 			MODEL_NAME : "BidManager",
 			RETURN_TYPE : "JSON",
-			START_INDEX : startIndex,
-			PAGE_SIZE : pageSize,
+//			START_INDEX : startIndex,
+//			PAGE_SIZE : pageSize,
 			ORDER_BY : orderBy,
 			STATUS_CONDITION : statusCondition,
 			CONDITION_KEY : Ext.encode({
-		SEARCH_KEY : Ext.getCmp('comboSearchKey').getValue(),
-		ACCOUNT_ID : Ext.getCmp('comboAccount').getValue(),
-		ACCOUNT : Ext.getCmp('comboAccount').getRawValue()
-	})
+						SEARCH_KEY : Ext.getCmp('comboSearchKey').getValue(),
+						ACCOUNT_ID : Ext.getCmp('comboAccount').getValue(),
+						ACCOUNT : Ext.getCmp('comboAccount').getRawValue()
+					})
 		},
 		add : false,
 		scope : store,
 		callback : callbackFunction
 	};
-	/*
-	var conditionObj = {
-		SEARCH_KEY : Ext.getCmp('comboSearchKey').getValue(),
-		ACCOUNT_ID : Ext.getCmp('comboAccount').getValue(),
-		ACCOUNT : Ext.getCmp('comboAccount').getRawValue()
-	};
-	
-	loadBidItemsParams.CONDITION = Ext.encode(conditionObj);
-	*/
-//	alert(loadBidItemsParams.CONDITION);
+//	alert('createLoadBidItemsParams');
 	return loadParams;
 }
 
@@ -76,8 +70,10 @@ Mogan.transactionTrace.clickItem = function(grid, rowIndex, e) {
 
 	var r = grid.getStore().getAt(rowIndex);
 	Mogan.transactionTrace.loadBidItemData(grid, rowIndex, e);// 將資料顯示基本資料Tab
+	Mogan.transactionTrace.updateBidItemData(grid, rowIndex, e);// 更新商品資料
 	Mogan.transactionTrace.setSenderData(r);// 設定訊息發送Tab
-	Mogan.transactionTrace.loadItemOrderForm();// 設定訊息發送Tab
+	Mogan.transactionTrace.loadItemOrderForm();// 設定是否顯示order form
+
 	// Mogan.transactionTrace.getItemOrderForm(r);// 設定訊息發送Tab
 	// Ext.get(itemFrame).src="http://www.mogan.com.tw/adminv2/bidding_config_handle.php?rid=38282";
 
@@ -92,57 +88,26 @@ Mogan.transactionTrace.clickItem = function(grid, rowIndex, e) {
 Mogan.transactionTrace.loadItemOrderForm = function() {
 	var itemPanel = Ext.getCmp("itemPanel");
 	Ext.getCmp("tabItemOrderForm").setDisabled(true);
-	if (itemPanel.getForm().getValues()['order_form_status']==0) {
+	if (itemPanel.getForm().getValues()['order_form_status'] == 0) {
 		Ext.getCmp("DetilPanel").setActiveTab(0);
 		Ext.getCmp("tabItemOrderForm").html = itemPanel.getForm().getValues()['order_form_status'];
 	} else {
-		/*
-		Ext.DomHelper.append('tab-iframe-window-1', {
-					tag : 'div',
-					id : 'tab-YJ-orderForm'
-				});*/
+
 		Ext.DomHelper.overwrite('tab-iframe-window-1', {
-					tag : 'iframe',
-					src : './ProxyProtal?APP_ID='
-				+ appId
-				+ "&MODEL_NAME=ItemOrderFormYJ&ACTION=GET_ORDER_FORM&BID_ACCOUNT="
-				+ Ext.getCmp("itemPanel").getForm().getValues()['agent_account']
-				+ "&"
-				+ "ITEM_ID="
-				+ Ext.getCmp("itemPanel").getForm().getValues()['item_id']
-				+ "&"
-				+ "SELLER_ACCOUNT="
-				+ Ext.getCmp("itemPanel").getForm().getValues()['sell_name'],
-				style:'width:100%; height:100%;',
-				frameborder:'0'
-				});
-				/*
-		Ext.getDoc('tab-YJ-orderForm').innerHtml="<iframe src='./ProxyProtal?APP_ID="
-				+ appId
-				+ "&MODEL_NAME=ItemOrderFormYJ&ACTION=GET_ORDER_FORM&BID_ACCOUNT="
-				+ Ext.getCmp("itemPanel").getForm().getValues()['account']
-				+ "&"
-				+ "ITEM_ID="
-				+ Ext.getCmp("itemPanel").getForm().getValues()['item_id']
-				+ "&"
-				+ "SELLER_ACCOUNT="
-				+ Ext.getCmp("itemPanel").getForm().getValues()['sell_name']
-				+ "'" + " style='width:100%; height:100%;' frameborder='0' />";
-				/*
-		Ext.getCmp("tabItemOrderForm").html ="";
-		Ext.getCmp("tabItemOrderForm").html = "<iframe src='./ProxyProtal?APP_ID="
-				+ appId
-				+ "&MODEL_NAME=ItemOrderFormYJ&ACTION=GET_ORDER_FORM&BID_ACCOUNT="
-				+ Ext.getCmp("itemPanel").getForm().getValues()['account']
-				+ "&"
-				+ "ITEM_ID="
-				+ Ext.getCmp("itemPanel").getForm().getValues()['item_id']
-				+ "&"
-				+ "SELLER_ACCOUNT="
-				+ Ext.getCmp("itemPanel").getForm().getValues()['sell_name']
-				+ "'" + " style='width:100%; height:100%;' frameborder='0' />";
-				*/
-//				Ext.getCmp("tabItemOrderForm").html ="";
+			tag : 'iframe',
+			src : './ProxyProtal?APP_ID='
+					+ appId
+					+ "&MODEL_NAME=ItemOrderFormYJ&ACTION=GET_ORDER_FORM&BID_ACCOUNT="
+					+ Ext.getCmp("itemPanel").getForm().getValues()['agent_account']
+					+ "&"
+					+ "ITEM_ID="
+					+ Ext.getCmp("itemPanel").getForm().getValues()['item_id']
+					+ "&"
+					+ "SELLER_ACCOUNT="
+					+ Ext.getCmp("itemPanel").getForm().getValues()['sell_name'],
+			style : 'width:100%; height:100%;',
+			frameborder : '0'
+		});
 		Ext.getCmp("tabItemOrderForm").setDisabled(false);
 	}
 }
@@ -159,11 +124,8 @@ Mogan.transactionTrace.openItemOrderForm = function(record) {
 	 * 
 	 */
 
-	// Ext.getCmp("tabItemOrderForm").setDisabled(true);
 	var itemPanel = Ext.getCmp("itemPanel");
-	// Ext.getCmp("itemPanel").getForm().getValues()['item_id']
-	// Ext.getCmp("itemPanel").getForm().getValues()['jyahooid']
-	// Ext.getCmp("itemPanel").getForm().getValues()['sell_name']
+
 	if (false || itemPanel.getForm().getValues()['isOrderForm']) {
 
 	} else {
@@ -205,14 +167,6 @@ Mogan.transactionTrace.openItemOrderForm = function(record) {
  */
 Mogan.transactionTrace.copyConactDataToRenote = function(index) {
 
-	/*
-	 * var strInputCode =
-	 * Ext.getCmp("msgRecordPanel").store.getAt(index).data.msg_contact;
-	 * strInputCode=strInputCode.replace(/<br>/g,'\r\n'); strInputCode =
-	 * strInputCode.replace(/&(lt|gt);/g, function(strMatch, p1) { return (p1 ==
-	 * "lt") ? "<" : ">"; });
-	 */
-	// var strTagStrippedText = strInputCode.replace(/<\/?[^>]+(>|$)/g, "");
 	var strTagStrippedText = Ext.getCmp("msgRecordPanel").store.getAt(index).data.msg_contact;
 	if (Ext.getCmp("itemPanel").getForm().getValues()['renote'].length > 0) {
 		strTagStrippedText = Ext.getCmp("itemPanel").getForm().getValues()['renote']
@@ -260,6 +214,56 @@ Mogan.transactionTrace.copyConactDataToRenote = function(index) {
 					UPDATE_INFO : Ext.encode(updateInfo)
 				}
 			});
+}
+
+/**
+ * 更新聯絡資料
+ * 
+ * @param {}
+ *            grid
+ * @param {}
+ *            rowIndex
+ * @param {}
+ *            e
+ */
+Mogan.transactionTrace.updateBidItemData = function(grid, rowIndex, e) {
+	var r = grid.getStore().getAt(rowIndex);
+	Ext.Ajax.request({
+		url : 'AjaxPortal',
+		callback : function(response) {
+			// 更新是否有新訊息
+			var json = parserJSON(response.responseText);
+			if (json['responseResult'] == "failure") {
+				Ext.Msg.alert("錯誤", json['responseMsg']);
+			} else {
+				var r = itemListStore
+						.getAt(Ext
+								.getCmp("editorGridItemList")
+								.getStore()
+								.find(
+										'id',
+										json['responseData'][0]['ITEM_DATA']['Datas'][0]['id']));
+
+				if (!Ext
+						.isEmpty(json['responseData'][0]['CONTACT_MSG']['Datas'][0])) {
+					if (json['responseData'][0]['CONTACT_MSG']['Datas'][0]['is_read_count'] > 0) {
+						r.set("new_msg", "★");
+					}
+				}
+			}
+		},
+		failure : function(response) {
+			Ext.Msg.alert("錯誤", "更新聯絡資料錯誤，請向程式開發者詢問");
+		},
+		params : {
+			APP_ID : appId,
+			ACTION : "UPDATE_ITEM_CONTACT_DATA",
+			RETURN_TYPE : "JSON",
+			MODEL_NAME : "BidManager",
+			WEB_SITE_ID : "SWD-2009-0001",
+			ITEM_ORDER_ID : r.get("item_order_id")
+		}
+	});
 }
 
 /**
@@ -339,6 +343,7 @@ Mogan.transactionTrace.loadBidItemData = function(grid, rowIndex, e) {
 			});
 }
 
+
 Mogan.transactionTrace.fixLoadBidItemsParams = function() {
 	if (!Ext.isEmpty(Ext.getCmp("btnGpStstusKey"))) {
 		// 可以取得btnGpStstusKey時才去判斷btnGpStstusKey的內容
@@ -350,13 +355,21 @@ Mogan.transactionTrace.fixLoadBidItemsParams = function() {
 			}
 		}
 		loadBidItemsParams.STATUS_CONDITION = statusCondition;
+			loadBidItemsParams.CONDITION_KEY = Ext.encode({
+						SEARCH_KEY : Ext.getCmp('comboSearchKey').getValue(),
+						ACCOUNT_ID : Ext.getCmp('comboAccount').getValue(),
+						ACCOUNT : Ext.getCmp('comboAccount').getRawValue()
+					})
 	}
 }
+
 
 Mogan.transactionTrace.getloadBidItemsURL = function(store, options) {
 	Mogan.transactionTrace.fixLoadBidItemsParams();
 	store.proxy.setUrl('AjaxPortal?' + Ext.urlEncode(loadBidItemsParams));
+//	alert(store.proxy.getUrl());
 }
+
 
 /**
  * 發送訊息
@@ -371,12 +384,6 @@ Mogan.transactionTrace.sendMsg = function() {
 	var comboMsgTitle = Ext.getCmp("comboMsgTitle");// 標準格式 TITLE
 	var comboMsgCategory = Ext.getCmp("comboMsgCategory");// 留言方式
 	var hiddenItemOrderId = Ext.getCmp("hiddenItemOrderId");
-
-	// Ext.Msg.alert('DEBUG',"item order id:"+hiddenItemOrderId.getValue()+"<br
-	// /> msg category:"+comboMsgCategory.getValue() +"<br /> msg title
-	// a:"+comboMsgTitle.getValue()+"<br /> msg title
-	// b:"+textfieldMsgTitle.getValue() +"<br />
-	// msg:"+textareaMsgContent.getValue())
 
 	Ext.Ajax.request({
 				url : 'AjaxPortal',
@@ -458,6 +465,31 @@ Mogan.transactionTrace.readMsg = function(value) {
 			});
 }
 
+/**
+ * 修正留言範本，先詢問使用者是否替換
+ * 
+ * @param {}
+ *            comboBox
+ */
+Mogan.transactionTrace.fixTextareaMsgContent = function(comboBox) {
+	var msgContact = comboBox.getValue();
+	var msgTemplate = comboBox.getStore().getAt(msgContact).get('text');
+
+	Ext.Msg.confirm("請確認", "是否將訊息內容更換為["+comboBox.getStore().getAt(msgContact).get('title')+"]內容", function(btn, text) {
+				if (btn == 'yes') {
+					msgTemplate=msgTemplate.replace(/\$MOGAN_ITEM_ORDER_ID/g,"9999");
+					msgTemplate=msgTemplate.replace(/\$MOGAN_MONEY/g,"88888");
+					Ext.getCmp("textareaMsgContent").setValue(msgTemplate);
+				}
+			});
+}
+
+/**
+ * 修正留言tilte
+ * 
+ * @param {}
+ *            comboBox
+ */
 Mogan.transactionTrace.fixComboMsgTitle = function(comboBox) {
 	var msgContact = comboBox.getValue();
 	var msgTitleData = comboBox.getStore().getAt(msgContact).get('data');
@@ -500,16 +532,11 @@ Mogan.transactionTrace.setSenderData = function(record) {
  */
 Mogan.transactionTrace.rendererOrderForm = function(value) {
 	var html = "";
-	/*
-	 * if (value == 0) { html = "<img src='' />"; } else { html = "<img src=''
-	 * />"; }
-	 */
 	if (value == "1") {
 		html = "<img src='./resources/mogan/images/form_edit.png' />";
 	} else {
 		html = "<img src='./resources/mogan/images/form_edit_pale.png' />";
 	}
-	// html=value;
 	return html;
 }
 

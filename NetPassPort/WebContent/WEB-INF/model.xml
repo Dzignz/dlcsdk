@@ -1,6 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <models>
 	<schedule>
+		<scheduleName>ScheduleTest</scheduleName>
+		<scheduleJar>DLC Models.jar</scheduleJar>
+		<scheduleClass>com.mogan.schedule.ScheduleTest</scheduleClass>
+		<scheduleDiscription></scheduleDiscription>
+		<load-on-startup>true</load-on-startup>
+		<loop>true</loop>
+		<interval>1</interval>
+	</schedule>	
+	<schedule>
 		<scheduleName>PhpNonBidAlert</scheduleName>
 		<scheduleJar>DLC Models.jar</scheduleJar>
 		<scheduleClass>com.mogan.schedule.PhpNonBidAlert</scheduleClass>

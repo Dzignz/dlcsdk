@@ -36,6 +36,7 @@ public abstract class ScheduleModelAdapter extends TimerTask implements Schedule
 	protected Date executeDate;
 	private static Map<String,Date> executeDateMap=new HashMap<String,Date>();
 	
+	
 	/**
 	 * 自動執行initModel與runModel
 	 * 

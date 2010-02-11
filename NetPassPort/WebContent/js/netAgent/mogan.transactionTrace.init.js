@@ -22,6 +22,8 @@ Ext.onReady(function() {
 			var el = Ext.get('comboSearchKey');
 			var keyNav = new Ext.KeyNav(el, {
 						enter : function(e) {
+							itemListStore.load();
+							/*
 						itemListStore
 								.load(Mogan.transactionTrace
 										.createLoadBidItemsParams(
@@ -31,6 +33,7 @@ Ext.onReady(function() {
 												'',
 												'',
 												Mogan.transactionTrace.loadBidItemsData));
+												*/
 						}
 					});
 		});
