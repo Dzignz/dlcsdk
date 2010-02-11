@@ -449,6 +449,7 @@ public class BidManager extends ProtoModel implements ServiceModelFace {
 				}
 			}
 		}
+		
 		JSONObject conditionJObj = JSONObject.fromObject(condition);
 
 		if (conditionJObj.has("SEARCH_KEY")
@@ -499,6 +500,7 @@ public class BidManager extends ProtoModel implements ServiceModelFace {
 		sql = sql + " WHERE `show` = 1 AND (" + whereSql + ") ORDER BY "
 				+ orderBy + " " + dir;
 
+		System.out.println("[DEBUG] startIndex:"+startIndex+" pageSize:"+pageSize);
 		dataArray = conn.queryJSONArrayWithPage("mogan-tw", sql, startIndex,
 				pageSize);
 
@@ -521,18 +523,42 @@ public class BidManager extends ProtoModel implements ServiceModelFace {
 	 * @param sellerId
 	 * @param memberAccount
 	 * @return
-	 * @throws AccountNotExistException
+	 * @throws Exception 
 	 */
 	public JSONArray getItemContactData(String webSiteId, String bidAccount,
 			String itemId, String transactionId, String sellerId,
 			String memberAccount, String dataSource)
-			throws AccountNotExistException {
+			throws Exception {
 		JSONArray jArray = new JSONArray();
 		if (webSiteId.equals(YAHOO_JP_WEBSITE_ID)) {
 			NetAgentYJ agentYJ = new NetAgentYJ(this.getModelServletContext(),
 					this.getAppId());
 			jArray = agentYJ.getItemContactMsg(bidAccount, itemId,
 					transactionId, sellerId, memberAccount, dataSource);
+		}
+		return jArray;
+	}
+	
+	/**
+	 * action=UPDATE_ITEM_CONTACT_DATA 
+	 * 更新商品聯絡資料
+	 * @param itemOrderId
+	 * @return
+	 * @throws Exception 
+	 */
+	public JSONArray updateItemContactData(String itemOrderId)
+			throws Exception {
+		DBConn conn = (DBConn) this.getModelServletContext().getAttribute(
+		"DBConn");
+		BidItemOrderBean bidItemOrderBean= new BidItemOrderBean(conn,itemOrderId);
+		Map dataMap=bidItemOrderBean.getDataMap();
+		JSONArray jArray = new JSONArray();
+		if (dataMap.get("website_id").equals(YAHOO_JP_WEBSITE_ID)) {
+			NetAgentYJ agentYJ = new NetAgentYJ(this.getModelServletContext(),
+					this.getAppId());
+			agentYJ.getItemContactMsg(itemOrderId);
+			
+			jArray = agentYJ.getItemContactMsgFromDB("","",itemOrderId);
 		}
 		return jArray;
 	}
@@ -909,7 +935,10 @@ public class BidManager extends ProtoModel implements ServiceModelFace {
 		JSONArray jArray = new JSONArray();
 		System.out.println("[INFO]BidManager ACTION start. " + this.getAct());
 
-		if (this.getAct().equals("UN_POST_ITEM")) {
+		if (this.getAct().equals("UPDATE_ITEM_CONTACT_DATA")) {//更新商品聯絡資料
+			String itemOrderId = (String) parameterMap.get("ITEM_ORDER_ID");
+			jArray = updateItemContactData(itemOrderId);
+		}else if (this.getAct().equals("UN_POST_ITEM")) {
 			String itemOrderId = (String) parameterMap.get("ITEM_ORDER_ID");
 			jArray = unpostItem(itemOrderId);
 		} else if (this.getAct().equals("READ_TRANSACTION_MSG")) {
@@ -974,6 +1003,7 @@ public class BidManager extends ProtoModel implements ServiceModelFace {
 			if (dir == null) {
 				dir = "";
 			}
+			
 			jArray = loadBidItems(startIndex, pageSize, statusCondition,
 					condition, orderBy, dir);
 		} else if (this.getAct().equals("SEND_ITEM_ORDER_FORM")) {

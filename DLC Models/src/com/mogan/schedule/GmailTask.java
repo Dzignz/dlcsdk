@@ -127,7 +127,6 @@ public class GmailTask extends ScheduleModelAdapter {
 			 */
 			
 			updateGmailStatus("OK");
-			
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			updateGmailStatus("NOT_OK");
@@ -196,8 +195,9 @@ public class GmailTask extends ScheduleModelAdapter {
 	 * 
 	 * @param dataList
 	 * @param websiteId
+	 * @throws Exception 
 	 */
-	public void updateItemContactMsg(ArrayList<Map> dataList, String websiteId) {
+	public void updateItemContactMsg(ArrayList<Map> dataList, String websiteId) throws Exception {
 		if (dataList == null || dataList.size() == 0) {
 			return;
 		}

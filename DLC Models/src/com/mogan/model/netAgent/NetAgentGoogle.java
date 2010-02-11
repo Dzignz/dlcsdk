@@ -524,6 +524,9 @@ public class NetAgentGoogle extends NetAgentModel implements Runnable {
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
 		}// */
 		// TODO Auto-generated method stub
@@ -581,8 +584,9 @@ public class NetAgentGoogle extends NetAgentModel implements Runnable {
 
 	/**
 	 * @param wonList
+	 * @throws Exception 
 	 */
-	public void updateItemContactMsg(ArrayList<Map> wonList) {
+	public void updateItemContactMsg(ArrayList<Map> wonList) throws Exception {
 		DBConn conn = (DBConn) this.getModelServletContext().getAttribute(
 				"DBConn");
 		NetAgentYJ netAgentYJ = new NetAgentYJ(this.getModelServletContext(),
