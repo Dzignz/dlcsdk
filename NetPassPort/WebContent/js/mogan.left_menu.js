@@ -96,6 +96,8 @@ Mogan.creatSysMenu = function() {
 								'modelService.html'),
 						creatMenuBtn('WebSite Manager', 'webSiteManager',
 								'webSiteManager.jsp'),
+						creatMenuBtn('Data Migration', 'migrService',
+								'DataMigration.jsp'),
 						creatMenuBtn('applcation ID', 'mailMenu'),
 						creatMenuBtn('test function', 'Test function','FunctionTest.jsp')]
 			});

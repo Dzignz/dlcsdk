@@ -80,6 +80,12 @@
 		<interval>3</interval>
 	</schedule>
 	<model>
+		<modelName>MigrMemberData</modelName>
+		<modelJar>DLC Models.jar</modelJar>
+		<modelClass>com.mogan.model.MigrMemberData</modelClass>
+		<modelDiscription></modelDiscription>
+	</model>	
+	<model>
 		<modelName>ItemOrderFormYJ</modelName>
 		<modelJar>DLC Models.jar</modelJar>
 		<modelClass>com.mogan.model.ItemOrderFormYJ</modelClass>
@@ -98,6 +104,12 @@
 			<property name="ACCOUNT" value="MORGAN"/>
 			<property name="PWD" value="24266676"/>
 		</model-properties>
+	</model>
+	<model>
+		<modelName>Ping</modelName>
+		<modelJar>PingWS.jar</modelJar>
+		<modelClass>com.mogan.webservice</modelClass>
+		<modelDiscription></modelDiscription>
 	</model>
 	<model>
 		<modelName>TransCode</modelName>

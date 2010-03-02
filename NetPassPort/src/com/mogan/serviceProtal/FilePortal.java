@@ -153,7 +153,6 @@ public class FilePortal extends HttpServlet {
 		PrintWriter out = res.getWriter();
 		String s = stringBuffer.toString();
 		s = s.replaceAll("\\/", "/");
-		System.out.println("[DEBUG]stringBuffer::" + s);
 		out.println(s);
 		out.flush();
 		out.close();

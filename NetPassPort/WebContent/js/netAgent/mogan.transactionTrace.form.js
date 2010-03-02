@@ -2,7 +2,7 @@ Ext.namespace("Mogan.transactionTrace");
 
 // 得標資料
 var itemListStore = new Ext.data.JsonStore({
-	autoload:true,
+	autoload : true,
 	root : 'responseData[0]["Datas"]',
 	totalProperty : 'responseData[0]["Records"]',
 	idProperty : 'threadid',
@@ -18,33 +18,10 @@ var itemListStore = new Ext.data.JsonStore({
 				+ appId
 				+ '&ACTION=LOAD_BID_ITEMS&MODEL_NAME=BidManager&RETURN_TYPE=JSON&START_INDEX=0&PAGE_SIZE=50'
 	}),
-	load : function(options) {
-		options = options || {};
-		/*
-		options = Mogan.transactionTrace.createLoadBidItemsParams(
-				itemListStore, 0, 50, '', '',
-				Mogan.transactionTrace.loadBidItemsData);
-				/*/
-		this.storeOptions(options);
-		if (this.sortInfo && this.remoteSort) {
-			var pn = this.paramNames;
-			options.params = options.params || {};
-			options.params[pn.sort] = this.sortInfo.field;
-			options.params[pn.dir] = this.sortInfo.direction;
-		}
-		try {
-			return this.execute('read', null, options); // <-- null represents
-			// rs. No rs for load
-			// actions.
-		} catch (e) {
-			this.handleException(e);
-			return false;
-		}
-	},
 
 	paramNames : {
-		//start : 'START_INDEX',
-		//limit : 'PAGE_SIZE',
+		start : 'START_INDEX',
+		limit : 'PAGE_SIZE',
 		sort : 'ORDER_BY',
 		dir : 'DIR'
 	}
@@ -94,35 +71,39 @@ var msgRecordStore = new Ext.data.JsonStore({
 Mogan.transactionTrace.createHeadPanel = function() {
 	var btns = new Array([
 
-			new Ext.Button({
-						scale : 'medium',
-						text : '顯示得標清單',
-						id : 'btnUploadFile',
-						handler : function() {
-							//itemListStore.load();
-							
-							  itemListStore .load(Mogan.transactionTrace
-							  .createLoadBidItemsParams( itemListStore, 0, 50,
-							  '', '',
-							  Mogan.transactionTrace.loadBidItemsData));
-							 
-						}
-					}), new Ext.Button({
-						scale : 'medium',
-						text : '隱藏 / 顯示  案件列表',
-						handler : function() {
-							Mogan.mail.setMail();
-						},
-						id : 'btnStartSend'
-					}), new Ext.Button({
-						scale : 'medium',
-						text : '教學影片',
-						iconCls : 'video',
-						handler : function() {
-							window
-									.open('/demo/MailService_demo/MailService_demo.htm');
-						}
-					})]);
+	new Ext.Button({
+				scale : 'medium',
+				text : '顯示得標清單',
+				id : 'btnUploadFile',
+				handler : function() {
+					// itemListStore.load();
+
+					itemListStore
+							.load(Mogan.transactionTrace
+									.createLoadBidItemsParams(
+											itemListStore,
+											0,
+											50,
+											'',
+											'',
+											Mogan.transactionTrace.loadBidItemsData));
+
+				}
+			}), new Ext.Button({
+				scale : 'medium',
+				text : '隱藏 / 顯示  案件列表',
+				handler : function() {
+					Mogan.mail.setMail();
+				},
+				id : 'btnStartSend'
+			}), new Ext.Button({
+				scale : 'medium',
+				text : '教學影片',
+				iconCls : 'video',
+				handler : function() {
+					window.open('/demo/MailService_demo/MailService_demo.htm');
+				}
+			})]);
 	// alert(btns.length);
 	return btns;
 }
@@ -140,12 +121,10 @@ Mogan.transactionTrace.createCaseListGridPanel = function() {
 				displayInfo : true,
 				displayMsg : 'Displaying topics {0} - {1} of {2}',
 				emptyMsg : "No topics to display",
-				/*paramNames : {
-					start : 'START_INDEX',
-					limit : 'PAGE_SIZE',
-					sort : 'SORT',
-					dir : 'DIR'
-				},*/
+				/*
+				 * paramNames : { start : 'START_INDEX', limit : 'PAGE_SIZE',
+				 * sort : 'SORT', dir : 'DIR' },
+				 */
 				items : ['-', {
 							store : accountListStore,
 							displayField : 'diaplay_account',
@@ -168,10 +147,10 @@ Mogan.transactionTrace.createCaseListGridPanel = function() {
 							handler : function(btn, pressed) {
 								itemListStore.load();
 								/*
-								  itemListStore .load(Mogan.transactionTrace
-								  .createLoadBidItemsParams( itemListStore, 1,
-								  50, '', '',
-								  Mogan.transactionTrace.loadBidItemsData));
+								 * itemListStore .load(Mogan.transactionTrace
+								 * .createLoadBidItemsParams( itemListStore, 1,
+								 * 50, '', '',
+								 * Mogan.transactionTrace.loadBidItemsData));
 								 */
 							}
 						}]
@@ -241,6 +220,7 @@ Mogan.transactionTrace.createCaseListGridPanel = function() {
 						}, {
 							header : "累計未付款數量",
 							editor : new Ext.form.TextField(),
+							renderer : Mogan.transactionTrace.rendererFixNonRemitCount,
 							dataIndex : 'total_unpay'
 						}, {
 							header : "累計未出貨數量",
@@ -368,10 +348,6 @@ Mogan.transactionTrace.createCaseListGridPanel = function() {
 
 	grid.on('rowclick', Mogan.transactionTrace.clickItem);
 	itemListStore.load();
-	/*
-	 itemListStore.load(Mogan.transactionTrace.createLoadBidItemsParams(
-	itemListStore, 0, 50, '', '', Mogan.transactionTrace.loadBidItemsData));
-	*/
 
 	return grid;
 };
@@ -580,6 +556,7 @@ Mogan.transactionTrace.createMsgSenderPanel = function() {
 				readOnly : true,
 				editable : false
 			});
+
 	comboMsgTemplate.on('select', Mogan.transactionTrace.fixTextareaMsgContent);
 
 	var simple = new Ext.FormPanel({
@@ -628,7 +605,8 @@ Mogan.transactionTrace.createMsgSenderPanel = function() {
 							name : "MSG",
 							// height : 200,
 							grow : true,
-							anchor : '90% -150',
+							growMax : 200,
+							anchor : '90% -175',
 							fieldLabel : '內容'
 						}, {
 							xtype : 'hidden',
@@ -637,13 +615,28 @@ Mogan.transactionTrace.createMsgSenderPanel = function() {
 							value : ''
 						}],
 				buttons : [{
+							id : 'msgSaveBtn',
+							text : '儲存',
+							handler : function() {
+								Mogan.transactionTrace.saveMsg(0);
+							}
+						}, {
+							id : 'msgSaveAsBtn',
+							text : '另儲新副本',
+							handler : function() {
+								Mogan.transactionTrace.saveMsg(1);
+							}
+						}, {
+							id : 'msgTrnsListBtn',
+							text : '顯示對應列表',
+							handler : function() {
+								Mogan.transactionTrace.showMsgTrnsList();
+							}
+						}, {
+							id : 'msgSendBtn',
 							text : '送出',
 							handler : function() {
 								Mogan.transactionTrace.sendMsg();
-								/*
-								 * Ext.getCmp("msgSenderPanel").getForm().submit({
-								 * method : 'POST' });
-								 */
 							}
 						}]
 			})
@@ -655,17 +648,6 @@ Mogan.transactionTrace.createMsgSenderPanel = function() {
  * 主要操作畫面，包含列表及項細資訊
  * 
  * @return {}
- */
-
-/*
- * Mogan.transactionTrace.createCenterPanel = function() { var centerPanel = new
- * Ext.Panel({ layout : 'border', items : [{ title : '案件列表', region : 'north',
- * html : 'grid', height : 250, split : true, collapsible : true, layout :
- * 'fit', items : Mogan.transactionTrace .createCaseListGridPanel() }, { region :
- * 'center', layout : 'fit', title : '案件詳細資訊', items :
- * Mogan.transactionTrace.createDetilPanel() }] });
- * 
- * return centerPanel; }
  */
 
 /**
@@ -790,4 +772,101 @@ Mogan.transactionTrace.createItemPanel = function() {
 	});
 	// layout:'form'
 	return panel;
+}
+
+/**
+ * 名稱對應表專用data store
+ */
+var trnsListStore = new Ext.data.Store({
+			reader : new Ext.data.JsonReader({
+						root : 'root'
+					}, ['trnsCode', 'trnsData']),
+			proxy : new Ext.data.MemoryProxy(trnsJSONData)
+		});
+trnsListStore.load();
+
+/**
+ * 名稱對應列表
+ * 
+ * @return {}
+ */
+Mogan.transactionTrace.createTrnsListGird = function() {
+	var grid = new Ext.grid.EditorGridPanel({
+		store : trnsListStore,
+		// layout : 'fit',
+		// width: 400,
+		// height: 360,
+		// anchor:'100% 100%',
+		columns : [{
+					id : 'trnsCode',
+					header : "代碼",
+					editor : new Ext.form.TextField(),
+					dataIndex : 'trnsCode',
+					width : 180,
+					sortable : true
+				}, {
+					id : 'trnsData',
+					header : "對應資料欄位",
+					dataIndex : 'trnsData',
+					editor : new Ext.form.ComboBox({
+						typeAhead : true,
+						triggerAction : 'all'
+							// transform the data already specified
+							// in html
+							// transform : 'msg_from'
+							// lazyRender : true
+							// listClass : 'x-combo-list-small'
+						}),
+					width : 100,
+					sortable : true
+				}],
+		tbar : new Ext.Toolbar(['-', {
+					text : '新增項目',
+					handler : function() {
+						var defaultData = {
+							trnsCode : '',
+							trnsData : ''
+						};
+						var p = new trnsListStore.recordType(defaultData)
+						trnsListStore.insert(0, p);
+						grid.startEditing(0, 0);
+					}
+				}, '-', {
+					text : '刪除項目',
+					handler : function() {
+						var sm = grid.getSelectionModel();
+						var cell = sm.getSelectedCell();
+						var record = trnsListStore.getAt(cell[0]);
+						Ext.Msg.confirm('訊息', '確定要刪除選定的資料嗎？ \n('
+										+ record['data']['trnsCode'] + ' / '
+										+ record['data']['trnsData'] + ')',
+								function(btn) {
+									if (btn == 'yes') {
+										trnsListStore.remove(record);
+									}
+								});
+					}
+				}, '-', '->', {
+					xtype : 'button',
+					id : 'trnsListSaveBtn',
+					text : '儲存',
+					handler : function() {
+						// Mogan.transactionTrace.saveMsg(0);
+					}
+				}]),/*
+					 * bbar : [{ xtype : 'button', id : 'trnsListSaveBtn', text :
+					 * '儲存', handler : function() { //
+					 * Mogan.transactionTrace.saveMsg(0); } }],//
+					 */
+		stripeRows : true,
+		autoExpandColumn : 'trnsData',
+		height : 350,
+		width : 600,
+		// title : 'Array Grid',
+		// config options for stateful behavior
+		stateful : true
+			// stateId : 'grid'
+		});
+
+	return grid;
 }

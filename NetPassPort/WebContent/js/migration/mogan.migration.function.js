@@ -1,7 +1,42 @@
-Ext.namespace("Mogan.transactionTrace");
+Ext.namespace("Mogan.migration");
 
 var appId = "26b782eb04abbd54efba0dcf854b158d";
-var statusCondition = "0123";
+
+/**開始整合
+ * 
+ * @param {} entity
+ */ 
+Mogan.migration.startMigr = function(entity) {
+	Ext.Ajax.request({
+				url : 'AjaxPortal',
+				success : function(response) {
+					var json = parserJSON(response.responseText);
+					if (json['responseResult'] == "failure") {
+						Ext.Msg.alert("錯誤", json['responseMsg']);
+					} else {
+						Ext.Msg.alert("錯誤", json['responseData']);
+					}
+				},
+				failure : function(response) {
+					addMsg("[錯誤]\tajax failure");
+				},
+				params : {
+					APP_ID : appId,
+					ACTION : "START",
+					RETURN_TYPE : "JSON",
+					MODEL_NAME : "MigrMemberData",
+					ENTITY:entity,
+					MIGR_ACT:''
+				}
+			});
+}
+
+Mogan.migration.showPie=function (){
+
+}
+
+//=============================================
+
 
 var loadBidItemsParams = {
 	APP_ID : appId,
@@ -9,7 +44,7 @@ var loadBidItemsParams = {
 	MODEL_NAME : "BidManager",
 	RETURN_TYPE : "JSON",
 	STATUS_CONDITION : statusCondition,
-	SEARCH_KEY : '',
+	SEARCH_KEY:'',
 	CONDITION_KEY : '',
 	START_INDEX : 0,
 	PAGE_SIZE : 50,
@@ -31,15 +66,15 @@ var loadBidItemsParams = {
  */
 Mogan.transactionTrace.createLoadBidItemsParams = function(store, startIndex,
 		pageSize, orderBy, condition, callbackFunction) {
-
+	
 	var loadParams = {
 		params : {
 			APP_ID : appId,
 			ACTION : "LOAD_BID_ITEMS",
 			MODEL_NAME : "BidManager",
 			RETURN_TYPE : "JSON",
-			// START_INDEX : startIndex,
-			// PAGE_SIZE : pageSize,
+//			START_INDEX : startIndex,
+//			PAGE_SIZE : pageSize,
 			ORDER_BY : orderBy,
 			STATUS_CONDITION : statusCondition,
 			CONDITION_KEY : Ext.encode({
@@ -52,7 +87,6 @@ Mogan.transactionTrace.createLoadBidItemsParams = function(store, startIndex,
 		scope : store,
 		callback : callbackFunction
 	};
-	// alert('createLoadBidItemsParams');
 	return loadParams;
 }
 
@@ -343,6 +377,7 @@ Mogan.transactionTrace.loadBidItemData = function(grid, rowIndex, e) {
 			});
 }
 
+
 Mogan.transactionTrace.fixLoadBidItemsParams = function() {
 	if (!Ext.isEmpty(Ext.getCmp("btnGpStstusKey"))) {
 		// 可以取得btnGpStstusKey時才去判斷btnGpStstusKey的內容
@@ -354,19 +389,21 @@ Mogan.transactionTrace.fixLoadBidItemsParams = function() {
 			}
 		}
 		loadBidItemsParams.STATUS_CONDITION = statusCondition;
-		loadBidItemsParams.CONDITION_KEY = Ext.encode({
-					SEARCH_KEY : Ext.getCmp('comboSearchKey').getValue(),
-					ACCOUNT_ID : Ext.getCmp('comboAccount').getValue(),
-					ACCOUNT : Ext.getCmp('comboAccount').getRawValue()
-				})
+			loadBidItemsParams.CONDITION_KEY = Ext.encode({
+						SEARCH_KEY : Ext.getCmp('comboSearchKey').getValue(),
+						ACCOUNT_ID : Ext.getCmp('comboAccount').getValue(),
+						ACCOUNT : Ext.getCmp('comboAccount').getRawValue()
+					})
 	}
 }
+
 
 Mogan.transactionTrace.getloadBidItemsURL = function(store, options) {
 	Mogan.transactionTrace.fixLoadBidItemsParams();
 	store.proxy.setUrl('AjaxPortal?' + Ext.urlEncode(loadBidItemsParams));
-	// alert(store.proxy.getUrl());
+//	alert(store.proxy.getUrl());
 }
+
 
 /**
  * 發送訊息
@@ -471,14 +508,11 @@ Mogan.transactionTrace.readMsg = function(value) {
 Mogan.transactionTrace.fixTextareaMsgContent = function(comboBox) {
 	var msgContact = comboBox.getValue();
 	var msgTemplate = comboBox.getStore().getAt(msgContact).get('text');
-	Ext.Msg.confirm("請確認", "是否將訊息內容更換為["
-					+ comboBox.getStore().getAt(msgContact).get('title')
-					+ "]內容", function(btn, text) {
+
+	Ext.Msg.confirm("請確認", "是否將訊息內容更換為["+comboBox.getStore().getAt(msgContact).get('title')+"]內容", function(btn, text) {
 				if (btn == 'yes') {
-					msgTemplate = msgTemplate.replace(/\$MOGAN_ITEM_ORDER_ID/g,
-							"9999");
-					msgTemplate = msgTemplate
-							.replace(/\$MOGAN_MONEY/g, "88888");
+					msgTemplate=msgTemplate.replace(/\$MOGAN_ITEM_ORDER_ID/g,"9999");
+					msgTemplate=msgTemplate.replace(/\$MOGAN_MONEY/g,"88888");
 					Ext.getCmp("textareaMsgContent").setValue(msgTemplate);
 				}
 			});
@@ -528,164 +562,6 @@ Mogan.transactionTrace.setSenderData = function(record) {
 }
 
 /**
- * 儲存範本資訊
- * 
- * @param {}
- *            status-儲存方式 0=儲存 1=另存新檔
- */
-Mogan.transactionTrace.saveMsg = function(status) {
-
-	var templetName = '';
-	var templetText = '';
-	var isSave = false;
-	// 顯示對話視窗請使用者確是否要儲存
-	switch (status) {
-		case 0 :
-			templetName = Ext.getCmp("comboMsgTemplate").getStore().getAt(Ext
-					.getCmp("comboMsgTemplate").getValue()).get('title');
-			Ext.Msg.confirm("儲存", "是否將訊息儲存至[" + templetName + "]範本", saveMsg);
-			break;
-		case 1 :
-			Ext.Msg.prompt("另存新範本", "請輸入範本名稱", saveMsg);
-			break;
-	}
-
-	/**
-	 * 儲存範本
-	 */
-	function saveMsg(btn, text) {
-		if (btn == 'yes') {
-			isSave = true;
-		} else if (btn == 'ok') {
-			templetName = text;
-			isSave = true;
-		}
-		if (isSave) {
-			templetText = Ext.getCmp("textareaMsgContent").getValue();
-			Ext.Ajax.request({
-						url : 'AjaxPortal',
-						callback : function() {
-						},
-						success : function(response) {
-							var json = parserJSON(response.responseText);
-							if (json['responseResult'] == "failure") {
-								Ext.Msg.alert("錯誤", json['responseMsg']);
-							} else {
-								Ext.Msg.alert("儲存功成", "範本[" + templetName
-												+ "]儲存完成");
-								var store = Ext.getCmp("comboMsgTemplate")
-										.getStore();
-								var defaultData = {
-									value : store.getCount(),
-									title : templetName,
-									text : templetText
-								};
-								var p = new store.recordType(defaultData); // create
-																			// new
-																			// record
-								store.add(p);
-								Ext.getCmp("comboMsgTemplate")
-										.setValue(templetName);
-							}
-						},
-						failure : function(response) {
-							Ext.Msg.alert("錯誤", "請向程式開發者詢問");
-						},
-						params : {
-							APP_ID : appId,
-							ACTION : "SAVE_TEMPLATE",
-							RETURN_TYPE : "JSON",
-							MODEL_NAME : "BidManager",
-							TEMPLET_TEXT : templetText,
-							TEMPLET_NAME : templetName
-						}
-					});
-		}
-	}
-
-}
-
-/**
- * 顯示對應名稱列表
- */
-var trnsWindow;
-Mogan.transactionTrace.showMsgTrnsList = function() {
-	if (trnsWindow == null) {
-		Ext.DomHelper.append('iframe-window', {
-					tag : 'div',
-					id : 'trns-list'
-				});
-		trnsWindow = new Ext.Window({
-					el : 'trns-list',
-					layout : 'fit',
-					title : "代碼對應列表",
-					items : [Mogan.transactionTrace.createTrnsListGird()],
-					width : 400,
-					height : 360,
-					closeAction : 'hide',
-					autoScroll : true,
-					modal : true
-				});
-	}
-	trnsWindow.show();
-}
-
-/**
- * 名稱對應表專用儲存對話框
- */
-Mogan.transactionTrace.saveTrnsList = function() {
-	Ext.Msg.confirm("儲存", "是否將訊息儲存至[" + templetName + "]範本", saveMsg);
-	var isSave = false;
-	function saveTrnsList(btn) {
-		if (btn == 'yes') {
-			isSave = true;
-		} else if (btn == 'ok') {
-			templetName = text;
-			isSave = true;
-		}
-		if (isSave) {
-			Ext.Ajax.request({
-						url : 'AjaxPortal',
-						callback : function() {
-						},
-						success : function(response) {
-							var json = parserJSON(response.responseText);
-							if (json['responseResult'] == "failure") {
-								Ext.Msg.alert("錯誤", json['responseMsg']);
-							} else {
-								Ext.Msg.alert("儲存功成", "範本[" + templetName
-												+ "]儲存完成");
-								var store = Ext.getCmp("comboMsgTemplate")
-										.getStore();
-								var defaultData = {
-									value : store.getCount(),
-									title : templetName,
-									text : templetText
-								};
-								var p = new store.recordType(defaultData); // create
-																			// new
-																			// record
-								store.add(p);
-								Ext.getCmp("comboMsgTemplate")
-										.setValue(templetName);
-							}
-						},
-						failure : function(response) {
-							Ext.Msg.alert("錯誤", "請向程式開發者詢問");
-						},
-						params : {
-							APP_ID : appId,
-							ACTION : "SAVE_TRNSLIST",
-							RETURN_TYPE : "JSON",
-							MODEL_NAME : "BidManager",
-							TRNSLIST : templetText,
-						}
-					});
-		}
-	}
-}
-
-/**
  * 修正 OrderForm按鈕
  */
 Mogan.transactionTrace.rendererOrderForm = function(value) {
@@ -696,21 +572,6 @@ Mogan.transactionTrace.rendererOrderForm = function(value) {
 		html = "<img src='./resources/mogan/images/form_edit_pale.png' />";
 	}
 	return html;
-}
-
-/**
- * 修正未匯款數量 大於0用紅色字體
- * 
- * @param {}
- *            value
- * @return {String}
- */
-Mogan.transactionTrace.rendererFixNonRemitCount = function(value) {
-	if (value > 0) {
-		return "<font color='red'>" + value + "</font>";
-	} else {
-		return value;
-	}
 }
 
 /**

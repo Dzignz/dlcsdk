@@ -150,6 +150,7 @@ public class AjaxPortal extends HttpServlet {
 		String modelName = req.getParameter("MODEL_NAME");
 		ModelManager modelManager = new ModelManager();
 		ProtoModel serviceModel = modelManager.getServiceModel(modelName);
+		
 		String act = req.getParameter("ACTION").toUpperCase();
 		String appId = req.getParameter("APP_ID").toUpperCase();
 		if (serviceModel != null) {

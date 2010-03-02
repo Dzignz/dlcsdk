@@ -27,16 +27,17 @@ public class SysCalendar {
 		return dateFormat;
 	}
 
+	
 	public Date getDate() {
 		return calendar.getTime();
 	}
-
-
 	
 	public String getFormatDate() {
+		if (dateFormat==null){
+			dateFormat=setDateFormat(dateFormat,this.yyyy_MM_dd);
+		}
 		return dateFormat.format(calendar.getTime());
 	}
-	
 	
 	public String getFormatDate(Object obj) {
 		return dateFormat.format(obj);

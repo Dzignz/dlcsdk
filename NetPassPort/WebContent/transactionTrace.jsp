@@ -6,7 +6,8 @@
 <%@ page import="net.sf.json.JSONObject"%>
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
-<html>
+
+<%@page import="java.util.Properties"%><html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>聯絡追蹤</title>
@@ -35,9 +36,26 @@
 	accountList.add(0,emptyAccount);
 	accountData.put("root",accountList);
 	//accountData.put("account","-");
+	JSONArray trnsList=new JSONArray ();
+	Properties p=new Properties();	
+	p.put("trnsCode","$MOGAN_ITEM_ID");
+	p.put("trnsData","1");
+	trnsList.add(p);
+	p=new Properties();	
+	p.put("trnsCode","$MOGAN_ITEM_ORDER_ID");
+	p.put("trnsData","2");
+	trnsList.add(p);
+	p=new Properties();	
+	p.put("trnsCode","$YAHOO_JP_ITEM_ID");
+	p.put("trnsData","3");
+	trnsList.add(p);
+
+	JSONObject trnsData=new JSONObject();
+	trnsData.put("root",trnsList);
 	
 %>
 var accountJSONData = <% out.println(accountData); %>;
+var trnsJSONData = <% out.println(trnsData); %>;
 </script>
 
 <script type="text/javascript" src="js/netAgent/mogan.transactionTrace.function.js"></script>
@@ -46,6 +64,7 @@ var accountJSONData = <% out.println(accountData); %>;
 </head>
 <body>
 <div id="iframe-window"></div>
+<div id="iframe-window-trnsList"></div>
 <div id="tab-iframe-window-1" style="width:100%; height:100%;"></div>
 
 </body>

@@ -23,17 +23,6 @@ Ext.onReady(function() {
 			var keyNav = new Ext.KeyNav(el, {
 						enter : function(e) {
 							itemListStore.load();
-							/*
-						itemListStore
-								.load(Mogan.transactionTrace
-										.createLoadBidItemsParams(
-												itemListStore,
-												0,
-												50,
-												'',
-												'',
-												Mogan.transactionTrace.loadBidItemsData));
-												*/
 						}
 					});
 		});

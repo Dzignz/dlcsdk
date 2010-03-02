@@ -1,9 +1,9 @@
-package com.mogan.serviceProtal;
+package com.mogan.sys.code;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-public class testMD5 {
+public class MD5 {
 
 	/**
 	 * @param args
@@ -12,7 +12,7 @@ public class testMD5 {
 		// TODO Auto-generated method stub
 		System.out.println( getMD5Digest("Dian"));
 	}
-	private static String getMD5Digest(String str) {
+	public static String getMD5Digest(String str) {
 		try {
 			byte[] buffer = str.getBytes();
 			byte[] result = null;
@@ -25,7 +25,6 @@ public class testMD5 {
 			md5.update(buffer);
 
 			result = md5.digest();
-			System.out.println(result);
 			// create hex string from the 16-byte hash
 			buf = new StringBuffer(result.length * 2);
 			for (int i = 0; i < result.length; i++) {
