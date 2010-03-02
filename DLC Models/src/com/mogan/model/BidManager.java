@@ -14,9 +14,11 @@ import org.htmlparser.util.ParserException;
 
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
+import net.sf.json.JsonConfig;
 
 import com.mogan.dataBean.BidItemOrderBean;
 import com.mogan.exception.NetAgent.AccountNotExistException;
+import com.mogan.io.FileIO;
 import com.mogan.model.netAgent.NetAgentYJ;
 import com.mogan.sys.DBConn;
 import com.mogan.sys.ProtoModel;
@@ -450,52 +452,51 @@ public class BidManager extends ProtoModel implements ServiceModelFace {
 			}
 		}
 		
-		JSONObject conditionJObj = JSONObject.fromObject(condition);
-
-		if (conditionJObj.has("SEARCH_KEY")
-				&& conditionJObj.getString("SEARCH_KEY").length() > 0) {
-			// 有設定篩選值
-			String searchKey=conditionJObj.getString("SEARCH_KEY");
-			whereSql += " AND (user_name like '%"
-					+ conditionJObj.getString("SEARCH_KEY")
-					+ "%' OR item like '%"
-					+ conditionJObj.getString("SEARCH_KEY")
-					+ "%' OR item_id like '%"
-					+ conditionJObj.getString("SEARCH_KEY")
-					+ "%' OR item_order_id like '%"
-					+ conditionJObj.getString("SEARCH_KEY")
-					+ "%' OR end_date like '%"
-					+ conditionJObj.getString("SEARCH_KEY")
-					+ "%' OR sell_name like '%"
-					+ conditionJObj.getString("SEARCH_KEY")
-					+ "%' OR remittance like '%"
-					+ conditionJObj.getString("SEARCH_KEY")
-					+ "%' OR agent_account like '%"
-					+ conditionJObj.getString("SEARCH_KEY")
-					+ "%' OR contact_type like '%"
-					+ conditionJObj.getString("SEARCH_KEY")
-					+ "%' OR title like '%"
-					+ conditionJObj.getString("SEARCH_KEY")
-					+ "%' OR realname like '%"
-					+ conditionJObj.getString("SEARCH_KEY")
-					+ "%' OR renote like '%"
-					+ conditionJObj.getString("SEARCH_KEY") + "%' )";
-			
+		
+		if (condition!=null && condition.length()>0){
+			JSONObject conditionJObj = JSONObject.fromObject(condition);	
+		
+			if (conditionJObj.has("SEARCH_KEY")
+					&& conditionJObj.getString("SEARCH_KEY").length() > 0) {
+				// 有設定篩選值
+				String searchKey=conditionJObj.getString("SEARCH_KEY");
+				whereSql += " AND (user_name like '%"
+						+ conditionJObj.getString("SEARCH_KEY")
+						+ "%' OR item like '%"
+						+ conditionJObj.getString("SEARCH_KEY")
+						+ "%' OR item_id like '%"
+						+ conditionJObj.getString("SEARCH_KEY")
+						+ "%' OR item_order_id like '%"
+						+ conditionJObj.getString("SEARCH_KEY")
+						+ "%' OR end_date like '%"
+						+ conditionJObj.getString("SEARCH_KEY")
+						+ "%' OR sell_name like '%"
+						+ conditionJObj.getString("SEARCH_KEY")
+						+ "%' OR remittance like '%"
+						+ conditionJObj.getString("SEARCH_KEY")
+						+ "%' OR agent_account like '%"
+						+ conditionJObj.getString("SEARCH_KEY")
+						+ "%' OR contact_type like '%"
+						+ conditionJObj.getString("SEARCH_KEY")
+						+ "%' OR title like '%"
+						+ conditionJObj.getString("SEARCH_KEY")
+						+ "%' OR realname like '%"
+						+ conditionJObj.getString("SEARCH_KEY")
+						+ "%' OR renote like '%"
+						+ conditionJObj.getString("SEARCH_KEY") + "%' )";
+				
+			}
+			if (conditionJObj.has("ACCOUNT")
+					&& conditionJObj.getString("ACCOUNT").length() > 0
+					&& !conditionJObj.getString("ACCOUNT").equals("-")) {
+				// 有設定篩選帳號 舊版
+				whereSql += " AND agent_account like '"
+						+ conditionJObj.getString("ACCOUNT").replaceAll(
+								"-YAHOO JP", "") + "' ";
+			}
 		}
 
-		/*
-		 * if (conditionJObj.has("ACCOUNT_ID") && conditionJObj.getString("ACCOUNT_ID").length() > 0) { //有設定篩選帳號 新版 whereSql +=
-		 * " AND jyahooid like '" + conditionJObj.getString("ACCOUNT_ID")+ "' "; }
-		 */
 
-		if (conditionJObj.has("ACCOUNT")
-				&& conditionJObj.getString("ACCOUNT").length() > 0
-				&& !conditionJObj.getString("ACCOUNT").equals("-")) {
-			// 有設定篩選帳號 舊版
-			whereSql += " AND agent_account like '"
-					+ conditionJObj.getString("ACCOUNT").replaceAll(
-							"-YAHOO JP", "") + "' ";
-		}
 
 		sql = sql + " WHERE `show` = 1 AND (" + whereSql + ") ORDER BY "
 				+ orderBy + " " + dir;
@@ -930,12 +931,32 @@ public class BidManager extends ProtoModel implements ServiceModelFace {
 				"SELECT * FROM view_item_contact_record WHERE contact_id='"
 						+ contactId + "'");
 	}
+	
+	public JSONArray saveTemplet(String templetName,String templetText){
+		FileIO fio =new FileIO();
+		JSONArray jArray=new JSONArray();
+		jArray.add(fio.saveTxtFile(null,this.getModelName(),templetName,templetText));
+		return jArray;
+	}
+	
+	public JSONArray getTempletList(){
+		FileIO fio =new FileIO();
+		fio.getTxtFileList(null,this.getModelName());
+		return null;
+	}
 
 	public JSONArray doAction(Map parameterMap) throws Exception {
 		JSONArray jArray = new JSONArray();
 		System.out.println("[INFO]BidManager ACTION start. " + this.getAct());
 
-		if (this.getAct().equals("UPDATE_ITEM_CONTACT_DATA")) {//更新商品聯絡資料
+		if (this.getAct().equals("LOAD_TEMPLATE_LIST")){
+			
+		}else if (this.getAct().equals("SAVE_TEMPLATE")){
+			
+			String templetName= (String) parameterMap.get("TEMPLET_NAME");
+			String templetText= (String) parameterMap.get("TEMPLET_TEXT");
+			jArray = saveTemplet(templetName,templetText);
+		}else if (this.getAct().equals("UPDATE_ITEM_CONTACT_DATA")) {//更新商品聯絡資料
 			String itemOrderId = (String) parameterMap.get("ITEM_ORDER_ID");
 			jArray = updateItemContactData(itemOrderId);
 		}else if (this.getAct().equals("UN_POST_ITEM")) {

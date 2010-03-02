@@ -176,7 +176,6 @@ public abstract class NetAgentModel extends ProtoModel {
 		if (!(f.getParentFile().exists() && f.getParentFile().isDirectory())) {
 			/* 判斷路徑是否存在 */
 			f.getParentFile().mkdirs();
-
 		}
 		outputTofile(fileData, f);
 		return this.getModelServletContext().getRealPath("/")

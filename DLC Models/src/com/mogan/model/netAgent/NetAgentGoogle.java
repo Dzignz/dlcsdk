@@ -453,11 +453,17 @@ public class NetAgentGoogle extends NetAgentModel implements Runnable {
 		return msgList;
 	}
 
+	public static void main (String [] args){
+		NetAgentGoogle  nag=new NetAgentGoogle();
+		nag.run();
+	}
+	
 	@Override
 	public void run() {
 		try {
-			loginGmail(this.getProperties().getProperty("gmailAccount"), this
-					.getProperties().getProperty("gmailPwd"));
+//			loginGmail(this.getProperties().getProperty("gmailAccount"), this
+//					.getProperties().getProperty("gmailPwd"));
+			loginGmail("mogansweet@gmail.com","MOGANS4725333");
 		} catch (NoSuchProviderException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
@@ -466,7 +472,7 @@ public class NetAgentGoogle extends NetAgentModel implements Runnable {
 		System.out.println("NetAgentGoogle run.");
 		// login();
 		// login("mogansweet@gmail.com", "MOGANS4725333");
-		while (run_flag) {
+
 			try {
 				long l0 = System.currentTimeMillis();
 				// [買家通知]
@@ -483,16 +489,17 @@ public class NetAgentGoogle extends NetAgentModel implements Runnable {
 				// 系統自動重新上架
 				// 買家發問
 				// 買家聯絡
-
-				/** 更新得標通知 */
+				this.getMail("日雅已得標");
+				/*
+				///** 更新得標通知 *
 				updateBid2Won(this.getWonBidMail());
 
-				/** 更新競標聯絡資訊 */
+//				/** 更新競標聯絡資訊 *
 				updateItemContactMsg(this.getSellerContactMail());//留言版
 				updateItemContactMsg(this.getBuyerDiscussMail());//揭示版
 
 				this.getHighestPriceMail();
-				/***/
+//				/***
 				callPhpServer(this.getNewPriceMail());
 
 				this.getSellerAnsMail();
@@ -507,7 +514,7 @@ public class NetAgentGoogle extends NetAgentModel implements Runnable {
 				this.getBuyerAskMail();
 				this.getBuyerContactMail();
 				this.getSellerDiscussMail();
-
+*/
 				// callPhpServer(getNewPriceMail());
 				/*
 				 * ArrayList wonList = getWonBidMail(); recordMsg(getWonBidMail(), this .getProperty(YAHOO_JP_WON_BID_MAIL));
@@ -528,7 +535,7 @@ public class NetAgentGoogle extends NetAgentModel implements Runnable {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-		}// */
+
 		// TODO Auto-generated method stub
 	}
 
