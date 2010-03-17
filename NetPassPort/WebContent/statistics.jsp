@@ -35,9 +35,14 @@
 	jArray.add(conn.queryJSONArray("mogan-tw","select COUNT(*) AS COUNT ,SUM(costed) AS COST ,DATE_ADD(CURDATE(),INTERVAL 15 DAY) AS DATE_S from web_bidding WHERE end_date > DATE_ADD(CURDATE(),INTERVAL 14 DAY)").getJSONObject(0));//1
 break;
     	case 3:
-    		System.out.println("getParameter::"+Integer.parseInt((String)request.getParameter("type")));
     		//jArray=conn.queryJSONArray("mogan-tw","select user_name,count(*)as count , sum(costed) as cost ,(select realname from web_member where name=user_name) as realname FROM web_won where `show`='1' AND end_date > DATE('2009-12-31') group by user_name");//0
-    		jArray=conn.queryJSONArray("mogan-tw","select user_name,count(*)as count , sum(costed) as cost ,(select realname from web_member where name=user_name) as realname FROM web_won where `show`='1' group by user_name");//0
+    		jArray=conn.queryJSONArray("mogan-tw","select user_name,count(*)as count , sum(costed) as cost ,avg(costed) as avg_cost, day(now())/count(*) as buy2day,count(*)/day(now()) as day2buy,  (select realname from web_member where name=user_name) as realname FROM web_won where `show`='1' AND end_date >= DATE(concat( YEAR(CURDATE()), concat('-', concat(MONTH(CURDATE()),'-1')))) group by user_name");//0
+    		break;
+    	case 4://每月前10名
+    		jArray=conn.queryJSONArray("mogan-tw","SELECT sum( ww.costed ) AS sum, wm.realname, count( ww.costed ) AS count, avg( ww.costed ) AS avg FROM web_won AS ww JOIN web_member AS wm ON ( ww.user_name = wm.name AND ww.show =1 AND ww.end_date >= DATE(concat( YEAR(CURDATE()), concat('-', concat(MONTH(CURDATE()),'-1')))) ) GROUP BY ww.user_name ORDER BY `sum` DESC LIMIT 0 , 10 ");//0
+    		out.println("<link rel=\"stylesheet\" type=\"text/css\" href=\"http://visapi-gadgets.googlecode.com/svn/trunk/pilesofmoney/pom.css\"/>");
+    		out.println("<script type=\"text/javascript\" src=\"http://visapi-gadgets.googlecode.com/svn/trunk/pilesofmoney/pom.js\"></script>");
+    		
     		break;
 	    }
 	
@@ -55,6 +60,9 @@ break;
     	case 3:
     		out.println("google.load('visualization', '1', {'packages':['motionchart']});");
     		break;
+    	case 4:
+    		out.println("google.load('visualization', '1');");
+    		break;    		
     }
     %>
       google.setOnLoadCallback(drawChart);
@@ -89,23 +97,42 @@ break;
         		break;
         	case 3:
         		
-        		out.println("data.addColumn('string', 'name');");
+        		out.println("data.addColumn('string', '會員名稱-帳號');");
         		out.println("data.addColumn('date', 'Date');");
         		out.println("data.addColumn('number', '結標總數');");
         		out.println("data.addColumn('number', '結標總價');");
+        		out.println("data.addColumn('number', '商品均價');");
+        		out.println("data.addColumn('number', '商品購買間隔(日)');");
+        		out.println("data.addColumn('number', '商品購買速度(每日)');");
                 for (int i=0;i<jArray.size();i++){
                 	
-                	out.println("data.setValue("+i+", 0, '"+jArray.getJSONObject(i).getString("user_name")+"');");
+                	out.println("data.setValue("+i+", 0, '"+jArray.getJSONObject(i).getString("realname")+" "+jArray.getJSONObject(i).getString("user_name")+"');");
                 	out.println("data.setValue("+i+", 1, new Date ());");
                 	out.println("data.setValue("+i+", 2, "+jArray.getJSONObject(i).getInt("count")+");");
                 	out.println("data.setValue("+i+", 3, "+jArray.getJSONObject(i).optInt("cost",0)+");");
+                	out.println("data.setValue("+i+", 4, "+jArray.getJSONObject(i).optInt("avg_cost",0)+");");
+                	out.println("data.setValue("+i+", 5, "+jArray.getJSONObject(i).optInt("buy2day",0)+");");
+                	out.println("data.setValue("+i+", 6, "+jArray.getJSONObject(i).optInt("day2buy",0)+");");
                 }
                 out.println("var chart = new google.visualization.MotionChart(document.getElementById('chart_div'));");
+        		break;
+        	case 4:
+        		out.println("data.addColumn('string', 'name');");
+        		out.println("data.addColumn('number', 'money');");
+        		
+        		for (int i=0;i<jArray.size();i++){
+        			out.println("data.setCell("+i+", 0, '"+jArray.getJSONObject(i).getString("realname")+"');");
+        			out.println("data.setCell("+i+", 1, "+(10-i)+",'$"+jArray.getJSONObject(i).getString("sum")+" YEN');");
+        		}
+                //var options = {title: 'Reveneues By Country'};
+                out.println("var chart_div = document.getElementById('chart_div');");
+                out.println("var chart = new PilesOfMoney(chart_div);");
+                
         		break;
         }
         %>
 
-        chart.draw(data, {width: 1200, height: 750});
+        chart.draw(data, {width: 1024, height: 250});
       }
 
     </script>
@@ -114,12 +141,15 @@ break;
 
 </head>
 <body>
+<!-- 
 <ul>
 	<li><a href="statistics.jsp?type=1">未來兩週結標數量統計</a></li>
 	<li><a href="statistics.jsp?type=2">未來兩週結標數量/金額統計</a></li>
-	<li><a href="statistics.jsp?type=3">會員購買數量金額統計</a></li>
-	<li><a href="statistics.jsp?type=4">會員購買金額百分比統計</a></li>
+	<li><a href="statistics.jsp?type=3">會員本月購買數量金額統計</a></li>
+	<li><a href="statistics.jsp?type=4">本月購買TOP10</a></li>
 </ul>
+ -->
+<a href="statistics.jsp?type=1">●未來兩週結標數量統計</a> <a href="statistics.jsp?type=3">●會員本月購買數量金額統計</a> <a href="statistics.jsp?type=4">●本月購買TOP10</a>
 <div id="chart_div">未來兩週結標數量計算</div>
 
 </body>

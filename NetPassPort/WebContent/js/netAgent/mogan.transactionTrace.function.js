@@ -74,9 +74,10 @@ Mogan.transactionTrace.clickItem = function(grid, rowIndex, e) {
 	Mogan.transactionTrace.setSenderData(r);// 設定訊息發送Tab
 	Mogan.transactionTrace.loadItemOrderForm();// 設定是否顯示order form
 
-	// Mogan.transactionTrace.getItemOrderForm(r);// 設定訊息發送Tab
-	// Ext.get(itemFrame).src="http://www.mogan.com.tw/adminv2/bidding_config_handle.php?rid=38282";
-
+	if (Mogan.transactionTrace.templateSatus == 'EDIT'){
+		Mogan.transactionTrace.changeTemplateMode();	
+	}
+	
 }
 
 /**
@@ -469,17 +470,85 @@ Mogan.transactionTrace.readMsg = function(value) {
  *            comboBox
  */
 Mogan.transactionTrace.fixTextareaMsgContent = function(comboBox) {
-	var msgContact = comboBox.getValue();
-	var msgTemplate = comboBox.getStore().getAt(msgContact).get('text');
-	Ext.Msg.confirm("請確認", "是否將訊息內容更換為["
-					+ comboBox.getStore().getAt(msgContact).get('title')
-					+ "]內容", function(btn, text) {
-				if (btn == 'yes') {
-					msgTemplate = msgTemplate.replace(/\$MOGAN_ITEM_ORDER_ID/g,
-							"9999");
-					msgTemplate = msgTemplate
-							.replace(/\$MOGAN_MONEY/g, "88888");
-					Ext.getCmp("textareaMsgContent").setValue(msgTemplate);
+	var templateIndex = comboBox.getValue();
+			
+	if (Mogan.transactionTrace.templateSatus == 'EDIT'){
+		loadTemplate('yes');
+	}else{
+		Ext.Msg.confirm("請確認", "是否將訊息內容更換為["
+						+ comboBox.getStore().getAt(templateIndex)
+								.get('fileName') + "]內容", loadTemplate);
+	}
+	function loadTemplate(btn, text){
+		if (btn == 'yes') {
+			if (comboBox.getStore().getAt(templateIndex).get('loadStatus')) {
+				var msgTemplate = comboBox.getStore().getAt(templateIndex)
+						.get('fileContent');
+				Mogan.transactionTrace.updateTextareaMsgContent(msgTemplate);
+			} else {
+				Mogan.transactionTrace.updateTextareaMsgContent('讀取中....');
+				Mogan.transactionTrace.loadTempletContent(comboBox.getStore()
+						.getAt(templateIndex).get('fileName'));
+			}
+		}
+	}
+			
+}
+
+/**
+ * 更新訊息內容，同時將被mapping的關鍵字取代
+ * @param {} msg
+ */
+Mogan.transactionTrace.updateTextareaMsgContent = function (msg){
+	if (Mogan.transactionTrace.templateSatus == 'EDIT') {
+
+	} else {
+		var m = trnsListStore.data.items.slice(0);
+		Ext.each(m, function(item) {
+					var re = new RegExp(item.data['trnsCode'], "g");
+					var orderData = itemListStore.getAt(Ext
+							.getCmp("editorGridItemList").getStore().find(
+									'id',
+									Ext.getCmp('itemPanel').getForm()
+											.getValues()['id']));
+					msg = msg
+							.replace(re, orderData.data[item.data['trnsData']]);
+				});
+	}
+	Ext.getCmp("textareaMsgContent").setValue(msg);
+}
+
+/**
+ * 
+ * @param {} templetName 範本名稱
+ */
+Mogan.transactionTrace.loadTempletContent = function (templetName){
+	Ext.Ajax.request({
+				url : 'AjaxPortal',
+				callback : function() {
+				},
+				success : function(response) {
+					var json = parserJSON(response.responseText);
+					if (json['responseResult'] == "failure") {
+						Ext.Msg.alert("錯誤", json['responseMsg']);
+					} else {
+						var msg=json['responseData'][0]['fileContent'];
+						if (msg.length==0){
+							Ext.Msg.alert("通知", templetName+' 的內容是空的');
+						}
+						Mogan.transactionTrace.updateTextareaMsgContent(msg);
+						Ext.getCmp('templateListStore').getAt(templateIndex).set('loadStatus',true);
+					}
+				},
+				failure : function(response) {
+					Ext.Msg.alert("錯誤", "請向程式開發者詢問");
+				},
+				params : {
+					APP_ID : appId,
+					ACTION : "LOAD_TEMPLATE",
+					RETURN_TYPE : "JSON",
+					MODEL_NAME : "BidManager",
+					TEMPLATE_NAME : templetName
 				}
 			});
 }
@@ -528,6 +597,34 @@ Mogan.transactionTrace.setSenderData = function(record) {
 }
 
 /**
+ * 改變範本使用模式，
+ * 分為套用及編輯
+ */
+Mogan.transactionTrace.changeTemplateMode=function(){
+	var modeBtn=Ext.getCmp('msgChangeTemplateMode');
+	if (Mogan.transactionTrace.templateSatus == 'LOAD') {
+		//進入編輯模式
+		Ext.Msg.alert('切換','進入範本編輯模式');
+		Mogan.transactionTrace.templateSatus = 'EDIT';
+		Ext.getCmp('msgSaveBtn').setDisabled(false);
+		Ext.getCmp('msgSaveAsBtn').setDisabled(false);
+		Ext.getCmp('msgSendBtn').setDisabled(true);
+		modeBtn.setText('範本套用模式');
+		
+	} else {
+		//進入套用模式
+		Ext.Msg.alert('切換','進入範本套用模式');
+		Mogan.transactionTrace.templateSatus = 'LOAD';
+		
+		Ext.getCmp('msgSaveBtn').setDisabled(true);
+		Ext.getCmp('msgSaveAsBtn').setDisabled(true);
+		Ext.getCmp('msgSendBtn').setDisabled(false);
+		modeBtn.setText('範本編輯模式');
+		
+	}
+}
+
+/**
  * 儲存範本資訊
  * 
  * @param {}
@@ -535,15 +632,15 @@ Mogan.transactionTrace.setSenderData = function(record) {
  */
 Mogan.transactionTrace.saveMsg = function(status) {
 
-	var templetName = '';
-	var templetText = '';
+	var templateName = '';
+	var templateText = '';
 	var isSave = false;
 	// 顯示對話視窗請使用者確是否要儲存
 	switch (status) {
 		case 0 :
-			templetName = Ext.getCmp("comboMsgTemplate").getStore().getAt(Ext
-					.getCmp("comboMsgTemplate").getValue()).get('title');
-			Ext.Msg.confirm("儲存", "是否將訊息儲存至[" + templetName + "]範本", saveMsg);
+			templateName = Ext.getCmp("comboMsgTemplate").getStore().getAt(Ext
+					.getCmp("comboMsgTemplate").getValue()).get('fileName');
+			Ext.Msg.confirm("儲存", "是否將訊息儲存至[" + templateName + "]範本", saveMsg);
 			break;
 		case 1 :
 			Ext.Msg.prompt("另存新範本", "請輸入範本名稱", saveMsg);
@@ -557,11 +654,11 @@ Mogan.transactionTrace.saveMsg = function(status) {
 		if (btn == 'yes') {
 			isSave = true;
 		} else if (btn == 'ok') {
-			templetName = text;
+			templateName = text;
 			isSave = true;
 		}
 		if (isSave) {
-			templetText = Ext.getCmp("textareaMsgContent").getValue();
+			templateText = Ext.getCmp("textareaMsgContent").getValue();
 			Ext.Ajax.request({
 						url : 'AjaxPortal',
 						callback : function() {
@@ -571,21 +668,28 @@ Mogan.transactionTrace.saveMsg = function(status) {
 							if (json['responseResult'] == "failure") {
 								Ext.Msg.alert("錯誤", json['responseMsg']);
 							} else {
-								Ext.Msg.alert("儲存功成", "範本[" + templetName
+								Ext.Msg.alert("儲存功成", "範本[" + templateName
 												+ "]儲存完成");
-								var store = Ext.getCmp("comboMsgTemplate")
-										.getStore();
-								var defaultData = {
-									value : store.getCount(),
-									title : templetName,
-									text : templetText
-								};
-								var p = new store.recordType(defaultData); // create
-																			// new
-																			// record
-								store.add(p);
-								Ext.getCmp("comboMsgTemplate")
-										.setValue(templetName);
+								switch (status) {
+									case 0 :
+										break;
+									case 1 :
+										var store = Ext
+												.getCmp("comboMsgTemplate")
+												.getStore();
+										var defaultData = {
+											templateIndex : store.getCount(),
+											fileName : templateName,
+											fileContent : templateText,
+											loadStatus : true
+										};
+										// create new record
+										var p = new store.recordType(defaultData); 
+										store.add(p);
+										Ext.getCmp("comboMsgTemplate")
+												.setValue(templateName);
+										break;
+								}
 							}
 						},
 						failure : function(response) {
@@ -596,13 +700,38 @@ Mogan.transactionTrace.saveMsg = function(status) {
 							ACTION : "SAVE_TEMPLATE",
 							RETURN_TYPE : "JSON",
 							MODEL_NAME : "BidManager",
-							TEMPLET_TEXT : templetText,
-							TEMPLET_NAME : templetName
+							TEMPLATE_TEXT : templateText,
+							TEMPLATE_NAME : templateName
 						}
 					});
 		}
 	}
 
+}
+
+/**
+ * 顯示對應名稱列表
+ */
+var editMsgWindow;
+Mogan.transactionTrace.showEditTemplate = function() {
+	if (trnsWindow == null) {
+		Ext.DomHelper.append('iframe-window', {
+					tag : 'div',
+					id : 'msgTemplatePanel'
+				});
+		editMsgWindow = new Ext.Window({
+					el : 'msgTemplatePanel',
+					layout : 'fit',
+					title : "代碼對應列表",
+					items : [Mogan.transactionTrace.createEditTemplatePanel()],
+					width : 400,
+					height : 360,
+					closeAction : 'hide',
+					autoScroll : true,
+					modal : true
+				});
+	}
+	trnsWindow.show();
 }
 
 /**
@@ -634,55 +763,36 @@ Mogan.transactionTrace.showMsgTrnsList = function() {
  * 名稱對應表專用儲存對話框
  */
 Mogan.transactionTrace.saveTrnsList = function() {
-	Ext.Msg.confirm("儲存", "是否將訊息儲存至[" + templetName + "]範本", saveMsg);
-	var isSave = false;
-	function saveTrnsList(btn) {
-		if (btn == 'yes') {
-			isSave = true;
-		} else if (btn == 'ok') {
-			templetName = text;
-			isSave = true;
-		}
-		if (isSave) {
-			Ext.Ajax.request({
-						url : 'AjaxPortal',
-						callback : function() {
-						},
-						success : function(response) {
-							var json = parserJSON(response.responseText);
-							if (json['responseResult'] == "failure") {
-								Ext.Msg.alert("錯誤", json['responseMsg']);
-							} else {
-								Ext.Msg.alert("儲存功成", "範本[" + templetName
-												+ "]儲存完成");
-								var store = Ext.getCmp("comboMsgTemplate")
-										.getStore();
-								var defaultData = {
-									value : store.getCount(),
-									title : templetName,
-									text : templetText
-								};
-								var p = new store.recordType(defaultData); // create
-																			// new
-																			// record
-								store.add(p);
-								Ext.getCmp("comboMsgTemplate")
-										.setValue(templetName);
-							}
-						},
-						failure : function(response) {
-							Ext.Msg.alert("錯誤", "請向程式開發者詢問");
-						},
-						params : {
-							APP_ID : appId,
-							ACTION : "SAVE_TRNSLIST",
-							RETURN_TYPE : "JSON",
-							MODEL_NAME : "BidManager",
-							TRNSLIST : templetText,
-						}
-					});
-		}
-	}
+
+	var m=trnsListStore.data.items.slice(0);
+	var jsonArray = [];
+	Ext.each(m,function (item){jsonArray.push(item.data)});
+	
+	Ext.Ajax.request({
+				url : 'AjaxPortal',
+				callback : function() {
+				},
+				success : function(response) {
+					var json = parserJSON(response.responseText);
+					if (json['responseResult'] == "failure") {
+						Ext.Msg.alert("錯誤", json['responseMsg']);
+					} else {
+						//Ext.Msg.alert("通知", "對應表儲存成功.");
+						Ext.getCmp('trnsListSaveBtn').setText('儲存完成');
+					}
+				},
+				failure : function(response) {
+					Ext.Msg.alert("錯誤", "請向程式開發者詢問");
+				},
+				params : {
+					APP_ID : appId,
+					ACTION : "SAVE_TRNS_CODE_LIST",
+					RETURN_TYPE : "JSON",
+					MODEL_NAME : "BidManager",
+					TRNS_CODE_LIST : Ext.encode( jsonArray)
+					
+				}
+			});
 }
 
 /**

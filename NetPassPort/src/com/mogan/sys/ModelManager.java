@@ -318,14 +318,32 @@ public class ModelManager extends HttpServlet {
 				Class model = cl.loadClass(e.elementText("scheduleClass"));
 
 				scheduleModel = (ScheduleModelAdapter) model.newInstance();
+				
 				scheduleModel.setModelClass(e.elementText("scheduleClass"));
 				scheduleModel.setModelName(ScheduleName);
 				scheduleModel.setModelDiscription(e
 						.elementText("scheduleDiscription"));
-				scheduleModel.setLoop(e.elementText("loop"));
-				scheduleModel.setLOS(e.elementText("load-on-startup"));
+				
+				if (e.elements("loop").size()>0){
+					scheduleModel.setLoop(Boolean.parseBoolean(e.elementText("loop")));	
+				}
+
+				if (e.elements("load-on-startup").size()>0){
+					scheduleModel.setLOS(e.elementText("load-on-startup"));	
+				}
+				
+				if (e.selectNodes("set-run-time-spec").size()>0){
+					scheduleModel.setRunTimeSpec(e.elementText("set-run-time-spec"));	
+				}
+				
+				if (e.selectNodes("remain-time").size()>0){
+					scheduleModel.setRemainTime(Integer.parseInt(e.elementText("remain-time")));	
+				}
+				
+				
 				scheduleModel.setInterval(e.elementText("interval"));
 				scheduleModel.setProperties(this.getScheduleProperties(ScheduleName));
+				
 			} catch (MalformedURLException e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();

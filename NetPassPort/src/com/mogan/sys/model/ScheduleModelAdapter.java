@@ -1,5 +1,6 @@
 package com.mogan.sys.model;
 
+import java.text.ParseException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -10,11 +11,13 @@ import javax.servlet.ServletContext;
 
 import net.sf.json.JSONArray;
 
+import com.mogan.exception.schedule.ScheduleIncorrectDateSpecException;
 import com.mogan.exception.schedule.ScheduleNonInitException;
 import com.mogan.serviceProtal.ScheduleProtal;
 import com.mogan.sys.ModelManager;
 import com.mogan.sys.ProtoModel;
 import com.mogan.sys.ServiceModelFace;
+import com.mogan.sys.SysCalendar;
 
 /**
  * 透過排程模組，執行固定程序
@@ -30,10 +33,20 @@ public abstract class ScheduleModelAdapter extends TimerTask implements Schedule
 	private String modelClass="";
 	private String modelDiscription="";
 	private String sessionId="";
-	private static long intervalMinute;
-	private static boolean loop;
+	private String runTimeSpec="";
+	
+	private static long intervalMinute=-1;
+	private static boolean loop=false;
 	private static boolean LOS;
-	protected Date executeDate;
+	
+	//protected Date executeDate;
+	/**排程啟動時間*/
+	private Date startExeDate;
+	private Date lastExeDate;
+	private Date nextExeDate;
+	private Integer remainTime=-1;
+	private int exeTime=0;
+	private static Map<String,Map> scheduleStatus=new HashMap<String,Map>();
 	private static Map<String,Date> executeDateMap=new HashMap<String,Date>();
 	
 	
@@ -44,9 +57,45 @@ public abstract class ScheduleModelAdapter extends TimerTask implements Schedule
 	 * @see #runSchedule
 	 */
 	@Override
-	public void run() {
-		System.out.println("[INFO] SCHEDULE::"+this.getModelName()+" Start.");
-		setExecuteDate(new Date());
+	final public void run() {
+		System.out.println("[INFO] SCHEDULE::"+this.getModelName()+" Start."+this.getRemainTime());
+		Date d=new Date();
+		this.setLastExecuteDate(d);
+		
+		exeSchedule();
+		exeTime++;
+		
+		if (!this.isLoop()) {
+			//是否重覆執行，重覆執行就不自動中斷
+			setRemainTime(this.getRemainTime() - 1);
+			if (this.getRemainTime() <= 0) {
+				resetStatus(this.getModelName());
+				ScheduleProtal.stopSchedule(this.getModelName());
+				if (this.isLoop()) {
+					try {
+						ScheduleProtal.restartSchedule(this.getModelName(),
+								this.getAppId(), this.getModelServletContext());
+					} catch (ScheduleIncorrectDateSpecException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} catch (ParseException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+			}
+		}
+		SysCalendar sysCal=new SysCalendar();
+		sysCal.addMilliSecond((int) this.getInterval());
+		this.setNextExeDate(sysCal.getDate());
+		
+	}
+	
+	/**
+	 * 取得已執行次數
+	 */
+	public int getExeTime(){
+		return exeTime;
 	}
 	
 	/** 設定重覆執行間隔時間 */
@@ -73,68 +122,100 @@ public abstract class ScheduleModelAdapter extends TimerTask implements Schedule
 		return this.loop;
 	}
 	
+
+	
+	/** 設定是否指定第一次執行時間 */
+	@Override
+	public void setRunTimeSpec(String dateStr){
+		runTimeSpec=dateStr;
+	}
+	
+	/** 取得第一次執行時間 */
+	@Override
+	public String getRunTimeSpec(){
+		return runTimeSpec;
+	}
+	
+	/**
+	 * 設定剩餘次數
+	 */
+	public void setRemainTime(int i){
+		Map tempScheduleStatus=getMyStatus(this.getModelName());
+		remainTime=i;
+		tempScheduleStatus.put("remain_time", remainTime);
+	}
+	
+	/**
+	 * 取得剩餘次數
+	 */
+	public Integer getRemainTime(){
+		return getRemainTime(this.getModelName());
+	}
+
+	/**
+	 * 取得剩餘次數
+	 * @param modelName
+	 * @return
+	 */
+	static public Integer  getRemainTime(String modelName){
+		Map tempScheduleStatus=getMyStatus(modelName);
+		return (Integer) tempScheduleStatus.get("remain_time");
+	}
+	
+	
 	/** 設定是否自動執行 */
 	@Override
 	public void setLOS(Object LOS){
 		this.LOS=Boolean.parseBoolean(LOS.toString());;
 	}
+	
 	/** 是否自動執行 */
 	@Override
 	public boolean isLOS(){
 		return this.LOS;
 	}
 	
-	
-	
 	@Override
 	public String getAppId() {
-		// TODO Auto-generated method stub
 		return this.appId;
 	}
 	
 	@Override
 	public String getModelClass() {
-		// TODO Auto-generated method stub
 		return this.modelClass;
 	}
 	@Override
 	public String getModelDiscription() {
-		// TODO Auto-generated method stub
 		return this.modelDiscription;
 	}
 
 
 	@Override
 	public String getModelName() {
-		// TODO Auto-generated method stub
 		return this.modelName;
 	}
 
 
 	@Override
 	public ServletContext getModelServletContext() {
-		// TODO Auto-generated method stub
 		return this.modelServletContext;
 	}
 
 
 	@Override
 	public Properties getProperties() {
-		// TODO Auto-generated method stub
 		return this.p;
 	}
 
 
 	@Override
 	public String getProperty(String key) {
-		// TODO Auto-generated method stub
 		return this.p.getProperty(key);
 	}
 
 
 	@Override
 	public String getSessionId() {
-		// TODO Auto-generated method stub
 		return this.sessionId;
 	}
 
@@ -142,7 +223,6 @@ public abstract class ScheduleModelAdapter extends TimerTask implements Schedule
 	@Override
 	public void saveProperties(String name, String classPath,
 			String description, Properties p) {
-		// TODO Auto-generated method stub
 		ModelManager mm=(ModelManager) this.getModelServletContext().getAttribute("ModelManager");
 		mm.setModel(name, classPath,description, p);
 		mm.saveModels();
@@ -151,63 +231,147 @@ public abstract class ScheduleModelAdapter extends TimerTask implements Schedule
 
 	@Override
 	public void setAppId(String appId) {
-		// TODO Auto-generated method stub
 		this.appId=appId;
 	}
 
 
 	@Override
 	public void setModelClass(String modelClass) {
-		// TODO Auto-generated method stub
 		this.modelClass=modelClass;
 	}
 
 
 	@Override
 	public void setModelDiscription(String modelDiscription) {
-		// TODO Auto-generated method stub
 		this.modelDiscription=modelDiscription;
 	}
 
 
 	@Override
 	public void setModelName(String modelName) {
-		// TODO Auto-generated method stub
 		this.modelName=modelName;
 	}
 
 
 	@Override
 	public void setModelServletContext(ServletContext servletContext) {
-		// TODO Auto-generated method stub
 		this.modelServletContext=servletContext;
 	}
 
 
 	@Override
 	public void setProperties(Properties p) {
-		// TODO Auto-generated method stub
 		this.p=p;
 	}
 
 
 	@Override
 	public void setSessionId(String sessionId) {
-		// TODO Auto-generated method stub
 		this.sessionId=sessionId;
 	}
 
 	@Override
-	public Date getExecuteDate() {
-		// TODO Auto-generated method stub
-		return ScheduleModelAdapter.executeDateMap.get(this.getModelName());
+	final public Date getLastExecuteDate() {
+		Map tempScheduleStatus=getMyStatus(this.getModelName());
+		return (Date) tempScheduleStatus.get("execute_date");
+	}
+	
+	/**
+	 * 設定最後執行時間
+	 * @param modelName
+	 * @return
+	 */
+	final static public Date setLastExecuteDate(String modelName){
+		Map tempScheduleStatus=getMyStatus(modelName);
+		return (Date) tempScheduleStatus.get("execute_date");
 	}
 
+	
+	/**
+	 * 設定最後執行時間
+	 */
 	@Override
-	public void setExecuteDate(Date executeDate) {
-		// TODO Auto-generated method stub
+	final public void setLastExecuteDate(Date executeDate) {
+		this.lastExeDate=executeDate;
+		Map tempScheduleStatus=getMyStatus(this.getModelName());
+		tempScheduleStatus.put("execute_date", executeDate);
 		ScheduleModelAdapter.executeDateMap.put(this.getModelName(), executeDate);
 	}
+	
+	/**
+	 * 取得排程啟動時間
+	 * @param modelName
+	 * @return
+	 */
+	final static public Date getStartScheduleDate(String modelName){
+		Map tempScheduleStatus=getMyStatus(modelName);
+		return (Date) tempScheduleStatus.get("start_schedule_date");
+	}
+	
+	/**
+	 * 取得排程啟動時間
+	 * @return 
+	 */
+	@Override
+	final public Date getStartScheduleDate(){
+		return getStartScheduleDate(this.getModelName());
+	}
+	
+	/**
+	 * 設定排程啟動時間
+	 * @return 
+	 */
+	@Override
+	final public void setStartScheduleDate(Date startDate){
+		Map tempScheduleStatus=getMyStatus(this.getModelName());
+		tempScheduleStatus.put("start_schedule_date", startDate);
+	}
+	
+	/**
+	 * 
+	 * @param modelName
+	 * @return
+	 */
+	final static public Date getNextExeDate(String modelName){
+		Map tempScheduleStatus=getMyStatus(modelName);
+		return (Date) tempScheduleStatus.get("next_exe_date");
+	}
+	
+	/**
+	 * 更新預計下次執行時間
+	 * @return
+	 */
+	final public void setNextExeDate(Date nextDate){
+		Map tempScheduleStatus=getMyStatus(this.getModelName());
+		tempScheduleStatus.put("next_exe_date", nextDate);
+	}
+	
+	/**
+	 * 取得下次執行時間
+	 */
+	@Override
+	final public Date  getNextExeDate(){
+		return getNextExeDate(this.getModelName());
+	}
+	
+	
+	final static private Map getMyStatus(String modelName){
+		Map tempScheduleStatus=new HashMap();
+		if (scheduleStatus.get(modelName)==null){
+			scheduleStatus.put(modelName, new HashMap());
+		}
+		tempScheduleStatus=scheduleStatus.get(modelName);
+		
+		return tempScheduleStatus;
+	}
+	
+	
+	final public static void resetStatus(String modelName){
+		Map tempScheduleStatus=getMyStatus(modelName);
+		tempScheduleStatus.remove("next_exe_date");
+		tempScheduleStatus.remove("start_schedule_date");
+	}
+	
 
 
 }

@@ -5,7 +5,7 @@ Mogan.model.createModelGrid = function() {
 				store : jStore,
 				columns : [{
 							header : 'Category',
-							width : 100,
+							width : 60,
 							renderer : Mogan.model.rendererCategory,
 							sortable : true,
 							dataIndex : 'category'
@@ -26,21 +26,43 @@ Mogan.model.createModelGrid = function() {
 							sortable : true,
 							dataIndex : 'modelDescription'
 						}, {
-							header : 'Creator',
-							width : 75,
-							sortable : true,
-							dataIndex : 'Creator'
-						}, {
-							header : 'Create Date',
-							width : 85,
-							sortable : true,
-							dataIndex : 'create_Date'
-						}, {
-							header : 'Execute Date',
+							header : 'Start Schedule Date',
 							width : 150,
 							sortable : true,
-							dataIndex : 'execute_date'
-						}, {
+							renderer: Ext.util.Format.dateRenderer('Y/m/d H:i:s'),
+							dataIndex : 'start_schedule_date'
+						},{
+							header : 'Last Exe. Date',
+							width : 150,
+							sortable : true,
+							renderer: Ext.util.Format.dateRenderer('Y/m/d H:i:s'),
+							dataIndex : 'last_exe_date'
+						},{
+							header : 'Next Exe. Date',
+							width : 150,
+							sortable : true,
+							renderer: Ext.util.Format.dateRenderer('Y/m/d H:i:s'),
+							dataIndex : 'next_exe_date'
+						},
+							{
+							header : 'Time Spec',
+							width : 150,
+							sortable : true,
+							dataIndex : 'run_time_spec'
+						},
+						{
+							header : 'Remain Time',
+							width : 150,
+							sortable : true,
+							dataIndex : 'remain_time'
+						},{
+							header : 'Interval (Min.)',
+							width : 150,
+							sortable : true,
+							dataIndex : 'interval'
+						},
+						
+						{
 							header : 'Status',
 							width : 85,
 							renderer : Mogan.model.rendererStatus,
@@ -52,6 +74,16 @@ Mogan.model.createModelGrid = function() {
 							renderer : Mogan.model.rendererAction,
 							sortable : true,
 							dataIndex : ''
+						}, {
+							header : 'Creator',
+							width : 75,
+							sortable : true,
+							dataIndex : 'Creator'
+						}, {
+							header : 'Create Date',
+							width : 85,
+							sortable : true,
+							dataIndex : 'create_Date'
 						}],
 				stripeRows : true,
 				// autoExpandColumn : 'modelName',
@@ -85,6 +117,16 @@ var jStore = new Ext.data.JsonStore({
 						name : 'category'
 					}, {
 						name : 'status'
+					}, {
+						name : 'start_schedule_date'
+					}, {
+						name : 'next_exe_date'
+					}, {
+						name : 'last_exe_date'
+					},{name:'run_time_spec'}, {
+						name : 'remain_time'
+					}, {
+						name : 'interval'
 					}]
 		});
 

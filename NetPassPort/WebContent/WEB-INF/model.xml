@@ -1,19 +1,32 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <models>
 	<schedule>
+		<scheduleName>MigrationTask</scheduleName>
+		<scheduleJar>DLC Models.jar</scheduleJar>
+		<scheduleClass>com.mogan.schedule.MigrationTask</scheduleClass>
+		<scheduleDiscription>資料整合，目前只有會員資料</scheduleDiscription>
+		<load-on-startup>false</load-on-startup>
+		<loop>true</loop>
+		<set-run-time-spec>* * * * *</set-run-time-spec>
+		<remain-time>1</remain-time>
+		<interval>1</interval>
+	</schedule>	
+	<schedule>
 		<scheduleName>ScheduleTest</scheduleName>
 		<scheduleJar>DLC Models.jar</scheduleJar>
 		<scheduleClass>com.mogan.schedule.ScheduleTest</scheduleClass>
-		<scheduleDiscription></scheduleDiscription>
-		<load-on-startup>true</load-on-startup>
+		<scheduleDiscription>測試用</scheduleDiscription>
+		<load-on-startup>false</load-on-startup>
 		<loop>true</loop>
-		<interval>1</interval>
+		<set-run-time-spec>* * * * 53</set-run-time-spec>
+		<remain-time>1</remain-time>
+		<interval>2</interval>
 	</schedule>	
 	<schedule>
 		<scheduleName>PhpNonBidAlert</scheduleName>
 		<scheduleJar>DLC Models.jar</scheduleJar>
 		<scheduleClass>com.mogan.schedule.PhpNonBidAlert</scheduleClass>
-		<scheduleDiscription></scheduleDiscription>
+		<scheduleDiscription>更新未得標資料</scheduleDiscription>
 		<load-on-startup>true</load-on-startup>
 		<loop>true</loop>
 		<interval>60</interval>
@@ -25,7 +38,7 @@
 		<scheduleName>JpServerTest</scheduleName>
 		<scheduleJar>DLC Models.jar</scheduleJar>
 		<scheduleClass>com.mogan.schedule.JpServerTest</scheduleClass>
-		<scheduleDiscription></scheduleDiscription>
+		<scheduleDiscription>日本Server測速</scheduleDiscription>
 		<load-on-startup>true</load-on-startup>
 		<loop>true</loop>
 		<interval>5</interval>
@@ -34,7 +47,7 @@
 		<scheduleName>MsnTask</scheduleName>
 		<scheduleJar>DLC Models.jar</scheduleJar>
 		<scheduleClass>com.mogan.schedule.MsnTask</scheduleClass>
-		<scheduleDiscription></scheduleDiscription>
+		<scheduleDiscription>MSN 小甜心-暫停開發</scheduleDiscription>
 		<load-on-startup>true</load-on-startup>
 		<loop>true</loop>
 		<interval>3</interval>
@@ -43,7 +56,7 @@
 		<scheduleName>GmailTask</scheduleName>
 		<scheduleJar>DLC Models.jar</scheduleJar>
 		<scheduleClass>com.mogan.schedule.GmailTask</scheduleClass>
-		<scheduleDiscription></scheduleDiscription>
+		<scheduleDiscription>Gmail 讀取排程</scheduleDiscription>
 		<load-on-startup>true</load-on-startup>
 		<loop>true</loop>
 		<interval>3</interval>
@@ -74,7 +87,7 @@
 		<scheduleName>PhpTask</scheduleName>
 		<scheduleJar>DLC Models.jar</scheduleJar>
 		<scheduleClass>com.mogan.schedule.PhpTask</scheduleClass>
-		<scheduleDiscription></scheduleDiscription>
+		<scheduleDiscription>入帳系統</scheduleDiscription>
 		<load-on-startup>true</load-on-startup>
 		<loop>true</loop>
 		<interval>3</interval>

@@ -1,7 +1,9 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
 <%@ page import="com.mogan.sys.DBConn"%>
+<%@ page import="com.mogan.io.FileIO"%>
 <%@ page import="java.util.ArrayList"%>
+<%@ page import="java.io.File"%>
 <%@ page import="net.sf.json.JSONArray"%>
 <%@ page import="net.sf.json.JSONObject"%>
 
@@ -25,6 +27,7 @@
 <jsp:useBean id="ConDbBean" scope="session" class="com.mogan.sys.DBConn"/>
 <script type="text/javascript" >
 <%
+	final String modelName="BidManager";
 
 	DBConn conn = (DBConn)application.getAttribute("DBConn");// 呼叫 Bean 物件的 getConn() 方法，取得已建立完成的資料庫連結
 	JSONArray accountList=conn.queryJSONArray("mogan-DB","SELECT bid_id,CONCAT(account,CONCAT('-',website_name)) as diaplay_account,account FROM view_system_bid_id");
@@ -35,27 +38,55 @@
 	emptyAccount.put("diaplay_account","-");
 	accountList.add(0,emptyAccount);
 	accountData.put("root",accountList);
-	//accountData.put("account","-");
-	JSONArray trnsList=new JSONArray ();
-	Properties p=new Properties();	
-	p.put("trnsCode","$MOGAN_ITEM_ID");
-	p.put("trnsData","1");
-	trnsList.add(p);
-	p=new Properties();	
-	p.put("trnsCode","$MOGAN_ITEM_ORDER_ID");
-	p.put("trnsData","2");
-	trnsList.add(p);
-	p=new Properties();	
-	p.put("trnsCode","$YAHOO_JP_ITEM_ID");
-	p.put("trnsData","3");
-	trnsList.add(p);
-
+	
+	//對應列表
+	FileIO fio =new FileIO();
+	Properties p=fio.loadPtyFile(null,modelName);
+	JSONArray trnsList=JSONArray.fromObject(p.get("TRNS_CODE_LIST"));	
 	JSONObject trnsData=new JSONObject();
 	trnsData.put("root",trnsList);
 	
+	//欄位清單
+	JSONArray tempTrnsColmList=new JSONArray();
+	JSONObject tempObj=new JSONObject();
+	tempObj.put("columnName","item_id");
+	tempObj.put("columnDesc","日雅商品ID");
+	tempTrnsColmList.add(tempObj);
+	tempObj.put("columnName","sell_name");
+	tempObj.put("columnDesc","日雅賣家ID");
+	tempTrnsColmList.add(tempObj);
+	tempObj.put("columnName","item_order_id");
+	tempObj.put("columnDesc","摩根訂單編號");
+	tempTrnsColmList.add(tempObj);
+	p.put("TRNS_COLM_LIST",tempTrnsColmList);
+	JSONArray trnsColmList=JSONArray.fromObject(p.get("TRNS_COLM_LIST"));	
+	JSONObject trnsColmData=new JSONObject();
+	trnsColmData.put("root",trnsColmList);
+	
+	//範本列表
+	File [] f=fio.getTxtFileList(null,modelName);
+	JSONArray templateFileList=new JSONArray();
+	//JSONObject tempFileList=new JSONObject();
+	JSONObject templateData=new JSONObject();
+	System.out.println("[DEBUG] JSP::"+f);
+	if (f!=null){
+	for (int i=0;i<f.length;i++){
+		JSONObject templateFile=new JSONObject();
+		templateFile.put("templateIndex",i);
+		templateFile.put("loadStatus",false);
+		templateFile.put("fileContent","");
+		templateFile.put("fileName",f[i].getName().replaceAll("\\.(t|T)(x|X)(t|T)$",""));
+		templateFileList.add(templateFile);
+	}}
+	templateData.put("root",templateFileList);
+	
 %>
+
 var accountJSONData = <% out.println(accountData); %>;
 var trnsJSONData = <% out.println(trnsData); %>;
+var trnsColmJSONData = <% out.println(trnsColmData); %>;
+var templateJSONData = <% out.println(templateData); %>;
+
 </script>
 
 <script type="text/javascript" src="js/netAgent/mogan.transactionTrace.function.js"></script>

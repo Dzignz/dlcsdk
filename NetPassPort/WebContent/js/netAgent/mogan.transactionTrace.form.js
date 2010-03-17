@@ -1,5 +1,6 @@
 Ext.namespace("Mogan.transactionTrace");
 
+Mogan.transactionTrace.templateSatus='LOAD';
 // 得標資料
 var itemListStore = new Ext.data.JsonStore({
 	autoload : true,
@@ -479,6 +480,20 @@ Mogan.transactionTrace.createMsgPanel = function() {
 	return grid;
 }
 
+/**
+ * 範本列表專用data store
+ */
+var templateListStore = new Ext.data.Store({
+			id : 'templetListStore',
+			reader : new Ext.data.JsonReader({
+						root : 'root'
+					}, ['templateIndex', 'loadStatus', 'fileContent',
+							'fileName']),
+
+			proxy : new Ext.data.MemoryProxy(templateJSONData)
+		});
+templateListStore.load();
+
 Mogan.transactionTrace.createMsgSenderPanel = function() {
 	var msgCategoryData = [
 			[
@@ -499,17 +514,7 @@ Mogan.transactionTrace.createMsgSenderPanel = function() {
 		data : msgCategoryStore.getAt(0).get('data')
 	});
 
-	var msgTemplate = [
-			['0', '範本一', '讀取範本一,$MOGAN_ITEM_ORDER_ID 測試'],
-			['1', '範本二', '讀取範本二$MOGAN_ITEM_ORDER_ID 測試$MOGAN_ITEM_ORDER_ID 測試'],
-			['2', '範本三', '讀取範本三$MOGAN_MONEY $MOGAN_ITEM_ORDER_ID']];
-	var msgTemplateStore = new Ext.data.SimpleStore({// 下拉式選單資料
-		fields : ['value', 'title', 'text'],
-		data : msgTemplate
-	});
-
 	var comboMsgCategory = new Ext.form.ComboBox({
-				id : 'comboMsgCategory',
 				fieldLabel : '類型',
 				store : msgCategoryStore,
 				mode : 'local',
@@ -531,7 +536,6 @@ Mogan.transactionTrace.createMsgSenderPanel = function() {
 				store : msgTitleStore,
 				mode : 'local',
 				width : 300,
-
 				triggerAction : 'all',
 				valueField : 'value',
 				hiddenName : "SUBJECT_A",
@@ -545,14 +549,14 @@ Mogan.transactionTrace.createMsgSenderPanel = function() {
 	var comboMsgTemplate = new Ext.form.ComboBox({
 				id : 'comboMsgTemplate',
 				fieldLabel : '訊息範本',
-				store : msgTemplateStore,
+				store : templateListStore,
 				mode : 'local',
 				width : 300,
 				triggerAction : 'all',
-				valueField : 'value',
+				valueField : 'templateIndex',
 				lazyRender : true,
-				displayField : 'title',
-				value : '0',
+				displayField : 'fileName',
+				// value : '0',
 				readOnly : true,
 				editable : false
 			});
@@ -614,15 +618,23 @@ Mogan.transactionTrace.createMsgSenderPanel = function() {
 							name : 'ITEM_ORDER_ID',
 							value : ''
 						}],
-				buttons : [{
+				buttons : [ {
+							id : 'msgChangeTemplateMode',
+							text : '範本編輯模式',
+							handler : function(b,e) {
+								Mogan.transactionTrace.changeTemplateMode();
+							}
+						},{
 							id : 'msgSaveBtn',
 							text : '儲存',
+							disabled :true,
 							handler : function() {
 								Mogan.transactionTrace.saveMsg(0);
 							}
 						}, {
 							id : 'msgSaveAsBtn',
 							text : '另儲新副本',
+							disabled :true,
 							handler : function() {
 								Mogan.transactionTrace.saveMsg(1);
 							}
@@ -774,6 +786,10 @@ Mogan.transactionTrace.createItemPanel = function() {
 	return panel;
 }
 
+
+
+
+
 /**
  * 名稱對應表專用data store
  */
@@ -784,6 +800,15 @@ var trnsListStore = new Ext.data.Store({
 			proxy : new Ext.data.MemoryProxy(trnsJSONData)
 		});
 trnsListStore.load();
+
+var trnsColmListStore = new Ext.data.Store({
+			reader : new Ext.data.JsonReader({
+						root : 'root'
+					}, ['columnName', 'columnDesc']),
+			proxy : new Ext.data.MemoryProxy(trnsColmJSONData)
+		});
+trnsColmListStore.load();
+
 
 /**
  * 名稱對應列表
@@ -809,16 +834,32 @@ Mogan.transactionTrace.createTrnsListGird = function() {
 					header : "對應資料欄位",
 					dataIndex : 'trnsData',
 					editor : new Ext.form.ComboBox({
-						typeAhead : true,
-						triggerAction : 'all'
-							// transform the data already specified
-							// in html
-							// transform : 'msg_from'
-							// lazyRender : true
-							// listClass : 'x-combo-list-small'
-						}),
+								typeAhead : true,
+								triggerAction : 'all',
+								store : trnsColmListStore,
+								mode : 'local',
+								valueField : 'columnName',
+								lazyRender : true,
+								displayField : 'columnDesc',
+								readOnly : true,
+								editable : false
+							}),
 					width : 100,
-					sortable : true
+					// sortable : true,
+
+					renderer : function(value) {
+						if (trnsColmListStore.find('columnName', value) == -1) {
+							return '';
+						} else {
+							return trnsColmListStore.getAt(trnsColmListStore
+									.find('columnName', value))
+									.get('columnDesc');
+						}
+
+						return trnsColmListStore.getAt(trnsColmListStore.find(
+								'columnName', value)).get('columnDesc');
+					}
+
 				}],
 		tbar : new Ext.Toolbar(['-', {
 					text : '新增項目',
@@ -851,7 +892,8 @@ Mogan.transactionTrace.createTrnsListGird = function() {
 					id : 'trnsListSaveBtn',
 					text : '儲存',
 					handler : function() {
-						// Mogan.transactionTrace.saveMsg(0);
+						Ext.getCmp('trnsListSaveBtn').setText('儲存中.....');
+						Mogan.transactionTrace.saveTrnsList();
 					}
 				}]),/*
 					 * bbar : [{ xtype : 'button', id : 'trnsListSaveBtn', text :
