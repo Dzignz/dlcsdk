@@ -10,8 +10,7 @@ import com.mogan.sys.DBConn;
 import com.mogan.sys.model.ScheduleModelAdapter;
 
 public class JpServerTest extends ScheduleModelAdapter {
-	public void run() {
-		super.run();
+	public void exeSchedule() {
 		DBConn conn = (DBConn) this.getModelServletContext().getAttribute(
 		"DBConn");
 		ArrayList<Map> itemList=conn.query("mogan-tw", "select item_id,url from web_track order by id desc limit 1");
@@ -41,6 +40,6 @@ public class JpServerTest extends ScheduleModelAdapter {
 		dataMap.put("info", t0+" ,"+t1+" ,"+t2);
 		
 		conn.newData("mogan-DB", "system_alert", dataMap );
-		netAgent.getDataWithGet("http://192.168.1.66/class/common/test.php?auctionID="+itemId);
+		netAgent.getDataWithGet("http://192.168.1.37/class/common/test.php?auctionID="+itemId);
 	}
 }

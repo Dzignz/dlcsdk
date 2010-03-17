@@ -1,5 +1,6 @@
 package com.mogan.model;
 
+import java.text.ParseException;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -14,6 +15,7 @@ import org.dom4j.Element;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
+import com.mogan.exception.schedule.ScheduleIncorrectDateSpecException;
 import com.mogan.serviceProtal.ScheduleProtal;
 import com.mogan.serviceProtal.ScheduleProtal;
 import com.mogan.sys.ModelFace;
@@ -27,7 +29,7 @@ public class ModelService extends ProtoModel implements ServiceModelFace {
 	private static ModelManager modelManager = new ModelManager();
 
 	@Override
-	public JSONArray doAction(Map parameterMap) {
+	public JSONArray doAction(Map parameterMap) throws Exception{
 		// TODO Auto-generated method stub
 		JSONArray jArray = new JSONArray();
 		
@@ -62,8 +64,10 @@ public class ModelService extends ProtoModel implements ServiceModelFace {
 	 * 
 	 * @param scheduleName
 	 * @return
+	 * @throws ParseException 
+	 * @throws ScheduleIncorrectDateSpecException 
 	 */
-	private JSONArray startSchedule(String scheduleName){
+	private JSONArray startSchedule(String scheduleName) throws ScheduleIncorrectDateSpecException, ParseException{
 		JSONArray jArray = new JSONArray();
 		ScheduleProtal.startSchedule(scheduleName,this.getAppId(),this.getModelServletContext());
 		return jArray;
@@ -107,20 +111,37 @@ public class ModelService extends ProtoModel implements ServiceModelFace {
 		for (int i = 0; i < nodes.size(); i++) {
 			Element e = nodes.get(i);
 			JSONObject jObj = new JSONObject();
-			jObj.put("modelName", e.elementText("scheduleName"));
+			String scheduleName=e.elementText("scheduleName");
+			jObj.put("modelName", scheduleName);
 			jObj.put("modelClass", e.elementText("scheduleClass"));
 			jObj.put("modelDescription", e.elementText("scheduleDiscription"));
 			jObj.put("creator", e.elementText("creator"));
 			jObj.put("category", "SCHEDULE");
 			jObj.put("create_Date", e.elementText("create_Date"));
-			ScheduleModelAdapter scheduleModel = (ScheduleModelAdapter) modelManager
-					.getScheduleModel(e.elementText("scheduleName"));
+			
 			jObj.put("status", ScheduleProtal.getScheduleStatus(e
 					.elementText("scheduleName")));
-			if ( scheduleModel.getExecuteDate()!=null){
-				
-				jObj.put("execute_date", scheduleModel.getExecuteDate().toString());
+			if(ScheduleModelAdapter.setLastExecuteDate(scheduleName)!=null){
+				jObj.put("last_exe_date", ScheduleModelAdapter.setLastExecuteDate(scheduleName).toString());	
 			}
+			
+			if(ScheduleModelAdapter.getStartScheduleDate(scheduleName)!=null){
+				jObj.put("start_schedule_date", ScheduleModelAdapter.getStartScheduleDate(scheduleName).toString());	
+			}
+			if(ScheduleModelAdapter.getNextExeDate(scheduleName)!=null){
+				jObj.put("next_exe_date", ScheduleModelAdapter.getNextExeDate(scheduleName).toString());	
+			}
+			
+			
+			//jObj.put("next_execute_date", scheduleModel.getExecuteDate().toString());
+			jObj.put("run_time_spec", e.elementText("set-run-time-spec"));
+			jObj.put("remain_time", ScheduleModelAdapter.getRemainTime(scheduleName));
+			if  (e.elementText("loop")!=null && e.elementText("loop").length()>0){
+				jObj.put("remain_time","∞");
+			}
+			jObj.put("interval", e.elementText("interval"));
+
+			
 			jArray.add(jObj);
 		}
 

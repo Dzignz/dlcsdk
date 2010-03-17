@@ -242,9 +242,6 @@ public class NetAgentYJ extends NetAgentModel implements BidFace {
 			nodes = nAgent.filterItem(new HTMLNodeFilter(
 					"div id=\"modCtgSearchResult\""));
 
-			// System.out.println("[DEBUG] nodes:"+nodes.elementAt(0).getChildren().elementAt(1).toHtml());
-			// System.out.println("[DEBUG] nodes:"+nodes.elementAt(0).getChildren().elementAt(3).toHtml());
-			// System.out.println("[DEBUG] nodes:"+nodes.elementAt(0).toHtml());
 		} catch (ParserException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -935,7 +932,8 @@ public class NetAgentYJ extends NetAgentModel implements BidFace {
 				this.outputTofile(msgContact, "sendwonmsg");
 				nAgent.setPostDataMap(postDataMap);
 				nAgent.postMaptoData();
-				// System.out.println("[DEBUG]msgContact::"+msgContact.length());
+				
+				 
 				nAgent.getDataWithPost(postMsgURL, charSet);
 
 				if (nAgent.filterItem(new HTMLNodeFilter(this.CONTACT_FINISH))
@@ -2001,7 +1999,7 @@ public class NetAgentYJ extends NetAgentModel implements BidFace {
 			if (nAgent.getResponseCookies().length == 0) {
 				loginMsg = "2";// 登入失敗
 			} else {
-				this.setLoginCookieMap(this.getWebSiteName(), uId, nAgent
+				this.setLoginCookieMap(this.getWebSiteName(), uId,pwd, nAgent
 						.getResponseCookies());
 				loginMsg = "1";// 登入成功
 			}

@@ -29,8 +29,7 @@ public class MsnTask extends ScheduleModelAdapter {
 //	static Map botMap=new HashMap();
 	
 	@Override
-	public void run() {
-		super.run();
+	public void exeSchedule() {
 		sysLogin();//檢查登入狀態
 		try {
 			Thread.sleep(1000*30);

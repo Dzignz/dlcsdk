@@ -1,3 +1,6 @@
+com.data.migration
+com.mogan.dataBean
+com.mogan.debug
 com.mogan.exception
 com.mogan.exception.NetAgent
 com.mogan.exception.schedule

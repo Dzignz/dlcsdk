@@ -63,7 +63,7 @@ public abstract class NetAgentModel extends ProtoModel {
 			}
 			long nowTime = System.currentTimeMillis();
 			int loginDay = (int) ((nowTime - loginTime) / (1000 * 60 * 60 * 24));
-			System.out.println("[DEBUG] LOGIN DATE::" + loginDay);
+			System.out.println("[DEBUG] LOGIN DATA::" +uId+" "+loginCookieMap.get("PWD")+" "+ loginDay);
 			if (loginDay > 6) {
 				return new NetAgent().getState().getCookies();
 			}
@@ -125,7 +125,7 @@ public abstract class NetAgentModel extends ProtoModel {
 	 * @param uId
 	 * @param cookies
 	 */
-	public void setLoginCookieMap(String webSiteName, String uId,
+	public void setLoginCookieMap(String webSiteName, String uId,String pwd,
 			Cookie[] cookies) {
 		Map loginMap = (Map) this.getModelServletContext().getAttribute(
 				this.getAppId() + "_LOGIN_COOKIE_MAP");
@@ -137,6 +137,7 @@ public abstract class NetAgentModel extends ProtoModel {
 		sessionMap.put("COOKIE", cookies);
 		sessionMap.put("LOGIN_TIME", Long.toString(System.currentTimeMillis()));
 		sessionMap.put("FROM_IP", "");
+		sessionMap.put("PWD", pwd);
 		sessionMap.put("ACCOUNT", uId);
 		sessionMap.put("APP_ID", this.getAppId());
 		loginMap.put(uId, sessionMap);

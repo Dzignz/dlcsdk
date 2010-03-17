@@ -16,8 +16,7 @@ import com.mogan.sys.model.ScheduleModelAdapter;
 public class PhpNonBidAlert extends ScheduleModelAdapter {
 	/** 呼叫PHP處理未得標資料  */
 	static final String PHP_NON_BID_ALERT_URL = "PHP_NON_BID_ALERT_URL";
-	public void run() {
-		super.run();
+	public void exeSchedule() {
 		NetAgent nAgent = new NetAgent();
 		
 		nAgent.getDataWithGet(this.getProperty(PHP_NON_BID_ALERT_URL));

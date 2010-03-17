@@ -237,6 +237,7 @@ public class NetAgent extends HttpClient {
 	 */
 	public int getDataWithPost(String urlString, String charset) {
 		EncodePostMethod postMethod = new EncodePostMethod(urlString, charset);
+		
 		return getDataWithPost(postMethod);
 	}
 

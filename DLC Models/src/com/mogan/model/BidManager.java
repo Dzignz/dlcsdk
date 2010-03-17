@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Properties;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -932,30 +933,95 @@ public class BidManager extends ProtoModel implements ServiceModelFace {
 						+ contactId + "'");
 	}
 	
-	public JSONArray saveTemplet(String templetName,String templetText){
+	/**
+	 * 讀取範本內容
+	 * @param templetName
+	 * @return
+	 */
+	public JSONArray loadTemplate(String templetName){
+		FileIO fio =new FileIO();
+		JSONArray jArray=new JSONArray();
+		JSONObject jObj=new JSONObject();
+		//jObj.put(templetName, fio.loadTxtFile(null, this.getModelName(), templetName));
+		jObj.put("fileName", templetName);
+		jObj.put("fileContent", fio.loadTxtFile(null, this.getModelName(), templetName).toString());
+		jArray.add(jObj);
+		//fio.loadTxtFile(null, this.getModelName(), templetName);
+		return jArray;
+	}
+	
+	/**
+	 * 儲存範本檔案
+	 * @param templetName
+	 * @param templetText
+	 * @return
+	 */
+	public JSONArray saveTemplate(String templetName,String templetText){
 		FileIO fio =new FileIO();
 		JSONArray jArray=new JSONArray();
 		jArray.add(fio.saveTxtFile(null,this.getModelName(),templetName,templetText));
 		return jArray;
 	}
 	
-	public JSONArray getTempletList(){
+	/**
+	 * 取得範本列表
+	 * @return
+	 */
+	public JSONArray getTemplateList(){
 		FileIO fio =new FileIO();
 		fio.getTxtFileList(null,this.getModelName());
 		return null;
 	}
-
+	
+	/**
+	 * 讀取個人設定
+	 * @param ptyName
+	 * @return
+	 */
+	public JSONArray loadUserPty(String ptyName){
+		FileIO fio =new FileIO();
+		JSONArray jArray=new JSONArray();
+		Properties p = fio.loadPtyFile(null, this.getModelName());
+		jArray=JSONArray.fromObject(p.get(ptyName));
+		return null;
+	}
+	
+	/**
+	 * 將個人設定保存起來
+	 * @param jTrnsCodeList
+	 * @return
+	 */
+	public JSONArray saveUserPty(JSONArray jTrnsCodeList){
+		FileIO fio =new FileIO();
+		JSONArray jArray=new JSONArray();
+		Properties p = new Properties();
+		p.put("TRNS_CODE_LIST", jTrnsCodeList.toString());
+		jArray.add(fio.savePtyFile(null, this.getModelName(), p, "")) ;
+		return jArray;
+	}
+	
+	/**
+	 * 
+	 */
 	public JSONArray doAction(Map parameterMap) throws Exception {
 		JSONArray jArray = new JSONArray();
 		System.out.println("[INFO]BidManager ACTION start. " + this.getAct());
 
 		if (this.getAct().equals("LOAD_TEMPLATE_LIST")){
 			
+		}else if (this.getAct().equals("LOAD_TEMPLATE")){
+			String templetName= (String) parameterMap.get("TEMPLATE_NAME");
+			jArray=loadTemplate(templetName);
 		}else if (this.getAct().equals("SAVE_TEMPLATE")){
-			
-			String templetName= (String) parameterMap.get("TEMPLET_NAME");
-			String templetText= (String) parameterMap.get("TEMPLET_TEXT");
-			jArray = saveTemplet(templetName,templetText);
+			String templateName= (String) parameterMap.get("TEMPLATE_NAME");
+			String templateText= (String) parameterMap.get("TEMPLATE_TEXT");
+			jArray = saveTemplate(templateName,templateText);
+		}else if (this.getAct().equals("SAVE_TRNS_CODE_LIST")){
+			String trnsCodeList= (String) parameterMap.get("TRNS_CODE_LIST");
+			JSONArray jTrnsCodeList=JSONArray.fromObject(trnsCodeList);
+			jArray = saveUserPty(jTrnsCodeList);
+		}else if (this.getAct().equals("LOAD_TRNS_CODE_LIST")){
+			//jArray = saveUserPty(jTrnsCodeList);
 		}else if (this.getAct().equals("UPDATE_ITEM_CONTACT_DATA")) {//更新商品聯絡資料
 			String itemOrderId = (String) parameterMap.get("ITEM_ORDER_ID");
 			jArray = updateItemContactData(itemOrderId);

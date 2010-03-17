@@ -3,6 +3,11 @@
  */
 package com.mogan.schedule;
 
+import java.text.ParseException;
+import java.util.Date;
+
+import com.mogan.exception.schedule.ScheduleIncorrectDateSpecException;
+import com.mogan.serviceProtal.ScheduleProtal;
 import com.mogan.sys.model.ScheduleModelAdapter;
 
 /**
@@ -10,14 +15,8 @@ import com.mogan.sys.model.ScheduleModelAdapter;
  *
  */
 public class ScheduleTest extends ScheduleModelAdapter {
-	public void run(){
-		System.out.println("[DEBUG] ScheduleTest--1");
-		try {
-			Thread.sleep(1000*60*2);
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		System.out.println("[DEBUG] ScheduleTest--2");
+	public void exeSchedule(){
+		System.out.println("[DEBUG] ScheduleTest--1"+this.getRemainTime());
+		System.out.println("[DEBUG] ScheduleTest--2"+new Date());
 	}
 }

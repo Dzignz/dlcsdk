@@ -178,6 +178,8 @@ public class SMSModel extends ProtoModel implements ServiceModelFace {
 		try {
 			nAgent.setResponseBody(new String(nAgent.getResponseBody()
 					.getBytes("ISO-8859-1"), "BIG5"));
+			System.out.println( nAgent.getResponseBody());
+			System.out.println("===============");
 			NodeList nodes = nAgent.filterItem(new HTMLNodeFilter("p"));
 
 			for (int i = 0; i < nodes.size(); i = i + 2) {
@@ -195,8 +197,10 @@ public class SMSModel extends ProtoModel implements ServiceModelFace {
 						.split("\\*")[1]);
 				jObj.put("STATUS", nodes.elementAt(i).toPlainTextString()
 						.split("\\*")[2]);
+				/*
 				jObj.put("CHECK_KEY", nodes.elementAt(i).toPlainTextString()
 						.split("\\*")[3]);
+						*/
 				jArray.add(jObj);
 			}
 
@@ -230,39 +234,91 @@ public class SMSModel extends ProtoModel implements ServiceModelFace {
 
 		JSONArray jArray = new JSONArray();
 		JSONObject jObj = new JSONObject();
-		jObj.put("NUMBER", "0927101500");
-		jObj.put("NAME", "dian");
-		// jObj.put("CHECK_KEY", "0001");
+		
+		jObj.put("NAME","郭發福");
+		jObj.put("NUMBER","0918081826");
+		//jArray.add(jObj);
+		
+		jObj.put("NAME","蘇美秀");
+		jObj.put("NUMBER","0930939297");
 		jArray.add(jObj);
+		
+		jObj.put("NAME","樺昌胡醫師");
+		jObj.put("NUMBER","0986888011");
+		jArray.add(jObj);
+		
+		jObj.put("NAME","杨金刚");
+		jObj.put("NUMBER","13086889300");
+		jArray.add(jObj);
+		
+		jObj.put("NAME","王強");
+		jObj.put("NUMBER","0926744256");
+		jArray.add(jObj);
+		
+		jObj.put("NAME","鍾采霏");
+		jObj.put("NUMBER","886918700820");
+		jArray.add(jObj);
+		
+		jObj.put("NAME","歐任琦");
+		jObj.put("NUMBER","0916890196");
+		jArray.add(jObj);
+		
+		jObj.put("NAME","廖文振");
+		jObj.put("NUMBER","0939578338");
+		jArray.add(jObj);
+		
+		jObj.put("NAME","曾婉容");
+		jObj.put("NUMBER","0935915271");
+		jArray.add(jObj);
+		
+		jObj.put("NAME","林育德");
+		jObj.put("NUMBER","0927639755");
+		jArray.add(jObj);
+		
+		jObj.put("NAME","顏健峯");
+		jObj.put("NUMBER","0928340303");
+		jArray.add(jObj);
+		
+		jObj.put("NAME","林雅麗");
+		jObj.put("NUMBER","0927338466");
+		jArray.add(jObj);
+		
+		jObj.put("NAME","林錫欽");
+		jObj.put("NUMBER","0920966188");
+		jArray.add(jObj);
+		
+		jObj.put("NAME","謝惠貞");
+		jObj.put("NUMBER","0912304154");
+		jArray.add(jObj);
+		
+		jObj.put("NAME","柳琤");
+		jObj.put("NUMBER","18958185088");
+		jArray.add(jObj);
+		
+		jObj.put("NAME","陈志皇");
+		jObj.put("NUMBER","13817718777");
+		jArray.add(jObj);
+		
+		jObj.put("NAME","蕭潤榮");
+		jObj.put("NUMBER","0937220961");
+		jArray.add(jObj);
+		
+		jObj.put("NAME","邢開祥");
+		jObj.put("NUMBER","0963298836");
+		jArray.add(jObj);
+		
+		jObj.put("NAME","王卫星");
+		jObj.put("NUMBER","13901393485");
+		jArray.add(jObj);			
+			for (int i=0;i<jArray.size();i++){
+				JSONArray tempJArray=new JSONArray();
+				tempJArray.add(jArray.getJSONObject(i));
+				//sm.sendText(tempJArray,"親愛的摩根會員"+jArray.getJSONObject(i).getString("NAME")+"您好,因上週日(02/28)晚間八點到九點 間,伺服器發生網路設備錯誤,影響會員下標,為補償會員損失及表示摩根歉意,將提供一次手續費減免予以受影響會員,摩根會記取此次經驗加強硬體維護,同時希望會員保持對摩根的愛戴.");
+				
+				//break;
+			}
+			sm.queryLog("2010/03/02");
 
-		jObj = new JSONObject();
-		jObj.put("NUMBER", "0956062199");
-		// jObj.put("NAME", "dianx");
-		jObj.put("CHECK_KEY", "0002");
-		jArray.add(jObj);
-
-		
-		jObj = new JSONObject();
-		jObj.put("NUMBER", "0910054930");
-		// jObj.put("NAME", "dianx");
-		jObj.put("CHECK_KEY", "0002");
-		jArray.add(jObj);
-		
-		
-		jObj = new JSONObject();
-		jObj.put("NUMBER", "0927523232");
-		// jObj.put("NAME", "dianx");
-		jObj.put("CHECK_KEY", "0002");
-		jArray.add(jObj);
-		try {
-			System.out.println(jArray);
-			System.out.println(URLEncoder.encode("ページ", "big5"));
-			sm.sendText(jArray, URLEncoder.encode("ページ中文測試123abcddddd网页网址", "UTF-8"));
-			sm.queryLog("2009/12/24");
-		} catch (UnsupportedEncodingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 		// sm.sendText(jArray,"測試簡訊");
 
 	}

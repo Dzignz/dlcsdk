@@ -39,9 +39,9 @@ public class TransCode extends ProtoModel implements ServiceModelFace {
 
 	/**
 	 * <P>
-	 * <font size=7 color=red>轉換字碼，ACTION =UN_POST_ITEM</font>
+	 * <font size=7 color=red>轉換字碼，ACTION =TRANS_CODE</font>
 	 * </P>
-	 * EXP:
+	 * EXP:繁轉簡
 	 * <li>VALUE=繁體中文</li>
 	 * <li>FROM_CODE=4</li>
 	 * <li>TO_CODE=0</li>
@@ -56,6 +56,11 @@ public class TransCode extends ProtoModel implements ServiceModelFace {
 		zhcode mycode = new zhcode();
 		jArray.add(mycode.convertString(value,fromCode,toCode));
 		return jArray;
+	}
+	public static void main(String [] args){
+		zhcode mycode = new zhcode();
+		System.out.println(mycode.convertString("等軟體製造商推出自己品牌的",4,0));
+		
 	}
 	
 	@Override

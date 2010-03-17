@@ -115,7 +115,7 @@ public class NetAgentGoogle extends NetAgentModel implements Runnable {
 		
 		// 用pop3協議：new URLName("pop3", "pop.gmail.com", 995, null,"[郵箱帳號]", "[郵箱密碼]");
 		// 用IMAP协议
-		
+		System.out.println("[DEBUG] loginGmail::"+account+" / "+pwd);
 		urln = new URLName("imap", "imap.googlemail.com", 995, null, account, pwd);
 		try {
 			store = session.getStore(urln);

@@ -193,7 +193,7 @@ public class NetAgentManager extends NetAgentModel implements ServiceModelFace {
 				loginMsg = "2";// 登入失敗
 				outputTofile(nAgent.getResponseBody());
 			} else {
-				this.setLoginCookieMap( webSiteName, uId, nAgent
+				this.setLoginCookieMap( webSiteName, uId,pwd, nAgent
 						.getResponseCookies());
 				loginMsg = "1";// 登入成功
 			}

@@ -63,8 +63,7 @@ public class GmailTask extends ScheduleModelAdapter {
 
 	static NetAgentGoogle nAgentG;
 
-	public void run() {
-		super.run();
+	public void exeSchedule() {
 		try {
 
 			if (nAgentG == null) {
