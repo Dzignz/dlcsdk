@@ -16,6 +16,7 @@ public class SysCalendar {
 	 * */
 	static final public String yyyy_MM_dd_HH_mm_forSchedule="yyyy MM dd HH mm";
 	static final public String yyyy_MM_dd_HH_mm_ss_Mysql="yyyy-MM-dd HH:mm:ss";
+	static final public String yyyy_MM_dd_Mysql="yyyy-MM-dd";
 	
 	public SysCalendar(){
 

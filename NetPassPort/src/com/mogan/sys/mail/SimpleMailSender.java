@@ -21,6 +21,8 @@ import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 import javax.mail.internet.MimeUtility;
 
+import com.mogan.sys.SysLogger4j;
+
 
 /**
  * 簡單郵件（不帶附件的郵件）發送器 繼承Thread
@@ -274,21 +276,23 @@ public class SimpleMailSender implements Runnable {
 		// 判斷是否需要身份認證
 		MyAuthenticator authenticator = null;
 		Properties pro = mailInfo.getProperties();
+		Transport transport;
 		// 如果需要身份認證，則創建一個密碼驗證器
 		System.out.println("[DEBUG] mailInfo.isValidate()::"+mailInfo.isValidate());
 		System.out.println("[DEBUG] mailInfo.getMailServerHost()::"+mailInfo.getMailServerHost());
 		System.out.println("[DEBUG] mailInfo.getMailServerPort()::"+mailInfo.getMailServerPort());
-		if (mailInfo.isValidate()) {
+		//if (mailInfo.isValidate()) {
 			authenticator = new MyAuthenticator(mailInfo.getUserName(),
 					mailInfo.getPassword());
-		}
+		//}
 		try {
 		// 根據郵件會話屬性和密碼驗證器構造一個發送郵件的session
 		Session sendMailSession = Session
-				.getDefaultInstance(pro, authenticator);
-
+				.getInstance(pro, authenticator);
+		transport=sendMailSession.getTransport("smtp");
 			// 根據session創建一個郵件消息
 			Message mailMessage = new MimeMessage(sendMailSession);
+			
 			// 創建郵件發送者地址
 			Address from;
 		
@@ -306,7 +310,6 @@ public class SimpleMailSender implements Runnable {
 			mailMessage.setRecipients(Message.RecipientType.BCC, mailInfo.getBCCAddressList());
 			// 設置郵件消息的主題
 			System.out.println("mailInfo.getSubject()="+mailInfo.getSubject());
-			
 			mailMessage.setSubject(MimeUtility.encodeText(
 					mailInfo.getSubject(), mailInfo.getCode(), null));
 			// 設置郵件消息發送的時間
@@ -320,17 +323,21 @@ public class SimpleMailSender implements Runnable {
 			mainPart.addBodyPart(html);
 			// 將MiniMultipart物件設置郵件內容
 			mailMessage.setContent(mainPart);
+
 			// 發送郵件
+			transport.connect();
+			transport.send(mailMessage, mailMessage.getAllRecipients());
+			transport.close();
 			
-			Transport.send(mailMessage, mailMessage.getAllRecipients());
 			System.out.println("[DEBUG] 收件人::"+mailInfo.getToName()+" ADDRESS:"+mailInfo.getToAddress());
+			mailMessage=null;
+			transport=null;
+			sendMailSession=null;
 			return true;
 		} catch (UnsupportedEncodingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			SysLogger4j.error(e);
 		} catch (MessagingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			SysLogger4j.error(e);
 		}
 		return false;
 	}

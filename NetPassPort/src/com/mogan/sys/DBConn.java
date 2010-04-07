@@ -89,18 +89,6 @@ public class DBConn extends HttpServlet {
 		return autoNum;
 	}
 
-	/*
-	 * synchronized public String getAutoNumber(String connAlias, String idName) { ArrayList dataList = query(connAlias,
-	 * "SELECT * FROM sys_table_id_index where id_name='" + idName + "'"); if (dataList.size() > 0) { Map rowMap = (Map) dataList.get(0); String
-	 * lastValue = (String) rowMap.get("last_value"); String frontRule = (String) rowMap.get("front_rule"); String indexRule = (String)
-	 * rowMap.get("index_rule"); String newId = frontRule.substring(0, frontRule.lastIndexOf("-")); newId += "-" + getDate(frontRule
-	 * .substring(frontRule.lastIndexOf("-") + 1)); java.text.DecimalFormat df = new java.text.DecimalFormat(indexRule); if (lastValue == null)
-	 * lastValue = ""; if (lastValue.startsWith(newId)) { newId += "-" + df .format(Integer .valueOf(lastValue.substring(lastValue .lastIndexOf("-") +
-	 * 1)) + 1); } else { newId += "-" + df.format(Integer.valueOf(indexRule) + 1); } this.executSql(connAlias,
-	 * "UPDATE sys_table_id_index SET last_value='" + newId + "' WHERE id_name='" + idName + "'"); return newId; } return
-	 * String.valueOf(System.currentTimeMillis()); }
-	 */
-
 	/**
 	 * 執行SQL語法
 	 * 
@@ -431,6 +419,8 @@ public class DBConn extends HttpServlet {
 	public String getSqlStr(Map jData, Map colStrctMap) {
 		StringBuffer dataBuffer = new StringBuffer();
 		Iterator itData = jData.keySet().iterator();
+		
+		SysCalendar calendar = new SysCalendar();
 		for (; itData.hasNext();) {
 			String colName = (String) itData.next();
 			String newData = "";
@@ -456,10 +446,32 @@ public class DBConn extends HttpServlet {
 				newData = colName + "=" + jData.get(colName) + "";
 				break;
 			case 91: // DATE
+				
+				if (jData.get(colName) instanceof String) {
+					try {
+						SysCalendar.getFormatDate((String) jData.get(colName),
+								SysCalendar.yyyy_MM_dd_Mysql);
+						newData = colName
+								+ "='"
+								+ SysCalendar.getFormatDate((String) jData
+										.get(colName),
+										SysCalendar.yyyy_MM_dd_Mysql)
+								+ "'";
+					} catch (ParseException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+
+				} else if (jData.get(colName) instanceof Date) {
+					newData = colName
+							+ "='"
+							+ calendar.getFormatDate((Date) jData.get(colName),
+									SysCalendar.yyyy_MM_dd_Mysql)
+							+ "'";
+				}
+				break;
 			case 92: // TIME
 			case 93: // TIMESTAMP
-
-				SysCalendar calendar = new SysCalendar();
 				if (jData.get(colName) instanceof String) {
 					try {
 						SysCalendar.getFormatDate((String) jData.get(colName),
@@ -492,9 +504,54 @@ public class DBConn extends HttpServlet {
 			}
 			dataBuffer.append(newData);
 		}
+		
 		return dataBuffer.toString();
 	}
+	
+	/**
+	 * 回傳欄位結構資料
+	 * @param connAlias
+	 * @param tableName
+	 * @return
+	 */
+	public Map queryTabelStructure(String connAlias, String tableName) {
+		Map colStrctMap = new HashMap();
 
+		Connection conn = getConnection(connAlias);
+		Statement stmt = null;
+		ResultSet rst = null;
+
+		String sql = "SELECT * FROM "+ tableName + " WHERE 1=2";
+		try {
+			stmt = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
+					ResultSet.CONCUR_READ_ONLY);
+			rst = stmt.executeQuery(sql);
+			ResultSetMetaData rsMetaData = rst.getMetaData();
+			int numberOfColumns = rsMetaData.getColumnCount();
+			for (int i = 1; i < numberOfColumns + 1; i++) {
+				Map tempMap = new HashMap();
+				tempMap.put("columnName", rsMetaData.getColumnLabel(i));
+				tempMap.put("tableName", rsMetaData.getTableName(i));
+				tempMap.put("columnTypeName", rsMetaData.getColumnTypeName(i));
+				tempMap.put("columnType", Integer.valueOf(rsMetaData
+						.getColumnType(i)));
+				colStrctMap.put(rsMetaData.getColumnLabel(i), tempMap);
+				// 記錄欄位型態
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally {
+			closeResultSet(rst);
+			closeStatement(stmt);
+			closeConnection(conn);
+		}
+		conn = null;
+		stmt = null;
+
+		return colStrctMap;
+	}
+	
 	/**
 	 * 回傳欄位結構資料
 	 * 
@@ -514,19 +571,6 @@ public class DBConn extends HttpServlet {
 		ResultSet rst = null;
 
 		String sql = "SELECT * FROM "+ tableName + " WHERE 1=2";
-/*
-		Iterator it = columnMap.keySet().iterator();
-
-		String columnName = null;
-		for (; it.hasNext();) {
-			if (columnName != null) {
-				sql += " , ";
-			}
-			columnName = (String) it.next();
-			sql += columnName;
-		}
-		sql += " FROM " + tableName + " WHERE 1=2";
-*/
 		try {
 			stmt = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
 					ResultSet.CONCUR_READ_ONLY);
@@ -647,7 +691,7 @@ public class DBConn extends HttpServlet {
 	private String fixPageSql(String connAlias, String sql, int startIndex,
 			int pageSize) {
 		String pageSql = "";
-
+		
 		if (((String) this.servletContext
 				.getAttribute("DB_Server_" + connAlias)).startsWith("MYSQL")) {
 			pageSql = sql + " LIMIT " + startIndex + "," + (pageSize);

@@ -3,29 +3,40 @@
 <%@ page import="com.mogan.sys.DBConn"%>
 <%@ page import="com.mogan.io.FileIO"%>
 <%@ page import="java.util.ArrayList"%>
+<%@ page import="java.util.Map"%>
+<%@ page import="java.util.Iterator"%>
 <%@ page import="java.io.File"%>
 <%@ page import="net.sf.json.JSONArray"%>
 <%@ page import="net.sf.json.JSONObject"%>
 <%@page import="java.util.Properties"%>
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
-
 <html>
 <head>
+
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<title>聯絡追蹤</title>
+<title>聯絡追蹤 V2</title>
+
 <link rel="stylesheet" type="text/css" href="resources/css/ext-all.css" />
 <link rel="stylesheet" type="text/css" href="resources/mogan/mogan.css" />
 
 <script type="text/javascript" src="js/ext-base.js"></script>
+
 <script type="text/javascript" src="js/ext-all.js"></script>
 
+<!-- 
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/ext-core/3.1.0/ext-core.js"></script>
+  -->
 <script type="text/javascript" src="js/mogan/mogan.template.selectedCell.js"></script>
 
 <script type="text/javascript" src="js/ext-lang-zh_TW.js"></script>
 <script type="text/javascript" src="js/ext-mogan.js"></script>
 
-<jsp:useBean id="ConDbBean" scope="session" class="com.mogan.sys.DBConn"/>
+<script type="text/javascript" src="js/netAgent/mogan.orderTrace.function.js"></script>
+<script type="text/javascript" src="js/netAgent/mogan.orderTrace.form.js"></script>
+<script type="text/javascript" src="js/netAgent/mogan.orderTrace.init.js"></script>
+
 <script type="text/javascript" >
+
 <%
 	final String modelName="BidManager";
 
@@ -68,7 +79,6 @@
 	JSONArray templateFileList=new JSONArray();
 	//JSONObject tempFileList=new JSONObject();
 	JSONObject templateData=new JSONObject();
-	System.out.println("[DEBUG] JSP::"+f);
 	if (f!=null){
 	for (int i=0;i<f.length;i++){
 		JSONObject templateFile=new JSONObject();
@@ -80,23 +90,23 @@
 	}}
 	templateData.put("root",templateFileList);
 	
+	//代標訂單
+	Map colMap=conn.queryTabelStructure("mogan-VMDB","view_bid_item_order_v1");
+	Iterator it=colMap.keySet().iterator();
+	JSONArray colList=new JSONArray();
+	for (;it.hasNext();){
+		colList.add(it.next());
+	}
 %>
-
-var accountJSONData = <% out.println(accountData); %>;
-var trnsJSONData = <% out.println(trnsData); %>;
-var trnsColmJSONData = <% out.println(trnsColmData); %>;
-var templateJSONData = <% out.println(templateData); %>;
+var itemOrderCol=<%=colList %>;
+var accountJSONData = <%=accountData %>;
+var trnsJSONData = <%=trnsData %>;
+var trnsColmJSONData = <%=trnsColmData %>;
+var templateJSONData = <%=templateData %>;
 
 </script>
-
-<script type="text/javascript" src="js/netAgent/mogan.transactionTrace.function.js"></script>
-<script type="text/javascript" src="js/netAgent/mogan.transactionTrace.form.js"></script>
-<script type="text/javascript" src="js/netAgent/mogan.transactionTrace.init.js"></script>
 </head>
 <body>
-<div id="iframe-window"></div>
-<div id="iframe-window-trnsList"></div>
-<div id="tab-iframe-window-1" style="width:100%; height:100%;"></div>
 
 </body>
 </html>

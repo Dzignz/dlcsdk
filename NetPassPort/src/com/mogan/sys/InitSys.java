@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
@@ -18,6 +19,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+
 
 /**
  * Servlet implementation class InitSys
@@ -36,11 +39,25 @@ public final class InitSys extends HttpServlet {
 	public void init(ServletConfig config) throws ServletException {
 		super.init(config);
 		initSystemParameter();
+		
+		InputStream  inputStream = getServletContext().getResourceAsStream("/WEB-INF/app.properties");
+		Properties props = new Properties();
+		try {
+			props.load(inputStream);
+			Map tempMap = new HashMap();
+			tempMap.put("fccc13447039e0ebf289e4227bc8e9e6", Boolean.TRUE);
+			tempMap.put("26b782eb04abbd54efba0dcf854b158d", Boolean.TRUE);
+			
+			this.getServletContext().setAttribute("APP_ID", tempMap);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} 
 		Properties p=System.getProperties();
 		Iterator it=p.keySet().iterator();
 		for (;it.hasNext();){
 			String key=it.next().toString();
-			System.out.println("[INFO] System.Properties "+key+" : "+p.getProperty(key));
+			SysLogger4j.info("System.Properties "+key+" : "+p.getProperty(key));
 		}
 	}
 
@@ -76,10 +93,7 @@ public final class InitSys extends HttpServlet {
 			e.printStackTrace();
 		}
 
-		Map tempMap = new HashMap();
-		tempMap.put("fccc13447039e0ebf289e4227bc8e9e6", Boolean.TRUE);
-		tempMap.put("26b782eb04abbd54efba0dcf854b158d", Boolean.TRUE);
-		this.getServletContext().setAttribute("APP_ID", tempMap);
+
 	}
 
 	/**

@@ -64,14 +64,15 @@ public abstract class ScheduleModelAdapter extends TimerTask implements Schedule
 		
 		exeSchedule();
 		exeTime++;
-		
+		System.out.println("[INFO] SCHEDULE::"+this.getModelName()+" end."+this.isLoop());
 		if (!this.isLoop()) {
 			//是否重覆執行，重覆執行就不自動中斷
 			setRemainTime(this.getRemainTime() - 1);
+			System.out.println("[INFO] SCHEDULE::"+this.getModelName()+" getRemainTime."+(this.getRemainTime() <= 0));
 			if (this.getRemainTime() <= 0) {
 				resetStatus(this.getModelName());
 				ScheduleProtal.stopSchedule(this.getModelName());
-				if (this.isLoop()) {
+				//if (this.isLoop()) {
 					try {
 						ScheduleProtal.restartSchedule(this.getModelName(),
 								this.getAppId(), this.getModelServletContext());
@@ -82,7 +83,7 @@ public abstract class ScheduleModelAdapter extends TimerTask implements Schedule
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
-				}
+				//}
 			}
 		}
 		SysCalendar sysCal=new SysCalendar();

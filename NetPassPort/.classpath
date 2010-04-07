@@ -17,5 +17,7 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/jaxen-1.1.1"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/jml-1.0b3-full"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/apache-log4j-1.2.15"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/hbase-0.20.3"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/jxl"/>
 	<classpathentry kind="output" path="build/classes"/>
 </classpath>

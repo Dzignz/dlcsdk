@@ -94,6 +94,20 @@ public class FileIO {
 		return p;
 	}
 
+	public boolean delTxtFile(String userId, String serviceCate,
+			String fileName) {
+		File f;
+		if (userId == null) {
+			f = new File(System.getProperty("catalina.base")+"/userFile/default/" + serviceCate + "/" + fileName
+					+ ".txt");
+		} else {
+			f = new File(System.getProperty("catalina.base")+"/userFile/" + userId + "/" + serviceCate + "/"
+					+ fileName + ".txt");
+		}
+		
+		return f.delete();
+	}
+	
 	/**
 	 * 標準的寫入檔案 User ID=Null 存檔位置為$類型/default/檔名 User ID!=Null存檔位置為$類型/UserId/檔名
 	 * 

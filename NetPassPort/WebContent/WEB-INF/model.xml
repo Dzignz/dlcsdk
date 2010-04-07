@@ -6,10 +6,10 @@
 		<scheduleClass>com.mogan.schedule.MigrationTask</scheduleClass>
 		<scheduleDiscription>資料整合，目前只有會員資料</scheduleDiscription>
 		<load-on-startup>false</load-on-startup>
-		<loop>true</loop>
+		<loop>false</loop>
 		<set-run-time-spec>* * * * *</set-run-time-spec>
 		<remain-time>1</remain-time>
-		<interval>1</interval>
+		<interval>60</interval>
 	</schedule>	
 	<schedule>
 		<scheduleName>ScheduleTest</scheduleName>
@@ -27,7 +27,7 @@
 		<scheduleJar>DLC Models.jar</scheduleJar>
 		<scheduleClass>com.mogan.schedule.PhpNonBidAlert</scheduleClass>
 		<scheduleDiscription>更新未得標資料</scheduleDiscription>
-		<load-on-startup>true</load-on-startup>
+		<load-on-startup>false</load-on-startup>
 		<loop>true</loop>
 		<interval>60</interval>
 		<schedule-properties>
@@ -39,7 +39,7 @@
 		<scheduleJar>DLC Models.jar</scheduleJar>
 		<scheduleClass>com.mogan.schedule.JpServerTest</scheduleClass>
 		<scheduleDiscription>日本Server測速</scheduleDiscription>
-		<load-on-startup>true</load-on-startup>
+		<load-on-startup>false</load-on-startup>
 		<loop>true</loop>
 		<interval>5</interval>
 	</schedule>
@@ -48,7 +48,7 @@
 		<scheduleJar>DLC Models.jar</scheduleJar>
 		<scheduleClass>com.mogan.schedule.MsnTask</scheduleClass>
 		<scheduleDiscription>MSN 小甜心-暫停開發</scheduleDiscription>
-		<load-on-startup>true</load-on-startup>
+		<load-on-startup>false</load-on-startup>
 		<loop>true</loop>
 		<interval>3</interval>
 	</schedule>
@@ -57,12 +57,12 @@
 		<scheduleJar>DLC Models.jar</scheduleJar>
 		<scheduleClass>com.mogan.schedule.GmailTask</scheduleClass>
 		<scheduleDiscription>Gmail 讀取排程</scheduleDiscription>
-		<load-on-startup>true</load-on-startup>
+		<load-on-startup>false</load-on-startup>
 		<loop>true</loop>
 		<interval>3</interval>
 		<schedule-properties>
-			<property name="GMAIL_ACCOUNT" value="mogansweet@gmail.com"/>
-			<property name="GMAIL_PWD" value="MOGANS4725333"/>
+			<property name="GMAIL_ACCOUNT" value="elgoogdian@gmail.com"/>
+			<property name="GMAIL_PWD" value="vfbyfnfvygo"/>
 			<property name="YAHOO_JP_WON_BID_MAIL" value="日雅-已得標"/>
 			<property name="YAHOO_JP_NEW_PRICE_MAIL" value="日雅-被超標"/>
 			<property name="YAHOO_JP_CANCEL_BID_MAIL" value="日雅-出價被取消"/>
@@ -88,10 +88,16 @@
 		<scheduleJar>DLC Models.jar</scheduleJar>
 		<scheduleClass>com.mogan.schedule.PhpTask</scheduleClass>
 		<scheduleDiscription>入帳系統</scheduleDiscription>
-		<load-on-startup>true</load-on-startup>
+		<load-on-startup>false</load-on-startup>
 		<loop>true</loop>
 		<interval>3</interval>
 	</schedule>
+	<model>
+		<modelName>oAuth</modelName>
+		<modelJar>DLC Models.jar</modelJar>
+		<modelClass>com.mogan.model.OAuth</modelClass>
+		<modelDiscription></modelDiscription>
+	</model>
 	<model>
 		<modelName>MigrMemberData</modelName>
 		<modelJar>DLC Models.jar</modelJar>
@@ -147,8 +153,8 @@
 		<modelJar>DLC Models.jar</modelJar>
 		<modelClass>com.mogan.model.netAgent.NetAgentGoogle</modelClass>
 		<model-properties>
-			<property name="gmailAccount" value="mogansweet@gmail.com"/>
-			<property name="gmailPwd" value="MOGANS4725333"/>
+			<property name="gmailAccount" value="elgoogdian@gmail.com"/>
+			<property name="gmailPwd" value="vfbyfnfvygo"/>
 			<property name="YAHOO_JP_WON_BID_MAIL" value="日雅-已得標"/>
 			<property name="YAHOO_JP_NEW_PRICE_MAIL" value="日雅-被超標"/>
 			<property name="YAHOO_JP_CANCEL_BID_MAIL" value="日雅-出價被取消"/>
@@ -192,6 +198,14 @@
 		<modelDiscription></modelDiscription>
 	</model>
 	<model>
+		<modelName>BM2</modelName>
+		<modelJar>DLC Models.jar</modelJar>
+		<modelClass>com.mogan.model.BidManagerV2</modelClass>
+		<model-properties>
+		</model-properties>
+		<modelDiscription>新版資料庫專用</modelDiscription>
+	</model>	
+	<model>
 		<modelName>FileService</modelName>
 		<modelJar>DLC Models.jar</modelJar>
 		<modelClass>com.mogan.model.FileService</modelClass>
@@ -214,7 +228,7 @@
 		<model-properties>
 			<property name="fromName" value="摩根全球購物"/>
 			<property name="fromAdderss" value="ads@mogan.com.tw"/>
-			<property name="serverHost" value="adsx.mogan.com.tw"/>
+			<property name="serverHost" value="mail.mogan.com.tw"/>
 			<property name="serverPort" value="25"/>
 			<property name="account" value="mogan"/>
 			<property name="pwd" value="4725333"/>

@@ -3,6 +3,7 @@ MODEL_PATH=WEB-INF/models/
 #DB Server 代號，影響部分SQL查詢指令
 DB_Server_mogan-tw=MYSQL_5
 DB_Server_mogan-DB=MYSQL_5
+DB_Server_mogan-VMDB=MYSQL_5
 
 MAIL_SERVER_PORT=25
 MAIL_SERVER_HOST=adsx.mogan.com.tw

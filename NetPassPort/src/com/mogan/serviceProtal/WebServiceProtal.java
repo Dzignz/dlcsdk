@@ -59,15 +59,16 @@ public class WebServiceProtal extends HttpServlet {
 
 	public String callService(String appId, String modelName, String action,
 			String args, String returnType) {
+
+		if (!SysKernel.checkAppId(appId)) {
+			action = "NON";// 非正確 APP ID，無法進行動作
+			System.out.println("[訊息] APP ID 未通過驗證.(AjaxPortal 發出)");
+		}
 		System.out.println("[DEBUG] webService appId::" + appId);
 		System.out.println("[DEBUG] webService modelName::" + modelName);
 		System.out.println("[DEBUG] webService action::" + action);
 		System.out.println("[DEBUG] webService test::" + args);
 		System.out.println("[DEBUG] webService returnType::" + returnType);
-		if (!SysKernel.checkAppId(appId)) {
-			action = "NON";// 非正確 APP ID，無法進行動作
-			System.out.println("[訊息] APP ID 未通過驗證.(AjaxPortal 發出)");
-		}
 		long time0 = System.currentTimeMillis();
 
 		if (action.equals("NON")) {

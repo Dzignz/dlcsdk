@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Timer;
 
+import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -51,10 +52,23 @@ public class ScheduleProtal extends HttpServlet {
 	 */
 	public ScheduleProtal() {
 		super();
-		// TODO Auto-generated constructor stub
-		// initSchedule();
+
 	}
 
+	public void init(ServletConfig config) throws ServletException {
+		super.init(config);
+		// TODO Auto-generated constructor stub
+		 try {
+			initSchedule();
+		} catch (ScheduleIncorrectDateSpecException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
 	/**
 	 * 初始化排程任務
 	 * 
@@ -176,7 +190,7 @@ public class ScheduleProtal extends HttpServlet {
 		
 		Date assignDate=null;
 		if (scheduleModel.getRunTimeSpec().length()>0) {
-			//指定執行時間
+			//是否有指定執行時間
 			SysCalendar sysCal=new SysCalendar();
 			String rtSpec=getFixDateStr(scheduleModel.getRunTimeSpec(),sysCal.getFormatDate(sysCal.yyyy_MM_dd_HH_mm_forSchedule));
 			sysCal.setStr2Date(rtSpec, sysCal.yyyy_MM_dd_HH_mm_forSchedule);

@@ -161,6 +161,7 @@
       <param-name>APP_ID</param-name>
       <param-value>26b782eb04abbd54efba0dcf854b158d</param-value>
     </init-param>
+    <load-on-startup>100</load-on-startup>
   </servlet>
   <servlet-mapping>
     <servlet-name>ScheduleProtal</servlet-name>
@@ -185,5 +186,24 @@
   <servlet-mapping>
     <servlet-name>ProxyProtal</servlet-name>
     <url-pattern>/ProxyProtal</url-pattern>
+  </servlet-mapping>
+  <filter>
+    <display-name>OauthFilter</display-name>
+    <filter-name>OauthFilter</filter-name>
+    <filter-class>com.mogan.web.filter.OauthFilter</filter-class>
+  </filter>
+  <filter-mapping>
+    <filter-name>OauthFilter</filter-name>
+    <url-pattern>/orderTrace.jspx</url-pattern>
+  </filter-mapping>
+  <servlet>
+    <description></description>
+    <display-name>OauthProtal</display-name>
+    <servlet-name>OauthProtal</servlet-name>
+    <servlet-class>com.mogan.serviceProtal.OauthProtal</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>OauthProtal</servlet-name>
+    <url-pattern>/OauthProtal</url-pattern>
   </servlet-mapping>
 </web-app>

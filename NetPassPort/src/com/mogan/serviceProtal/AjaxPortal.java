@@ -30,6 +30,7 @@ import com.mogan.sys.ModelManager;
 import com.mogan.sys.ProtoModel;
 import com.mogan.sys.ServiceModelFace;
 import com.mogan.sys.SysKernel;
+import com.mogan.sys.SysLogger4j;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
 import com.thoughtworks.xstream.io.xml.DomDriver;
@@ -85,13 +86,12 @@ public class AjaxPortal extends HttpServlet {
 		responseRecord = "";
 		Map tempMap = req.getParameterMap();
 
-		
-		System.out.println("[DEBUG] ParameterMap::" + tempMap.size());
+		SysLogger4j.error("ParameterMap::" + tempMap.size());
 		Iterator it = tempMap.keySet().iterator();
 		int i = 0;
 		for (; it.hasNext();) {
 			String key = (String) it.next();
-			System.out.println("[DEBUG] params#" + i + " " + key );
+			SysLogger4j.error("params#::" + i + " " + key);
 			i++;
 		}
 		String act = "";
@@ -103,7 +103,7 @@ public class AjaxPortal extends HttpServlet {
 
 		if (!SysKernel.checkAppId(req, res)) {
 			// 非正確 APP ID，無法進行動作
-			System.out.println("[INFO] APP ID 未通過驗證.(AjaxPortal 發出)");
+			SysLogger4j.fatal("[INFO] APP ID 未通過驗證.(AjaxPortal 發出)");
 			responseData = "";
 			responseRecord = "0";
 			responseMsg = "Wrong APP ID not Verified.";
@@ -136,7 +136,7 @@ public class AjaxPortal extends HttpServlet {
 		out.println(stringBuffer);
 		out.flush();
 		out.close();
-		System.out.println("[INFO] ajax return ::" + stringBuffer);
+		SysLogger4j.info("[INFO] ajax return ::" + stringBuffer);
 	}
 
 	/**
