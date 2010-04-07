@@ -140,7 +140,7 @@ public class GmailTask extends ScheduleModelAdapter {
 			p.setProperty("PWD", "24266676");
 			sms.setProperties(p);
 
-			sms.sendText("0910054930", "吳宗翰","ERR_GmailTask","GmailTask 當掉了!!!_"+e.getMessage());
+			//sms.sendText("0910054930", "吳宗翰","ERR_GmailTask","GmailTask 當掉了!!!_"+e.getMessage());
 			sms=null;
 		}
 	}

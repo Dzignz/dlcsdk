@@ -19,6 +19,7 @@ import org.apache.commons.httpclient.Header;
 
 import com.mogan.model.netAgent.NetAgent;
 import com.mogan.sys.ProtoModel;
+import com.mogan.sys.SysLogger4j;
 
 /**
  * 包含COOKIE的保留及HEADER的印出，及輸出到檔案
@@ -63,7 +64,7 @@ public abstract class NetAgentModel extends ProtoModel {
 			}
 			long nowTime = System.currentTimeMillis();
 			int loginDay = (int) ((nowTime - loginTime) / (1000 * 60 * 60 * 24));
-			System.out.println("[DEBUG] LOGIN DATA::" +uId+" "+loginCookieMap.get("PWD")+" "+ loginDay);
+			SysLogger4j.info("LOGIN DATA::" +uId+" "+loginCookieMap.get("PWD")+" "+ loginDay);
 			if (loginDay > 6) {
 				return new NetAgent().getState().getCookies();
 			}
@@ -85,9 +86,9 @@ public abstract class NetAgentModel extends ProtoModel {
 	 * @param headers
 	 */
 	public void printHeaders(Header[] headers) {
-		System.out.println("[訊息] printHeaders#########");
+		SysLogger4j.fatal("[訊息] printHeaders#########");
 		for (int i = 0; i < headers.length; i++) {
-			System.out.println("[訊息] #" + i + " " + headers[i].getName() + "::"
+			SysLogger4j.fatal("[訊息] #" + i + " " + headers[i].getName() + "::"
 					+ headers[i].getValue());
 		}
 	}
@@ -98,10 +99,10 @@ public abstract class NetAgentModel extends ProtoModel {
 	 * @param cookies
 	 */
 	public void printCookies(Cookie[] cookies) {
-		System.out.println("[訊息] printCookies#########");
+		SysLogger4j.fatal("[訊息] printCookies#########");
 		for (int i = 0; i < cookies.length; i++) {
 			Cookie cookie = cookies[i];
-			System.err.println("Cookie: " + cookie.getName() + ", Value: "
+			SysLogger4j.fatal("Cookie: " + cookie.getName() + ", Value: "
 					+ cookie.getValue() + ", IsPersistent?: "
 					+ cookie.isPersistent() + ", Expiry Date: "
 					+ cookie.getExpiryDate() + ", Comment: "
@@ -215,7 +216,7 @@ public abstract class NetAgentModel extends ProtoModel {
 			f = null;
 			fw = null;
 		} catch (IOException e) {
-			System.out.println("[錯誤] 寫檔錯誤============");
+			SysLogger4j.fatal("[錯誤] 寫檔錯誤============");
 			e.printStackTrace();
 		}
 	}

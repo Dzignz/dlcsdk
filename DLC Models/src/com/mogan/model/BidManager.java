@@ -535,6 +535,7 @@ public class BidManager extends ProtoModel implements ServiceModelFace {
 		if (webSiteId.equals(YAHOO_JP_WEBSITE_ID)) {
 			NetAgentYJ agentYJ = new NetAgentYJ(this.getModelServletContext(),
 					this.getAppId());
+			
 			jArray = agentYJ.getItemContactMsg(bidAccount, itemId,
 					transactionId, sellerId, memberAccount, dataSource);
 		}
@@ -973,6 +974,13 @@ public class BidManager extends ProtoModel implements ServiceModelFace {
 		return null;
 	}
 	
+	public JSONArray delTemplate(String templetName){
+		FileIO fio =new FileIO();
+		JSONArray jArray=new JSONArray();
+		jArray.add(fio.delTxtFile(null,this.getModelName(),templetName));
+		return jArray;
+	}
+	
 	/**
 	 * 讀取個人設定
 	 * @param ptyName
@@ -1007,8 +1015,9 @@ public class BidManager extends ProtoModel implements ServiceModelFace {
 		JSONArray jArray = new JSONArray();
 		System.out.println("[INFO]BidManager ACTION start. " + this.getAct());
 
-		if (this.getAct().equals("LOAD_TEMPLATE_LIST")){
-			
+		if (this.getAct().equals("DEL_TEMPLATE")){
+			String templetName= (String) parameterMap.get("TEMPLATE_NAME");
+			jArray=delTemplate(templetName);
 		}else if (this.getAct().equals("LOAD_TEMPLATE")){
 			String templetName= (String) parameterMap.get("TEMPLATE_NAME");
 			jArray=loadTemplate(templetName);

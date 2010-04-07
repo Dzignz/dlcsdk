@@ -38,12 +38,15 @@ import org.htmlparser.filters.HasParentFilter;
 import org.htmlparser.util.NodeList;
 import org.htmlparser.util.ParserException;
 
+import com.mogan.face.NetAgentModel;
+
 /**
  * @author Dian 20090914 yahoo japen
  */
 public class NetAgent extends HttpClient {
 	private StringBuffer responseBody; // 回傳的html body資料
 	private Header[] responseHeader;// 回傳 html head資料
+	private Header[] requestHeader;// 回傳request head資料
 	private int statusCode;
 	private Cookie[] responseCookies;
 	private Parser parser;
@@ -88,7 +91,7 @@ public class NetAgent extends HttpClient {
 		}
 
 	}
-
+	
 	/**
 	 * 提供網址，使用get進行連線
 	 * 
@@ -111,8 +114,9 @@ public class NetAgent extends HttpClient {
 					.getResponseCharSet());
 			this.setResponseHeader(getMethod.getResponseHeaders());
 			this.setResponseCookies(this.getState().getCookies());
-			
 			this.setHostUrl(getMethod.getURI().getHost());
+			this.setRequestHeaders(getMethod.getRequestHeaders());
+			getMethod.getRequestHeaders();
 			
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
@@ -151,7 +155,7 @@ public class NetAgent extends HttpClient {
 			this.setResponseHeader(postMethod.getResponseHeaders());
 			this.setResponseCookies(this.getState().getCookies());
 			this.setHostUrl(postMethod.getURI().getHost());
-			
+			this.setRequestHeaders(postMethod.getRequestHeaders());
 			if (statusCode == 302) {
 				String newUrl = getRedirectLocation();
 				System.out.println("[DEBUG] 302 NEW URL::" + newUrl);
@@ -187,6 +191,7 @@ public class NetAgent extends HttpClient {
 					.setRequestHeader(
 							"User-Agent",
 							"Mozilla/5.0 (Windows; U; Windows NT 6.1; zh-TW; rv:1.9.1.3) Gecko/20090824 Firefox/3.5.3 GTB6 (.NET CLR 3.5.30729)");
+			
 			statusCode = this.executeMethod(postMethod);
 			this.setResponseBody(postMethod.getResponseBodyAsStream(),
 					postMethod.getResponseCharSet());
@@ -961,7 +966,24 @@ public class NetAgent extends HttpClient {
 	public Header[] getResponseHeader() {
 		return responseHeader;
 	}
+	
+	/**
+	 * @param responseHeader
+	 *            the responseHeader to set
+	 */
+	public void setRequestHeaders(Header[] requestHeader) {
+		this.requestHeader = requestHeader;
+	}
 
+	/**
+	 * @param responseHeader
+	 *            the responseHeader to set
+	 */
+	public Header[] getRequestHeaders() {
+		return this.requestHeader;
+	}
+	
+	
 	public void setPostData(NameValuePair[] postData) {
 		this.postData = postData;
 	}

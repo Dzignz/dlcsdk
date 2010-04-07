@@ -68,7 +68,7 @@ public class NetAgentYJ extends NetAgentModel implements BidFace {
 	/** 留言版 */
 	private final String ITEM_CONTACT_MSG_URL = "http://page.auctions.yahoo.co.jp/show/contact?aID=$YAHOO_ITEM_ID#message";
 	/** 揭示版 */
-	private final String ITEM_DISCUSSION_MSG_URL = "http://page15.auctions.yahoo.co.jp/jp/show/discussion?aID=$YAHOO_ITEM_ID";
+	private final String ITEM_DISCUSSION_MSG_URL = "http://$YAHOO_PAGE.auctions.yahoo.co.jp/jp/show/discussion?aID=$YAHOO_ITEM_ID";
 
 	private final String ITEM_DATA_URL = "http://page.auctions.yahoo.co.jp/jp/auction/$YAHOO_ITEM_ID";
 
@@ -1376,6 +1376,7 @@ public class NetAgentYJ extends NetAgentModel implements BidFace {
 				"DBConn");
 
 		NetAgent nAgent = new NetAgent();
+		
 		autoLogin(bidAccount);
 		Cookie[] cookies = getLoginSessionCookie(this.getAppId(), bidAccount);
 		nAgent.getState().addCookies(cookies);
@@ -1383,7 +1384,7 @@ public class NetAgentYJ extends NetAgentModel implements BidFace {
 				itemId));
 		nAgent.getDataWithGet(ITEM_DATA_URL.replaceAll("\\$YAHOO_ITEM_ID",
 				itemId));
-
+		
 		HTMLNodeFilter hrefNf = new HTMLNodeFilter("href");// href
 		HasParentFilter parnetFilter = new HasParentFilter(new HTMLNodeFilter(
 				"decBg01 decBg05"));// decBg01 decBg05
@@ -1497,9 +1498,10 @@ public class NetAgentYJ extends NetAgentModel implements BidFace {
 		/** 因舊版資料舊庫yahoo 帳號沒有ID*/
 		String bidId = orderMap.get("account");
 		String itemId = orderMap.get("item_id");
+		String itemServer = orderMap.get("url").split("http://")[1].split("\\.")[0];
 		String sellerId = orderMap.get("seller_id");
 		String memberAccount = orderMap.get("member_account");
-
+		System.out.println("###[DEBUG]getItemContactMsgxx::"+bidAccount+" "+itemId+" "+itemOrderId);
 		autoLogin(bidAccount);
 		Cookie[] cookies = getLoginSessionCookie(this.getAppId(), bidAccount);
 		nAgent.getState().addCookies(cookies);
@@ -1516,7 +1518,7 @@ public class NetAgentYJ extends NetAgentModel implements BidFace {
 			}
 
 			nAgent.getDataWithGet(ITEM_DISCUSSION_MSG_URL.replaceAll(
-					"\\$YAHOO_ITEM_ID", itemId));
+					"\\$YAHOO_ITEM_ID", itemId).replaceAll("\\$YAHOO_PAGE", itemServer));
 
 			NodeList discussionNodes = nAgent.filterItem(new HTMLNodeFilter(
 					"id=\"modBlbdForm\""));// 揭示版
@@ -1524,6 +1526,7 @@ public class NetAgentYJ extends NetAgentModel implements BidFace {
 			if (discussionNodes.size() > 0 //是否有揭示版
 					&& discussionNodes.elementAt(0).getChildren().size() > 5//揭示版是否有內容
 					) {
+				
 				// 子項必需超過5個才可判斷為有內容
 				discussionNodes = discussionNodes.elementAt(0).getChildren();
 				discussionNodes = discussionNodes.elementAt(5).getChildren();
@@ -1538,13 +1541,14 @@ public class NetAgentYJ extends NetAgentModel implements BidFace {
 				for (int i = 0; i < discussionNodes.size(); i++) {
 					if (discussionNodes.elementAt(i).toPlainTextString()
 							.matches("^(\\s投稿|\\s答え)(.|\\s)*")) {
+						
 						// 標題
 						String msgId = discussionNodes.elementAt(i)
 								.toPlainTextString().split("\\n")[1];
 						String msgFrom = discussionNodes.elementAt(i)
 								.toPlainTextString().split("\\n")[2]
 								.split("(\\(|\\（)")[0];
-
+						System.out.println("[DEBUG] 有揭示版."+msgId);
 						for (int d = 3; d < discussionNodes.elementAt(i)
 								.toPlainTextString().split("\\n").length; d++) {
 							if (discussionNodes.elementAt(i)
@@ -1559,8 +1563,9 @@ public class NetAgentYJ extends NetAgentModel implements BidFace {
 						discussMap.put("msg_id", msgId);
 						discussMap.put("msg_title", msgId);
 						discussMap.put("msg_category", "連絡掲示板");
-
 						discussMap.put("msg_from", msgFrom);
+
+
 					} else if (discussionNodes.elementAt(i).toPlainTextString()
 							.matches("^\\s*")) {
 						// 空白
@@ -1569,24 +1574,24 @@ public class NetAgentYJ extends NetAgentModel implements BidFace {
 						// 內文
 						discussMap.put("msg_contact", discussionNodes
 								.elementAt(i).toHtml());
-						/*
-						if (!contactMap.containsKey(discussMap.get("msg_id"))) {
-							if (discussMap.get("msg_id") != null) {
-								System.out
-										.println("[DEBUG] new system alert ::"
-												+ discussMap.get("msg_id"));
-								conn.newData("mogan-DB", "item_contact_record",
-										discussMap);
-							} else {
-								System.out
-										.println("[DEBUG] pass system alert ::"
-												+ discussMap.get("item_id")
-												+ "::"
-												+ discussMap
-														.get("transaction_id"));
-							}
-						}
-						*/
+
+						
+
+						discussMap.put("member_id", memberAccount);
+						/** bid_account 將被修改為 bid_id*/
+						discussMap.put("bid_id", bidAccount);
+						discussMap.put("item_order_id", itemOrderId);
+						discussMap.put("transaction_id", itemOrderId);
+						discussMap.put("item_id", itemId);
+						
+						/**2010 02 10
+						 * 修正資料更新方式
+						 */
+						Map conditionMap = new HashMap();
+						conditionMap.put("transaction_id",itemOrderId);
+						conditionMap.put("msg_id",discussMap.get("msg_id"));
+						
+						conn.newData("mogan-DB", "item_contact_record", conditionMap,discussMap);
 					}
 				}
 			}
@@ -1712,7 +1717,7 @@ public class NetAgentYJ extends NetAgentModel implements BidFace {
 		if (dataSource.equals(this.DATA_SOURCE_WEB)) {
 			getItemContactMsg(transactionId);
 		}
-
+		
 		// 取出連絡記錄， 透過下標ID 商品ID 交易ID來辦識不同的資料
 		JSONArray jDataArray = getItemContactMsgFromDB(bidAccount, itemId,
 				transactionId);
@@ -2019,7 +2024,23 @@ public class NetAgentYJ extends NetAgentModel implements BidFace {
 		if (this.getLoginSessionCookie(this.getAppId(), uId).length > 0) {
 			System.out.println("[DEBUG] CHECK COOKIE:"
 					+ this.getLoginSessionCookie(this.getAppId(), uId).length);
-			return true;
+			
+			NetAgent nAgent = new NetAgent();
+			Cookie[] cookies = getLoginSessionCookie(this.getAppId(), uId);
+			nAgent.getState().addCookies(cookies);
+			nAgent.getDataWithGet("https://lh.login.yahoo.co.jp/");
+			this.outputTofile(nAgent.getResponseBody());
+			try {
+				if (nAgent.filterItem(new HTMLNodeFilter("履歴 - Yahoo! JAPAN")).size()>0){
+					return true;
+				}else{
+					return false;
+				}
+			} catch (ParserException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			return false;
 		} else {
 			try {
 				login(uId, pwd);

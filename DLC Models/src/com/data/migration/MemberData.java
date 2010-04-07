@@ -9,6 +9,7 @@ import javax.servlet.ServletContext;
 import com.mogan.face.MigrationFace;
 import com.mogan.sys.DBConn;
 import com.mogan.sys.ProtoModel;
+import com.mogan.sys.SysLogger4j;
 import com.mogan.sys.code.MD5;
 
 public class MemberData extends ProtoModel implements MigrationFace{
@@ -54,7 +55,6 @@ public class MemberData extends ProtoModel implements MigrationFace{
 
 	private String getNewMemberId(String name){
 		ArrayList<Map> dataList=conn.query("mogan-DB", "SELECT member_id FROM member_data where name='"+name+"'");
-//		System.out.println("SELECT member_id FROM member_data where name='"+name+"'");
 		
 		if (dataList.size()==0 || dataList.get(0).get("member_id")==null){
 			return null;
@@ -74,13 +74,15 @@ public class MemberData extends ProtoModel implements MigrationFace{
 			ArrayList dataList = conn
 					.queryWithPage(
 							"mogan-tw",
-							"SELECT * FROM web_member WHERE migr_flag IS NULL AND verify=1",
+							"SELECT * FROM web_member WHERE migr_flag IS NULL",
+							//"SELECT * FROM web_member WHERE migr_flag IS NULL AND verify=1",
 							0, 1000);
-			System.out.println("[INFO] Migr Start...." + MIGR_NO + " "
+			SysLogger4j.info("Migr Start...." + MIGR_NO + " "
 					+ dataList.size());
 			for (int i = 0; i < dataList.size(); i++) {
 				Map tempData = (Map) dataList.get(i);
 				Map newData = new HashMap();
+				Map checkData = new HashMap();
 
 				// newData.put("member_id",);//系統ID ***自動產生
 				newData.put("name", tempData.get("name"));// 帳號
@@ -101,7 +103,12 @@ public class MemberData extends ProtoModel implements MigrationFace{
 				newData.put("time_at", tempData.get("time_at"));// 建立時間
 
 				newData.put("sum_ntd", tempData.get("ntd"));// 台幣餘額
-				newData.put("debts_ntd", tempData.get("debts"));// 台幣借款
+				if (tempData.get("debts")==null){
+					newData.put("debts_ntd", "0");// 台幣借款
+				}else{
+					newData.put("debts_ntd", tempData.get("debts"));// 台幣借款
+				}
+				
 				newData.put("sum_usd", tempData.get("usd"));// 美金餘額
 				// newData.put("debts_usd",);//美金借款 ***無對應值
 				newData.put("sum_rmb", tempData.get("rmb"));// 人民幣餘額
@@ -124,8 +131,10 @@ public class MemberData extends ProtoModel implements MigrationFace{
 				newData.put("virtual_account", tempData.get("VirtualAccount"));// 虛擬帳號
 				newData.put("note", "1");// 是否為舊會員
 				newData.put("delete_flag", "1");// 刪除狀態
-
-				conn.newData("mogan-DB", "member_data", newData);
+				
+				checkData.put("name", newData.get("name"));
+				//conn.newData("mogan-VMDB", "member_data", newData);
+				conn.newData("mogan-VMDB", "member_data",checkData, newData);
 
 				Map conditionMap = new HashMap();
 				conditionMap.put("id", tempData.get("id"));
@@ -133,12 +142,13 @@ public class MemberData extends ProtoModel implements MigrationFace{
 				dataMap.put("migr_no", MIGR_NO);
 				dataMap.put("migr_flag", "1");
 				conn.update("mogan-tw", "web_member", conditionMap, dataMap);
+				//break;
 			}
 			
 			dataList = conn
 					.queryWithPage(
 							"mogan-tw",
-							"SELECT * FROM web_member WHERE migr_flag IS NULL AND verify=1",
+							"SELECT * FROM web_member WHERE migr_flag IS NULL",
 							0, 1000);
 			
 			if (dataList.size() > 0) {

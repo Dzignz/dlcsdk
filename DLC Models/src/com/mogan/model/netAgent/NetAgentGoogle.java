@@ -43,6 +43,8 @@ import com.mogan.face.NetAgentModel;
 import com.mogan.model.BidManager;
 import com.mogan.sys.DBConn;
 import com.mogan.sys.ServiceModelFace;
+import com.mogan.sys.SysLogger4j;
+import com.mogan.sys.mail.MyAuthenticator;
 
 /**
  * @version 0.1
@@ -86,7 +88,7 @@ public class NetAgentGoogle extends NetAgentModel implements Runnable {
 	static final String YAHOO_JP_WEBSITE_ID = "YAHOO_JP_WEBSITE_ID";
 
 	private static final String SSL_FACTORY = "javax.net.ssl.SSLSocketFactory";
-	private Session session;
+	private Session sessionx;
 	private URLName urln;
 	private Store store;
 	private boolean run_flag = true;
@@ -111,14 +113,19 @@ public class NetAgentGoogle extends NetAgentModel implements Runnable {
 	public void loginGmail(String account, String pwd)
 			throws NoSuchProviderException {
 		Security.addProvider(new com.sun.net.ssl.internal.ssl.Provider());
-		session = Session.getDefaultInstance(getPropertiesx(), null);
+		
+		MyAuthenticator authenticator = new MyAuthenticator(account,pwd);
+		
+//		Session session = Session.getDefaultInstance(getPropertiesx(), null);
+		Session session = Session.getInstance(getPropertiesx(), authenticator);
 		
 		// 用pop3協議：new URLName("pop3", "pop.gmail.com", 995, null,"[郵箱帳號]", "[郵箱密碼]");
 		// 用IMAP协议
 		System.out.println("[DEBUG] loginGmail::"+account+" / "+pwd);
-		urln = new URLName("imap", "imap.googlemail.com", 995, null, account, pwd);
+		urln = new URLName("imap", "imap.googlemail.com", 993, null, account, pwd);
 		try {
 			store = session.getStore(urln);
+			SysLogger4j.warn("連接成功!!!!!");
 		} catch (NoSuchProviderException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -147,6 +154,7 @@ public class NetAgentGoogle extends NetAgentModel implements Runnable {
 		props.setProperty("mail.imap.socketFactory.fallback", "false");
 		props.setProperty("mail.imap.port", "993");
 		props.setProperty("mail.imap.socketFactory.port", "993");
+		props.setProperty("mail.imap.host", "imap.gmail.com");
 
 		props.setProperty("mail.pop3.socketFactory.class", SSL_FACTORY);
 		props.setProperty("mail.pop3.socketFactory.fallback", "false");
@@ -154,6 +162,7 @@ public class NetAgentGoogle extends NetAgentModel implements Runnable {
 		props.setProperty("mail.pop3.socketFactory.port", "995");
 
 		props.put("mail.smtp.auth", "true");
+		props.put("mail.imap.auth", "true");
 		return props;
 	}
 	
@@ -181,17 +190,17 @@ public class NetAgentGoogle extends NetAgentModel implements Runnable {
 		Folder inbox = null;
 		try {
 			// Store用來收信,Store類實現特定郵件協議上的讀、寫、監視、查找等操作。
-		
+			SysLogger4j.warn("getMailFolder:"+store.isConnected());
 			if (!store.isConnected()) {
-				System.out.println("[DEBUG] getMailFolder:"+folderName+" "+store.isConnected());
-				store.connect();
+				SysLogger4j.warn("getMailFolder try to connect:"+store.isConnected());
+				store.connect("elgoogdian@gmail.com","vfbyfnfvygo");
+				SysLogger4j.warn("getMailFolder:"+folderName+" "+store.isConnected());
 			}
 			inbox = store.getFolder(folderName);// 收件箱
 			if (!inbox.exists()) {
 				inbox.create(inbox.HOLDS_MESSAGES);
 			}
 			inbox.open(openType);
-
 		} catch (NoSuchProviderException e) {
 			// TODO Auto-generated catch block
 			System.err.println("[ERR] 登入GMAIL 失敗 Account:"
@@ -214,6 +223,7 @@ public class NetAgentGoogle extends NetAgentModel implements Runnable {
 	public ArrayList getMail(String mailType) {
 		Folder inbox = null;
 		ArrayList msgList = new ArrayList();
+		SysLogger4j.warn("getMail:"+mailType);
 		inbox = getMailFolder(mailType, Folder.READ_WRITE);
 		// Message[] messages = inbox.getMessages();
 		Message[] messages;
