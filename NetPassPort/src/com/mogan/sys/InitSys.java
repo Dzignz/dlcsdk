@@ -40,15 +40,19 @@ public final class InitSys extends HttpServlet {
 		super.init(config);
 		initSystemParameter();
 		
-		InputStream  inputStream = getServletContext().getResourceAsStream("/WEB-INF/app.properties");
+		InputStream  inputStream = getServletContext().getResourceAsStream("/WEB-INF/appid.properties");
 		Properties props = new Properties();
 		try {
-			props.load(inputStream);
-			Map tempMap = new HashMap();
-			tempMap.put("fccc13447039e0ebf289e4227bc8e9e6", Boolean.TRUE);
-			tempMap.put("26b782eb04abbd54efba0dcf854b158d", Boolean.TRUE);
+			if (inputStream==null){
+				SysLogger4j.warn("appid.properties not exists.");	
+			}else if (inputStream.available()==0){
 			
-			this.getServletContext().setAttribute("APP_ID", tempMap);
+			}else{
+				props.load(inputStream);
+				Map tempMap = new HashMap();
+				tempMap.putAll(props);
+				this.getServletContext().setAttribute("APP_ID", tempMap);
+			}
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

@@ -15,6 +15,7 @@ import java.util.Date;
 import java.util.Properties;
 
 import com.mogan.sys.SysCalendar;
+import com.mogan.sys.SysLogger4j;
 
 public class FileIO {
 	public FileIO() {
@@ -27,7 +28,7 @@ public class FileIO {
 			/* 判斷路徑是否存在 */
 			f.getParentFile().mkdirs();
 		}
-		System.out.println("[DEBUG] checkFileExists::"+f.getAbsolutePath());
+		SysLogger4j.debug(f.getAbsolutePath()+" "+f.exists());
 	}
 	
 	/**
@@ -77,13 +78,23 @@ public class FileIO {
 	public Properties loadPtyFile(String userId, String serviceCate) {
 		Properties p = new Properties();
 		try {
+			String pPath="";
 			if (userId == null) {
-				p.load(new FileInputStream(System.getProperty("catalina.base")+"/userFile/default/" + serviceCate
-						+ "/" + serviceCate + ".properties"));
+				pPath=System.getProperty("catalina.base")+"/userFile/default/" + serviceCate
+				+ "/" + serviceCate + ".properties";
 			} else {
-				p.load(new FileInputStream(System.getProperty("catalina.base")+"/userFile/" + userId + "/"
-						+ serviceCate + "/" + serviceCate + ".properties"));
+				pPath=System.getProperty("catalina.base")+"/userFile/" + userId + "/"
+				+ serviceCate + "/" + serviceCate + ".properties";
 			}
+			File f=new File(pPath);
+			if (!f.getParentFile().exists()){
+				f.getParentFile().mkdirs();
+			}else if (f.exists()){
+				p.load(new FileInputStream(pPath));	
+			}
+			
+			
+			
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

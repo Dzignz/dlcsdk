@@ -34,7 +34,7 @@ Anything outside the "proxool" tag is ignored. -->
 	</proxool>
 	<proxool>
 		<alias>mogan-VMDB</alias>
-		<driver-url>jdbc:mysql://192.168.1.42:3306/nagomdb</driver-url>
+		<driver-url>jdbc:mysql://192.168.1.42:3306/nagomdb_dev</driver-url>
 		<driver-class>org.gjt.mm.mysql.Driver</driver-class>
 		<driver-properties>
 			<property name="user" value="java_dlc"/>

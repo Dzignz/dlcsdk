@@ -59,7 +59,7 @@ public class DBConn extends HttpServlet {
 			conn = getConnection("mogan-DB");
 			this.closeConnection(conn);
 			if (conn != null)
-				System.out.println("[Info] Connect Test Success");
+				SysLogger4j.info("Connect Test Success");
 			conn.close();
 			conn = null;
 			DBConn dbConn = new DBConn();
@@ -83,8 +83,8 @@ public class DBConn extends HttpServlet {
 	}
 
 	synchronized public String getAutoNumber(String connAlias, String idName) {
-		ArrayList<Map> numList = query("mogan-DB",
-				"SELECT getAutoNumber('SA-SEQ-01') as num");
+		ArrayList<Map> numList = query(connAlias,
+				"SELECT getAutoNumber('"+idName+"') as num");
 		String autoNum = (String) numList.get(0).get("num");
 		return autoNum;
 	}
@@ -106,15 +106,13 @@ public class DBConn extends HttpServlet {
 			stmt = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
 					ResultSet.CONCUR_READ_ONLY);
 			sql = new String(sql.getBytes("UTF-8"), "UTF-8");
-
 			flag = stmt.execute(sql);
+			SysLogger4j.info(sql);
 		} catch (SQLException e) {
-			System.out.println("[ERR] SQLException:" + sql);
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			SysLogger4j.error(sql);
+			SysLogger4j.error(e.getStackTrace());
 		} catch (UnsupportedEncodingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			SysLogger4j.error(e.getStackTrace());
 		}
 		closeResultSet(rst);
 		closeStatement(stmt);
@@ -139,10 +137,12 @@ public class DBConn extends HttpServlet {
 	public JSONArray queryJSONArray(String connAlias, String sql) {
 		JSONArray jArray = new JSONArray();
 		ArrayList dataList = query(connAlias, sql);
+		jArray.addAll(dataList);
+		/*
 		for (int i = 0; i < dataList.size(); i++) {
 			// Map tempMap=(Map) dataList.get(i);
 			jArray.add(JSONObject.fromObject(dataList.get(i)));
-		}
+		}*/
 		return jArray;
 	}
 
@@ -625,6 +625,7 @@ public class DBConn extends HttpServlet {
 	 *            SQL指令
 	 */
 	public ArrayList<Map> query(String connAlias, String sql) {
+		SysLogger4j.info("SQL 語法:" + sql);
 		Connection conn = getConnection(connAlias);
 		Statement stmt = null;
 		ResultSet rst = null;
@@ -667,7 +668,7 @@ public class DBConn extends HttpServlet {
 			// conn.commit();
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
-			System.err.println("[ERR] SQL 語法錯誤:" + sql);
+			SysLogger4j.error("SQL 語法錯誤:" + sql);
 			e.printStackTrace();
 		} finally {
 			closeResultSet(rst);

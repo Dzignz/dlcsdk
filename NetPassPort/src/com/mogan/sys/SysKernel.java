@@ -56,7 +56,8 @@ public class SysKernel extends HttpServlet {
 	 */
 	static public boolean checkAppId(String appId) {
 		Map appIdMap = (Map) servletContext.getAttribute("APP_ID");
-		Boolean flag = (Boolean) appIdMap.get(appId);
+	
+		Boolean flag = Boolean.parseBoolean((String) appIdMap.get(appId));
 		if (flag != null) {
 			return flag;
 		}

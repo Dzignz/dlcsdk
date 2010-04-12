@@ -240,4 +240,15 @@
 		<modelClass>com.mogan.model.NetAgentManager</modelClass>
 		<modelDiscription></modelDiscription>
 	</model>
+	<model>
+		<modelName>YAMATO_MODEL</modelName>
+		<modelJar>DLC Models.jar</modelJar>
+		<modelClass>com.mogan.model.yamato.YamatoModel</modelClass>
+		<modelDiscription>yamoto 專用</modelDiscription>
+		<acceptId>
+			<appId>1525acd27ea02e02076c25e8f1f41565</appId>
+		</acceptId>
+		<denyId>
+		</denyId>
+	</model>	
 </models>

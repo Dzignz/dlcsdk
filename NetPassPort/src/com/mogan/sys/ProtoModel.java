@@ -1,6 +1,8 @@
 package com.mogan.sys;
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Properties;
 
 import javax.servlet.ServletContext;
@@ -18,10 +20,66 @@ public abstract class ProtoModel extends HttpServlet {
 	private String modelClass="";
 	private String modelDiscription="";
 	private String sessionId="";
-	
+	/**白名單**/
+	private List<String> acceptIds;
+	/**黑名單**/
+	private List<String> denyIds;
 	public ProtoModel(){
 		
+	}
+	
+	/**
+	 * 將傳入的AppId與黑名單跟
+	 * @param appId
+	 * @return
+	 */
+	final public boolean verifyAppId(String appId){
+		boolean result=true;
+		if(acceptIds!=null){
+			result=false;
+			for (String s:acceptIds){
+				if (s.equals(appId)){
+					result=true;
+				}
+			}
+			return result;
+		}
 		
+		if(denyIds!=null){
+			result=true;
+			for (String s:denyIds){
+				if (s.equals(appId)){
+					result=false;
+				}
+			}
+			return result;
+		}
+		
+		return result;
+	}
+	
+	/**
+	 * 更新AcceptIDs,如傳入null或是空的ArrayList則不更換
+	 * @param ids
+	 */
+	final protected void setAcceptIds(ArrayList ids){
+		if (ids==null || ids.size()==0){
+			
+		}else{
+			acceptIds=ids;
+		}
+	}
+	
+	/**
+	 * 更新DenyIDs,如傳入null或是空的ArrayList則不更換
+	 * @param ids
+	 */
+	final protected void setDenyIds(ArrayList ids){
+		if (ids==null || ids.size()==0){
+			
+		}else{
+			denyIds=ids;
+		}
 	}
 	
 	/**

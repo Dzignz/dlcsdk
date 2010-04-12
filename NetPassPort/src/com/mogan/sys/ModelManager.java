@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
@@ -120,19 +121,12 @@ public class ModelManager extends HttpServlet {
 					List propertiesNodes = e.element("model-properties")
 							.elements("property");
 					propertiesNodes.removeAll(propertiesNodes);
-					/*
-					 * for (int pIndex = 0; pIndex < propertiesNodes.size(); pIndex++) {
-					 * System.out.println("propertiesNodes.remove(pIndex)::"+((Element)propertiesNodes.get(pIndex)).asXML());
-					 * System.out.println("propertiesNodes.remove(pIndex)::"+pIndex); propertiesNodes.remove(pIndex); }
-					 */
 					for (; it.hasNext();) {
 						String key = (String) it.next();
 
 						e.element("model-properties").addElement("property")
 								.addAttribute("name", key).addAttribute(
 										"value", p.getProperty(key));
-						// e.element("model-properties").addElement("property").addAttribute("value",
-						// p.getProperty(key));
 					}
 				}
 			}
@@ -262,28 +256,27 @@ public class ModelManager extends HttpServlet {
 	 * @return
 	 */
 	public ProtoModel getServiceModel(String modelName) {
-
 		URL url1;
 		List<org.dom4j.Element> nodes = getModels(modelName);
 		ProtoModel serviceModel = null;
 		if (nodes.size() > 0) {
 			Element e = nodes.get(0);
 			try {
-
 				url1 = new URL("file:" + this.servletContext.getRealPath("/")
 						+ this.servletContext.getAttribute("MODEL_PATH")
 						+ e.elementText("modelJar"));
-
 				URLClassLoader cl = new URLClassLoader(new URL[] { url1 },
 						Thread.currentThread().getContextClassLoader());
 				// Class model = cl.loadClass("com.mogan.model.ModelService");
 				Class model = cl.loadClass(e.elementText("modelClass"));
-
+				SysLogger4j.info(e.elementText("modelClass"));
 				serviceModel = (ProtoModel) model.newInstance();
 				serviceModel.setModelClass(e.elementText("modelClass"));
 				serviceModel.setModelName(modelName);
 				serviceModel.setModelDiscription(e
 						.elementText("modelDiscription"));
+				serviceModel.setAcceptIds(this.getModelAcceptIds(modelName));
+				serviceModel.setDenyIds(this.getModelDenyIds(modelName));
 			} catch (MalformedURLException e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
@@ -406,12 +399,17 @@ public class ModelManager extends HttpServlet {
 		return p;
 	}
 
+	/**
+	 * 取得模組屬性
+	 * @param modelName
+	 * @return
+	 */
 	public Properties getModelProperties(String modelName) {
 		Document document = (Document) this.servletContext
 				.getAttribute("MODEL_XML");
 		List<Element> nodes = document.selectNodes("/models/model[modelName='"
 				+ modelName + "']/model-properties/property");
-		Properties p = new Properties();
+		Properties p = new Properties();		
 		for (int i = 0; i < nodes.size(); i++) {
 			Element e = nodes.get(i);
 			p
@@ -419,6 +417,42 @@ public class ModelManager extends HttpServlet {
 							.getText());
 		}
 		return p;
+	}
+	
+	/**
+	 * 取得appId白名單
+	 * @param modelName
+	 * @return
+	 */
+	public ArrayList getModelAcceptIds(String modelName){
+		Document document = (Document) this.servletContext
+		.getAttribute("MODEL_XML");
+		List<Element> nodes = document.selectNodes("/models/model[modelName='"
+				+ modelName + "']/acceptId/appId");
+		ArrayList appIds=new ArrayList();
+		for (int i = 0; i < nodes.size(); i++) {
+			Element e = nodes.get(i);
+			appIds.add(e.getText());
+		}
+		return appIds;
+	}
+	
+	/**
+	 * 取得appId黑名單
+	 * @param modelName
+	 * @return
+	 */
+	public ArrayList getModelDenyIds(String modelName){
+		Document document = (Document) this.servletContext
+		.getAttribute("MODEL_XML");
+		List<Element> nodes = document.selectNodes("/models/model[modelName='"
+				+ modelName + "']/denyId/appId");
+		ArrayList denyIds=new ArrayList();
+		for (int i = 0; i < nodes.size(); i++) {
+			Element e = nodes.get(i);
+			denyIds.add(e.getText());
+		}
+		return denyIds;
 	}
 
 	/**

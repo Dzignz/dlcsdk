@@ -21,6 +21,7 @@ import com.mogan.sys.ModelManager;
 import com.mogan.sys.ProtoModel;
 import com.mogan.sys.ServiceModelFace;
 import com.mogan.sys.SysKernel;
+import com.mogan.sys.SysLogger4j;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.xml.DomDriver;
 
@@ -51,26 +52,24 @@ public class WebServiceProtal extends HttpServlet {
 	public void init(ServletConfig config) throws ServletException {
 		// TODO Auto-generated method stub
 		super.init(config);
-		System.out.println("[Info] WebServiceProtal init....Start");
-		
+		SysLogger4j.info("[Info] WebServiceProtal init....Start");
 		this.servletContext = this.getServletContext();
-		System.out.println("[Info] WebServiceProtal init....Finish");
+		SysLogger4j.info("[Info] WebServiceProtal init....Finish");
 	}
 
 	public String callService(String appId, String modelName, String action,
 			String args, String returnType) {
 
+		SysLogger4j.info("webService appId::"+appId);
+		SysLogger4j.info("webService modelName::"+modelName);
+		SysLogger4j.info("webService action::"+action);
+		SysLogger4j.info("webService args::"+args);
+		
 		if (!SysKernel.checkAppId(appId)) {
 			action = "NON";// 非正確 APP ID，無法進行動作
-			System.out.println("[訊息] APP ID 未通過驗證.(AjaxPortal 發出)");
+			SysLogger4j.info("webService appId 未通過驗證::"+appId);
 		}
-		System.out.println("[DEBUG] webService appId::" + appId);
-		System.out.println("[DEBUG] webService modelName::" + modelName);
-		System.out.println("[DEBUG] webService action::" + action);
-		System.out.println("[DEBUG] webService test::" + args);
-		System.out.println("[DEBUG] webService returnType::" + returnType);
 		long time0 = System.currentTimeMillis();
-
 		if (action.equals("NON")) {
 			responseData = "";
 			responseRecord = "0";
@@ -95,7 +94,8 @@ public class WebServiceProtal extends HttpServlet {
 			XStream xStream = new XStream(new DomDriver());
 			stringBuffer.append(xs.write(jsonResponse));
 		}
-		System.out.println("[Info]callService..."+stringBuffer);
+		SysLogger4j.info("webService Result::"+jsonResponse.getString("responseResult"));
+		SysLogger4j.debug("webService back::"+stringBuffer);
 		return stringBuffer.toString();
 	}
 
@@ -109,7 +109,6 @@ public class WebServiceProtal extends HttpServlet {
 		URL url1;
 		ModelManager modelManager = new ModelManager();
 		ProtoModel serviceModel = modelManager.getServiceModel(modelName);
-
 		
 		Map argsMap = parseArgs(args);
 		if (serviceModel != null) {
@@ -120,6 +119,11 @@ public class WebServiceProtal extends HttpServlet {
 				serviceModel.setAct(action);
 				serviceModel.setAppId(appId);
 				serviceModel.setModelServletContext(this.servletContext);
+				
+				if (!serviceModel.verifyAppId(appId)){
+					throw new Exception("AppId 驗證失敗");
+				}
+				
 				jArray = ((ServiceModelFace) serviceModel).doAction(argsMap);
 				responseData = jArray.toString();
 				responseRecord = jArray.size() + "";
@@ -150,7 +154,7 @@ public class WebServiceProtal extends HttpServlet {
 		Iterator it=jObj.keys();
 		Map argsMap = new HashMap();
 		for (;it.hasNext();){
-			String key=(String) it.next();
+			String key=it.next().toString();
 			argsMap.put(key,jObj.get(key));
 		}
 		return argsMap;
