@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- WARNING: Eclipse auto-generated file.
+              Any modifications will be overwritten.
+              To include a user specific buildfile here, simply create one in the same
+              directory with the processing instruction <?eclipse.ant.import?>
+              as the first entry and export the buildfile again. -->
+<project basedir="." default="build" name="DLC Models">
+    <property environment="env"/>
+    <property name="ECLIPSE_HOME" value="../../eclipse"/>
+	<property name="tomcatmodelPath" value="D:\Projects\NetPassPort\WebContent\WEB-INF\models"/>
+    <property name="debuglevel" value="source,lines,vars"/>
+    <property name="target" value="1.6"/>
+    <property name="source" value="1.6"/>
+    <path id="DLC.userclasspath">
+        <pathelement location="../Mylib/DLC.0.5.jar"/>
+    </path>
+    <path id="Apache Tomcat v6.0 [Apache Tomcat v6.0].libraryclasspath">
+        <pathelement location="../../Server/tomcat-6.0.14/lib/annotations-api.jar"/>
+        <pathelement location="../../Server/tomcat-6.0.14/lib/catalina-ant.jar"/>
+        <pathelement location="../../Server/tomcat-6.0.14/lib/catalina-ha.jar"/>
+        <pathelement location="../../Server/tomcat-6.0.14/lib/catalina-tribes.jar"/>
+        <pathelement location="../../Server/tomcat-6.0.14/lib/catalina.jar"/>
+        <pathelement location="../../Server/tomcat-6.0.14/lib/el-api.jar"/>
+        <pathelement location="../../Server/tomcat-6.0.14/lib/jasper-el.jar"/>
+        <pathelement location="../../Server/tomcat-6.0.14/lib/jasper-jdt.jar"/>
+        <pathelement location="../../Server/tomcat-6.0.14/lib/jasper.jar"/>
+        <pathelement location="../../Server/tomcat-6.0.14/lib/jsp-api.jar"/>
+        <pathelement location="../../Server/tomcat-6.0.14/lib/servlet-api.jar"/>
+        <pathelement location="../../Server/tomcat-6.0.14/lib/tomcat-coyote.jar"/>
+        <pathelement location="../../Server/tomcat-6.0.14/lib/tomcat-dbcp.jar"/>
+        <pathelement location="../../Server/tomcat-6.0.14/lib/tomcat-i18n-es.jar"/>
+        <pathelement location="../../Server/tomcat-6.0.14/lib/tomcat-i18n-fr.jar"/>
+        <pathelement location="../../Server/tomcat-6.0.14/lib/tomcat-i18n-ja.jar"/>
+    </path>
+    <path id="JSON.userclasspath">
+        <pathelement location="../lib/JSON/commons-beanutils-1.7.0.jar"/>
+        <pathelement location="../lib/JSON/commons-lang-2.3.jar"/>
+        <pathelement location="../lib/JSON/commons-logging.jar"/>
+        <pathelement location="../lib/JSON/ezmorph-1.0.2.jar"/>
+        <pathelement location="../lib/JSON/json-lib-2.3-jdk15.jar"/>
+    </path>
+    <path id="commons-httpclient-3.1.userclasspath">
+        <pathelement location="../lib/commons-httpclient-3.1/commons-httpclient-3.1.jar"/>
+    </path>
+    <path id="HTMLParser.userclasspath">
+        <pathelement location="../lib/HTMLParser-2.0-SNAPSHOT/lib/filterbuilder.jar"/>
+        <pathelement location="../lib/HTMLParser-2.0-SNAPSHOT/lib/htmllexer.jar"/>
+        <pathelement location="../lib/HTMLParser-2.0-SNAPSHOT/lib/htmlparser.jar"/>
+        <pathelement location="../lib/HTMLParser-2.0-SNAPSHOT/lib/sitecapturer.jar"/>
+        <pathelement location="../lib/HTMLParser-2.0-SNAPSHOT/lib/thumbelina.jar"/>
+    </path>
+    <path id="dom4j-1.6.1.userclasspath">
+        <pathelement location="../lib/dom4j-1.6.1/dom4j-1.6.1.jar"/>
+    </path>
+    <path id="javamail-1.4.2.userclasspath">
+        <pathelement location="../lib/javamail-1.4.2/lib/dsn.jar"/>
+        <pathelement location="../lib/javamail-1.4.2/lib/imap.jar"/>
+        <pathelement location="../lib/javamail-1.4.2/lib/mailapi.jar"/>
+        <pathelement location="../lib/javamail-1.4.2/lib/pop3.jar"/>
+        <pathelement location="../lib/javamail-1.4.2/lib/smtp.jar"/>
+    </path>
+    <path id="DLC Models.classpath">
+        <pathelement location="bin"/>
+        <path refid="DLC.userclasspath"/>
+        <path refid="Apache Tomcat v6.0 [Apache Tomcat v6.0].libraryclasspath"/>
+        <path refid="JSON.userclasspath"/>
+        <path refid="commons-httpclient-3.1.userclasspath"/>
+        <path refid="HTMLParser.userclasspath"/>
+        <path refid="dom4j-1.6.1.userclasspath"/>
+        <path refid="javamail-1.4.2.userclasspath"/>
+    </path>
+    <target name="init">
+        <mkdir dir="bin"/>
+        <copy includeemptydirs="false" todir="bin">
+            <fileset dir="src" excludes="**/*.launch, **/*.java"/>
+        </copy>
+    </target>
+    <target name="clean">
+        <delete dir="bin"/>
+    </target>
+    <target depends="clean" name="cleanall"/>
+    <target depends="build-subprojects,build-project" name="build"/>
+    <target name="build-subprojects"/>
+    <target depends="init" name="build-project">
+        <echo message="${ant.project.name}: ${ant.file}"/>
+        <javac debug="true" debuglevel="${debuglevel}" destdir="bin" source="${source}" target="${target}">
+            <src path="src"/>
+            <classpath refid="DLC Models.classpath"/>
+        </javac>
+    </target>
+    <target description="Build all projects which reference this project. Useful to propagate changes." name="build-refprojects"/>
+    <target description="copy Eclipse compiler jars to ant lib directory" name="init-eclipse-compiler">
+        <copy todir="${ant.library.dir}">
+            <fileset dir="${ECLIPSE_HOME}/plugins" includes="org.eclipse.jdt.core_*.jar"/>
+        </copy>
+        <unzip dest="${ant.library.dir}">
+            <patternset includes="jdtCompilerAdapter.jar"/>
+            <fileset dir="${ECLIPSE_HOME}/plugins" includes="org.eclipse.jdt.core_*.jar"/>
+        </unzip>
+    </target>
+    <target description="compile project with Eclipse compiler" name="build-eclipse-compiler" depends="to-model">
+        <property name="build.compiler" value="org.eclipse.jdt.core.JDTCompilerAdapter"/>
+        <antcall target="build"/>
+    	<jar destfile="${ant.project.name}.jar">
+    	    <zipfileset dir="bin">
+    	        <include name="**/*.*" />
+    	        <exclude name="**/*.jar" />
+    	    </zipfileset>
+    	</jar>
+    </target>
+    <target description="setToLib" name="to-model" >
+        <property name="build.compiler" value="org.eclipse.jdt.core.JDTCompilerAdapter"/>
+        <antcall target="build"/>
+    	<jar destfile="${tomcatmodelPath}/DLC Models.jar">
+    	    <zipfileset dir="bin">
+    	        <include name="**/*.*" />
+    	        <exclude name="**/*.jar" />
+    	    </zipfileset>
+    	</jar>
+    </target>
+</project>
