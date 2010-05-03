@@ -25,7 +25,7 @@ Mogan.yamato.send = function() {
 						Ext.Msg.alert("錯誤", json['responseMsg']);
 						textareaMsgContent.setValue(json['responseMsg']);
 					} else {
-						textareaMsgContent.setValue(json['responseData'][0]['DATA']+'\n'+json['responseData'][0]['TOTAL_SIZE']);
+						textareaMsgContent.setValue(response.responseText);
 					}
 				},
 				failure : function(response) {

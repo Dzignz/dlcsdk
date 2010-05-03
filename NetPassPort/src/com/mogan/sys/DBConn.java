@@ -14,6 +14,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -30,6 +31,8 @@ import net.sf.json.JSONObject;
 
 import org.logicalcobwebs.proxool.ProxoolException;
 import org.logicalcobwebs.proxool.configuration.JAXPConfigurator;
+
+import com.mogan.sys.log.SysLogger4j;
 
 /**
  * Servlet implementation class InitDBConn
@@ -52,23 +55,29 @@ public class DBConn extends HttpServlet {
 	}
 
 	private void initDBConn() {
+		Connection conn = null;
 		try {
-			Connection conn = null;
-			conn = getConnection("mogan-tw");
-			this.closeConnection(conn);
-			conn = getConnection("mogan-DB");
-			this.closeConnection(conn);
-			if (conn != null)
-				SysLogger4j.info("Connect Test Success");
+			Enumeration enr=this.getServletContext().getAttributeNames();
+			String attName=null;
+			while (enr.hasMoreElements()){
+				attName=enr.nextElement().toString();
+				if (attName.startsWith("DB_Server_")){
+					conn = getConnection(attName.replaceAll("DB_Server_", ""));
+					this.closeConnection(conn);
+					SysLogger4j.info(attName.replaceAll("DB_Server_", "") +" Connection success.");
+				}
+			}
 			conn.close();
-			conn = null;
-			DBConn dbConn = new DBConn();
-			this.getServletContext().setAttribute("DBConn", dbConn);
-			this.servletContext = this.getServletContext();
 		} catch (SQLException e) {
+			SysLogger4j.info(e);
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+//			e.printStackTrace();
 		}
+
+		conn = null;
+		DBConn dbConn = new DBConn();
+		this.getServletContext().setAttribute("DBConn", dbConn);
+		this.servletContext = this.getServletContext();
 	}
 
 	/**
@@ -96,8 +105,10 @@ public class DBConn extends HttpServlet {
 	 *            連線名稱
 	 * @param sql
 	 *            SQL語法
+	 * @throws UnsupportedEncodingException 
+	 * @throws SQLException 
 	 */
-	public boolean executSql(String connAlias, String sql) {
+	public boolean executSql(String connAlias, String sql) throws UnsupportedEncodingException, SQLException {
 		Connection conn = getConnection(connAlias);
 		Statement stmt = null;
 		ResultSet rst = null;
@@ -109,10 +120,11 @@ public class DBConn extends HttpServlet {
 			flag = stmt.execute(sql);
 			SysLogger4j.info(sql);
 		} catch (SQLException e) {
-			SysLogger4j.error(sql);
-			SysLogger4j.error(e.getStackTrace());
+			SysLogger4j.error(sql,e);
+			throw e;
 		} catch (UnsupportedEncodingException e) {
-			SysLogger4j.error(e.getStackTrace());
+			SysLogger4j.error("UnsupportedEncodingException",e);
+			throw e;
 		}
 		closeResultSet(rst);
 		closeStatement(stmt);
@@ -120,10 +132,17 @@ public class DBConn extends HttpServlet {
 		return flag;
 	}
 
+	/**
+	 * 取得sql資筆數
+	 * @param connAlias
+	 * @param sql
+	 * @return
+	 */
 	public int getQueryDataSize(String connAlias, String sql) {
-		sql = "select count(*) as COUNT from (" + sql + ") A";
+		//sql = "SELECT count(*) AS COUNT_SIZE FROM (" + sql + ") A";
+		sql=sql.replaceAll("(?i)SELECT (.*?)(?i)FROM ", "SELECT COUNT(*) AS COUNT_SIZE FROM ");
 		ArrayList dataList = query(connAlias, sql);
-		return Integer.parseInt((String) ((Map) dataList.get(0)).get("COUNT"));
+		return Integer.parseInt((String) ((Map) dataList.get(0)).get("COUNT_SIZE"));
 	}
 
 	/**
@@ -158,9 +177,11 @@ public class DBConn extends HttpServlet {
 	 * @param dataMap
 	 *            更新資料
 	 * @return
+	 * @throws SQLException 
+	 * @throws UnsupportedEncodingException 
 	 */
 	public JSONArray update(String connAlias, String table, Map conditionMap,
-			Map dataMap) {
+			Map dataMap) throws UnsupportedEncodingException, SQLException {
 		JSONArray jArray = new JSONArray();
 		// Connection conn = getConnection(connAlias);
 		Map colStrctMap = queryTabelStructure(connAlias, table, dataMap);
@@ -169,7 +190,7 @@ public class DBConn extends HttpServlet {
 		String sql = "UPDATE " + table + " SET "
 				+ getSqlStr(dataMap, colStrctMap) + " WHERE "
 				+ getSqlWhereStr(conditionMap, colStrctMap);
-		executSql(connAlias, sql);
+		jArray.add(executSql(connAlias, sql));
 		return jArray;
 	}
 
@@ -181,9 +202,11 @@ public class DBConn extends HttpServlet {
 	 * @param conditionMap
 	 * @param dataMap
 	 * @return
+	 * @throws SQLException 
+	 * @throws UnsupportedEncodingException 
 	 */
 	public JSONArray newData(String connAlias, String table, Map conditionMap,
-			Map dataMap) {
+			Map dataMap) throws UnsupportedEncodingException, SQLException {
 		JSONArray jArray = new JSONArray();
 
 		if (conditionMap != null && conditionMap.size() > 0
@@ -201,9 +224,11 @@ public class DBConn extends HttpServlet {
 	 * @param table
 	 * @param dataMap
 	 * @return
+	 * @throws SQLException 
+	 * @throws UnsupportedEncodingException 
 	 */
 	public JSONArray newData(String connAlias, String table,
-			Map<String, String> dataMap) {
+			Map<String, String> dataMap) throws UnsupportedEncodingException, SQLException {
 		JSONArray jArray = new JSONArray();
 
 		Map colStrctMap = queryTabelStructure(connAlias, table, dataMap);
@@ -668,7 +693,7 @@ public class DBConn extends HttpServlet {
 			// conn.commit();
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
-			SysLogger4j.error("SQL 語法錯誤:" + sql);
+			SysLogger4j.error("SQL 語法錯誤:" + sql,e);
 			e.printStackTrace();
 		} finally {
 			closeResultSet(rst);

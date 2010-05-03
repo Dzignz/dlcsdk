@@ -2,11 +2,23 @@ package com.mogan.serviceProtal;
 
 import java.io.IOException;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
+import java.util.Map.Entry;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import net.sf.json.JSONArray;
+
+import com.mogan.sys.model.AuthModelAdapter;
+import com.mogan.sys.model.ModelManager;
+import com.mogan.sys.model.ProtoModel;
+import com.mogan.sys.model.ServiceModelFace;
 
 /**
  * Servlet implementation class OauthProtal
@@ -19,7 +31,7 @@ public class OauthProtal extends HttpServlet {
 	/**
 	 * 其他系統登入 
 	 */
-	private static final String otherSysLogin="OTHER_SYSTEM_LOGIN";
+	private static final String modelLogin="MODEL_LOGIN";
 	
     /**
      * @see HttpServlet#HttpServlet()
@@ -32,9 +44,9 @@ public class OauthProtal extends HttpServlet {
 	/**
 	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
 	 */
-	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+	protected void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
 		// TODO Auto-generated method stub
-		this.doPost(request, response);
+		this.doPost(req, res);
 	}
 
 	/**
@@ -46,15 +58,12 @@ public class OauthProtal extends HttpServlet {
 		res.setContentType("text/xml; charset=UTF-8");
 		res.setHeader("Cache-Control", "no-cache");
 		String oauthType=req.getParameter("OAUTH_TYPE");
-		System.out.println("[DEBUG] OAUTH LOGIN.-1");
 		
 		
 		if (oauthType.equals(webLogin)){
-			System.out.println("[DEBUG] OAUTH LOGIN.-2");
 			String userName=req.getParameter("USER_NAME").toUpperCase();
 			String pwd=req.getParameter("PWD").toUpperCase();
 			if (userName.equals("dian".toUpperCase()) && pwd.equals("mogan".toUpperCase())){
-				System.out.println("[DEBUG] OAUTH LOGIN.-3");
 				req.getSession().setAttribute("userId", "0001");
 				req.getSession().setAttribute("userName", userName);
 				req.getSession().setAttribute("loginTime", new Date());
@@ -62,8 +71,34 @@ public class OauthProtal extends HttpServlet {
 				req.getSession().setAttribute("oauthKey","passed");
 				res.sendRedirect((String) req.getSession().getAttribute("originURL"));
 			}
+		}else if (oauthType.equals(modelLogin)){
+			loadModel(req,res);
 		}
+	}
+	
+	/**
+	 * 
+	 */
+	private void loadModel(HttpServletRequest req, HttpServletResponse res){
+		String modelName = req.getParameter("MODEL_NAME");
+		ModelManager modelManager = new ModelManager();
+		ProtoModel authModel = modelManager.getAuthModel(modelName);
 		
+		if (authModel != null) {
+			try {
+				authModel.setProperties(modelManager.getModelProperties(modelName));
+				authModel.setSessionId(req.getSession().getId());
+				authModel.setModelServletContext(this.getServletContext());
+				 ((AuthModelAdapter) authModel).doAuth(req,res);
+				 authModel.setSession(req.getSession());
+			} catch (Exception e) {
+				e.printStackTrace();
+			}finally{
+				authModel=null;
+			}
+		} else {
+
+		}
 	}
 
 }

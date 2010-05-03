@@ -25,12 +25,13 @@ import org.apache.commons.httpclient.Cookie;
 import org.dom4j.Document;
 import org.dom4j.Element;
 
-import com.mogan.sys.ModelFace;
-import com.mogan.sys.ModelManager;
-import com.mogan.sys.ProtoModel;
-import com.mogan.sys.ServiceModelFace;
+import com.mogan.sys.SysAlert;
 import com.mogan.sys.SysKernel;
-import com.mogan.sys.SysLogger4j;
+import com.mogan.sys.log.SysLogger4j;
+import com.mogan.sys.model.ModelFace;
+import com.mogan.sys.model.ModelManager;
+import com.mogan.sys.model.ProtoModel;
+import com.mogan.sys.model.ServiceModelFace;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
 import com.thoughtworks.xstream.io.xml.DomDriver;
@@ -156,11 +157,13 @@ public class AjaxPortal extends HttpServlet {
 		if (serviceModel != null) {
 			JSONArray jArray;
 			try {
+				req.getSession().setAttribute("CLIENT_IP", req.getRemoteAddr());
 				serviceModel.setProperties(modelManager.getModelProperties(modelName));
 				serviceModel.setSessionId(req.getSession().getId());
 				serviceModel.setAppId(appId);
 				serviceModel.setAct(act);
 				serviceModel.setModelServletContext(this.getServletContext());
+				serviceModel.setSession(req.getSession());
 				Map tempParams = req.getParameterMap();
 				Map params=new HashMap();
 				Set set = tempParams.entrySet();

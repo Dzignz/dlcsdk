@@ -1,4 +1,4 @@
-package com.mogan.sys;
+package com.mogan.sys.model;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -32,7 +32,7 @@ import org.dom4j.XPath;
 import org.dom4j.io.SAXReader;
 import org.dom4j.io.XMLWriter;
 
-import com.mogan.sys.model.ScheduleModelAdapter;
+import com.mogan.sys.log.SysLogger4j;
 
 /**
  * Servlet implementation class ModelLoader
@@ -178,12 +178,7 @@ public class ModelManager extends HttpServlet {
 				.getAttribute("MODEL_XML");
 		List<Element> nodes = document.selectNodes("/models/model[modelName='"
 				+ modelName + "']");
-		/*
-		 * for(Object o:nodes){ Element e = (Element) o; System.out.println("e:"+e.asXML()); System.out.println("[debug] modelName :" +
-		 * e.element("modelName").getText()); System.out.println("[debug] modelClass :" + e.element("modelClass").getText());
-		 * System.out.println("[debug] modelDiscription :" + e.element("modelDiscription").getText()); System.out.println("---------------------"); }
-		 * //
-		 */
+		SysLogger4j.debug( "getModels:"+modelName);
 		return nodes;
 	}
 	
@@ -210,6 +205,20 @@ public class ModelManager extends HttpServlet {
 		return nodes;
 	}
 
+	/**
+	 * 取得驗證模組資訊
+	 * @param modelName
+	 * @return
+	 */
+	public List<Element> getAuthModels(String modelName) {
+		Document document = (Document) this.servletContext
+				.getAttribute("MODEL_XML");
+		List<Element> nodes = document
+				.selectNodes("/models/auth[authName='" + modelName
+						+ "']");
+		return nodes;
+	}
+	
 	/**
 	 * 取得標準檔案處理Model
 	 * 
@@ -294,6 +303,11 @@ public class ModelManager extends HttpServlet {
 		return serviceModel;
 	}
 
+	/**
+	 * 取得排程模組
+	 * @param ScheduleName
+	 * @return
+	 */
 	public ScheduleModelAdapter getScheduleModel(String ScheduleName) {
 		ScheduleModelAdapter scheduleModel = null;
 		URL url1;
@@ -353,7 +367,55 @@ public class ModelManager extends HttpServlet {
 		}
 		return scheduleModel;
 	}
+	
+	/**
+	 * 取得驗證模組
+	 * @param ScheduleName
+	 * @return
+	 */
+	public AuthModelAdapter getAuthModel(String modelName) {
+		AuthModelAdapter authModel = null;
+		URL url1;
 
+		List<org.dom4j.Element> nodes = getScheduleModels(modelName);
+		if (nodes.size() > 0) {
+			Element e = nodes.get(0);
+			try {
+				url1 = new URL("file:" + this.servletContext.getRealPath("/")
+						+ this.servletContext.getAttribute("MODEL_PATH")
+						+ e.elementText("authJar"));
+				URLClassLoader cl = new URLClassLoader(new URL[] { url1 },
+						Thread.currentThread().getContextClassLoader());
+
+				Class model = cl.loadClass(e.elementText("authClass"));
+
+				authModel = (AuthModelAdapter) model.newInstance();
+				
+				authModel.setModelClass(e.elementText("authClass"));
+				authModel.setModelName(modelName);
+				authModel.setModelDiscription(e
+						.elementText("authDiscription"));
+
+				authModel.setProperties(this.getScheduleProperties(modelName));
+				
+			} catch (MalformedURLException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			} catch (ClassNotFoundException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			} catch (InstantiationException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			} catch (IllegalAccessException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+		}
+		return authModel;
+		
+	}
+	
 	/**
 	 * 讀取XML，並設定在ServletContext的MODEL_XML中
 	 */

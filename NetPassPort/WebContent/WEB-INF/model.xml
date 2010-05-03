@@ -247,8 +247,15 @@
 		<modelDiscription>yamoto 專用</modelDiscription>
 		<acceptId>
 			<appId>1525acd27ea02e02076c25e8f1f41565</appId>
+			<appId>fccc13447039e0ebf289e4227bc8e9e6</appId>
 		</acceptId>
 		<denyId>
 		</denyId>
-	</model>	
+	</model>
+	<auth>
+		<authName>PHP_AUTH</authName>
+		<authJar>DLC Models.jar</authJar>
+		<authClass>com.mogan.model.PHPAuthorization</authClass>
+		<authDiscription>PHP 登入專用</authDiscription>
+	</auth>		
 </models>

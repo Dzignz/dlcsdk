@@ -1,4 +1,4 @@
-package com.mogan.sys;
+package com.mogan.sys.model;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -7,6 +7,8 @@ import java.util.Properties;
 
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpSession;
+
 
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
@@ -16,6 +18,7 @@ public abstract class ProtoModel extends HttpServlet {
 	private String appId = "";
 	private String act = "";
 	private ServletContext servletContext;
+	private HttpSession session;
 	private String modelName="";
 	private String modelClass="";
 	private String modelDiscription="";
@@ -26,6 +29,22 @@ public abstract class ProtoModel extends HttpServlet {
 	private List<String> denyIds;
 	public ProtoModel(){
 		
+	}
+	
+	/**
+	 * 設定使用者session
+	 * @param session
+	 */
+	final public void setSession(HttpSession session){
+		this.session=session;
+	}
+	
+	/**
+	 * 取得使用者session
+	 * @return
+	 */
+	final public HttpSession getSession(){
+		return this.session;
 	}
 	
 	/**

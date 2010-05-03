@@ -366,7 +366,6 @@ Mogan.transactionTrace.fixLoadBidItemsParams = function() {
 Mogan.transactionTrace.getloadBidItemsURL = function(store, options) {
 	Mogan.transactionTrace.fixLoadBidItemsParams();
 	store.proxy.setUrl('AjaxPortal?' + Ext.urlEncode(loadBidItemsParams));
-	// alert(store.proxy.getUrl());
 }
 
 /**

@@ -1,4 +1,4 @@
-package com.mogan.sys;
+package com.mogan.sys.model;
 
 
 import java.util.Map;
@@ -16,5 +16,5 @@ import net.sf.json.JSONArray;
  *
  */
 public interface ServiceModelFace  {
-	public abstract JSONArray doAction(Map parameterMap) throws Exception;
+	public abstract JSONArray doAction(Map<String,String> parameterMap) throws Exception;
 }

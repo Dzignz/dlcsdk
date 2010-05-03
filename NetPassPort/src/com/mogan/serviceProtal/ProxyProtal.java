@@ -15,10 +15,10 @@ import javax.servlet.http.HttpServletResponse;
 
 import net.sf.json.JSONArray;
 
-import com.mogan.sys.ModelManager;
-import com.mogan.sys.ProtoModel;
-import com.mogan.sys.ServiceModelFace;
+import com.mogan.sys.model.ModelManager;
+import com.mogan.sys.model.ProtoModel;
 import com.mogan.sys.model.ProxyModelFace;
+import com.mogan.sys.model.ServiceModelFace;
 
 /**
  * Servlet implementation class ProxyProtal
@@ -80,6 +80,7 @@ public class ProxyProtal extends HttpServlet {
 				serviceModel.setAppId(appId);
 				serviceModel.setAct(act);
 				serviceModel.setModelServletContext(this.getServletContext());
+				serviceModel.setSession(req.getSession());
 				Map tempParams = req.getParameterMap();
 				Map params=new HashMap();
 				Set set = tempParams.entrySet();

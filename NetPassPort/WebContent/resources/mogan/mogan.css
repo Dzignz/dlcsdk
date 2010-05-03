@@ -11,9 +11,39 @@
 	width: 32px;
 }
 
+/**
+ * 搜尋 放大鏡
+ */
 .search {
 	background-image:
 		url(../../resources/mogan/images/1259213867_system-search.png)
+		!important;
+	height: 32px;
+	width: 32px;
+}
+
+.refresh {
+	background-image:
+		url(../../resources/mogan/images/1272416636_arrow_circle_double.png)
+		!important;
+	height: 16px;
+	width: 16px;
+}
+
+/**
+ * 計算機
+ */
+.calculator {
+	background-image:
+		url(../../resources/mogan/images/1272518090_calculator_blue.png)
+		!important;
+	height: 16px;
+	width: 16px;
+}
+
+.falg {
+	background-image:
+		url(../../resources/mogan/images/1271665608_mail-flag-kmail.png)
 		!important;
 	height: 32px;
 	width: 32px;

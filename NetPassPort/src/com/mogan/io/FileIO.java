@@ -15,7 +15,7 @@ import java.util.Date;
 import java.util.Properties;
 
 import com.mogan.sys.SysCalendar;
-import com.mogan.sys.SysLogger4j;
+import com.mogan.sys.log.SysLogger4j;
 
 public class FileIO {
 	public FileIO() {

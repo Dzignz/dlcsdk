@@ -24,12 +24,12 @@ import org.apache.tomcat.util.http.fileupload.DiskFileUpload;
 import org.apache.tomcat.util.http.fileupload.FileItem;
 import org.apache.tomcat.util.http.fileupload.FileUploadException;
 
-import com.mogan.sys.FileModelFace;
-import com.mogan.sys.ModelFace;
-import com.mogan.sys.ModelManager;
-import com.mogan.sys.ProtoModel;
-import com.mogan.sys.ServiceModelFace;
 import com.mogan.sys.SysKernel;
+import com.mogan.sys.model.FileModelFace;
+import com.mogan.sys.model.ModelFace;
+import com.mogan.sys.model.ModelManager;
+import com.mogan.sys.model.ProtoModel;
+import com.mogan.sys.model.ServiceModelFace;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.xml.DomDriver;
 
@@ -132,10 +132,10 @@ public class FilePortal extends HttpServlet {
 		}
 
 		long time1 = System.currentTimeMillis();
+		responseTime=String.valueOf(time1-time0);
 		StringBuffer stringBuffer = new StringBuffer();
 		String jsonString = "{success:true}";
 		JSONObject jsonResponse = new JSONObject().fromObject(jsonString);
-		JSONObject jsonResponse2 = new JSONObject().fromObject(jsonString);
 		jsonResponse.put("responseData", responseData);
 		jsonResponse.put("responseRecords", responseRecord);
 		jsonResponse.put("responseTime", responseTime);
@@ -177,6 +177,7 @@ public class FilePortal extends HttpServlet {
 		fileModel.setAct(act);
 		fileModel.setSessionId(req.getSession().getId());
 		fileModel.setModelServletContext(this.getServletContext());
+		fileModel.setSession(req.getSession());
 		if (fileModel != null) {
 			try {
 				if (isUploadFile) {

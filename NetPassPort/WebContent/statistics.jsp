@@ -3,6 +3,7 @@
 
 <%@ page import="com.mogan.sys.DBConn"%>
 <%@ page import="java.util.ArrayList"%>
+<%@ page import="java.util.Calendar"%>
 <%@ page import="net.sf.json.JSONArray"%>
 <%@ page import="net.sf.json.JSONObject"%>
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
@@ -35,8 +36,13 @@
 	jArray.add(conn.queryJSONArray("mogan-tw","select COUNT(*) AS COUNT ,SUM(costed) AS COST ,DATE_ADD(CURDATE(),INTERVAL 15 DAY) AS DATE_S from web_bidding WHERE end_date > DATE_ADD(CURDATE(),INTERVAL 14 DAY)").getJSONObject(0));//1
 break;
     	case 3:
+    		Calendar cal=Calendar.getInstance();
+    		for (int i=0;i<cal.MONTH;i++){
+    			jArray=conn.queryJSONArray("mogan-tw","select user_name,count(*)as count , sum(costed) as cost ,avg(costed) as avg_cost, day(now())/count(*) as buy2day,count(*)/day(now()) as day2buy,  (select realname from web_member where name=user_name) as realname FROM web_won where `show`='1' AND end_date >= DATE(concat( YEAR(CURDATE()), concat('-', concat(MONTH(CURDATE()),'-"+i+"')))) group by user_name");//0	
+    		}
     		//jArray=conn.queryJSONArray("mogan-tw","select user_name,count(*)as count , sum(costed) as cost ,(select realname from web_member where name=user_name) as realname FROM web_won where `show`='1' AND end_date > DATE('2009-12-31') group by user_name");//0
     		jArray=conn.queryJSONArray("mogan-tw","select user_name,count(*)as count , sum(costed) as cost ,avg(costed) as avg_cost, day(now())/count(*) as buy2day,count(*)/day(now()) as day2buy,  (select realname from web_member where name=user_name) as realname FROM web_won where `show`='1' AND end_date >= DATE(concat( YEAR(CURDATE()), concat('-', concat(MONTH(CURDATE()),'-1')))) group by user_name");//0
+    		
     		break;
     	case 4://每月前10名
     		jArray=conn.queryJSONArray("mogan-tw","SELECT sum( ww.costed ) AS sum, wm.realname, count( ww.costed ) AS count, avg( ww.costed ) AS avg FROM web_won AS ww JOIN web_member AS wm ON ( ww.user_name = wm.name AND ww.show =1 AND ww.end_date >= DATE(concat( YEAR(CURDATE()), concat('-', concat(MONTH(CURDATE()),'-1')))) ) GROUP BY ww.user_name ORDER BY `sum` DESC LIMIT 0 , 10 ");//0

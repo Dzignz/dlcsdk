@@ -1,5 +1,44 @@
-// Ext.namespace("Mogan.orderTrace");
+Ext.namespace("Mogan.orderTrace");
+
+/**
+ * 篩選關鍵字
+ * 
+ * @type String
+ */
+Mogan.orderTrace.filterKeyWord = "";
+
+/**
+ * 篩選訂單狀態
+ * 
+ * @type String
+ */
+Mogan.orderTrace.filterStatus = new Array();
+
+/**
+ * 狀態名稱對應表
+ */
+Mogan.orderTrace.statusNameMap = new Object();
+Mogan.orderTrace.statusNameMap['3-01'] = '連絡中';
+Mogan.orderTrace.statusNameMap['3-02'] = '取得連絡';
+Mogan.orderTrace.statusNameMap['3-03'] = '待匯款';
+Mogan.orderTrace.statusNameMap['3-04'] = '已匯款';
+Mogan.orderTrace.statusNameMap['3-05'] = '賣家已發貨';
+Mogan.orderTrace.statusNameMap['3-06'] = '購買點已收貨';
+Mogan.orderTrace.statusNameMap['3-07'] = '購買點已發貨';
+Mogan.orderTrace.statusNameMap['3-08'] = '收貨點已收貨';
+Mogan.orderTrace.statusNameMap['3-09'] = '收貨點已發貨';
+Mogan.orderTrace.statusNameMap['3-10'] = '會員已收貨';
+
 Ext.onReady(function() {
+
+	Mogan.orderTrace.payTypeStore = new Ext.data.Store({
+				reader : new Ext.data.JsonReader({
+							root : 'root'
+						}, ['list_key', 'list_name']),
+				proxy : new Ext.data.MemoryProxy(payTypeJSONData)
+			});
+	Mogan.orderTrace.payTypeStore.load();
+			
 	// 初始化資料 下標帳號清單
 	Mogan.orderTrace.accountListStore = new Ext.data.Store({
 				reader : new Ext.data.JsonReader({
@@ -9,30 +48,41 @@ Ext.onReady(function() {
 			});
 	Mogan.orderTrace.accountListStore.load();
 
-	// 得標資料
-	Mogan.orderTrace.itemListStore = new Ext.data.JsonStore({
-		autoload : true,
-		root : 'responseData[0]["Datas"]',
-		totalProperty : 'responseData[0]["Records"]',
-		idProperty : 'threadid',
-		id : 'itemListStore',
-		remoteSort : true,
-		
-		fields : itemOrderCol,
-				
-		proxy : new Ext.data.HttpProxy({
-			url : 'AjaxPortal?APP_ID='
-					+ appId
-					+ '&ACTION=LOAD_BID_ITEM_ORDERS&MODEL_NAME=BM2&RETURN_TYPE=JSON&START_INDEX=0&PAGE_SIZE=50'
-		}),
-		paramNames : {
-			start : 'START_INDEX',
-			limit : 'PAGE_SIZE',
-			sort : 'ORDER_BY',
-			dir : 'DIR'
-		}
+	/**
+	 * 同捆得標清單，同賣家得標清單
+	 */
+	Mogan.orderTrace.orderItemListStore = new Ext.data.Store({
+		reader : new Ext.data.JsonReader(
+				{
+					root : 'root'
+				},
+				['item_order_id', 'item_id', 'item_name', 'buy_price',
+						'buy_unit', 'time_at_03', 'bid_account', 'item_id_name']),
+		proxy : new Ext.data.MemoryProxy(orderItemListJSONData)
 	});
-	
+	Mogan.orderTrace.orderItemListStore.load();
+
+	// 完整得標清單
+	Mogan.orderTrace.itemListStore = new Ext.data.JsonStore({
+				autoload : true,
+				root : 'responseData[0]["Datas"]',
+				totalProperty : 'responseData[0]["Records"]',
+				idProperty : 'threadid',
+				id : 'itemListStore',
+				remoteSort : true,
+				fields : itemOrderCol,
+				proxy : new Ext.data.HttpProxy({
+							url : 'AjaxPortal',
+							method : 'POST'
+						}),
+
+				paramNames : {
+					start : 'START_INDEX',
+					limit : 'PAGE_SIZE',
+					sort : 'ORDER_BY',
+					dir : 'DIR'
+				}
+			});
 	Mogan.orderTrace.itemListStore.on("beforeload",
 			Mogan.orderTrace.getloadBidItemsURL);
 
@@ -75,14 +125,33 @@ Ext.onReady(function() {
 	Mogan.orderTrace.trnsListStore.load();
 
 	/**
+	 * 搜尋關鍵字
+	 */
+	Mogan.orderTrace.searchKeyStore = new Ext.data.Store({
+				id : 'searchKeyStore',
+				reader : new Ext.data.JsonReader({
+							root : 'root'
+						}, ['value', 'key']),
+
+				proxy : new Ext.data.MemoryProxy({
+							"root" : [{
+										key : ' ',
+										value : ' '
+									}]
+						})
+			});
+
+	Mogan.orderTrace.searchKeyStore.load();
+
+	/**
 	 * 欄位列表
 	 */
 	Mogan.orderTrace.trnsColmListStore = new Ext.data.Store({
-			reader : new Ext.data.JsonReader({
-						root : 'root'
-					}, ['columnName', 'columnDesc']),
-			proxy : new Ext.data.MemoryProxy(trnsColmJSONData)
-		});
+				reader : new Ext.data.JsonReader({
+							root : 'root'
+						}, ['columnName', 'columnDesc']),
+				proxy : new Ext.data.MemoryProxy(trnsColmJSONData)
+			});
 	Mogan.orderTrace.trnsColmListStore.load();
 
 	// 作用不明
@@ -105,24 +174,50 @@ Ext.onReady(function() {
 	var viewport = new Ext.Viewport({
 				layout : 'border',
 				items : [{
-							region : 'center',
+							region : 'north',
 							items : Mogan.orderTrace.createCaseListGridPanel(),
 							split : true,
 							collapsible : true,
+							height : 300,
 							layout : 'fit'
 						}, {
-							height : 300,
-							region : 'south',
+							region : 'center',
 							split : true,
 							collapsible : true,
 							layout : 'fit',
 							items : Mogan.orderTrace.createDetilPanel()
 						}]
 			});
+			
+	/**
+	 * 資料讀取
+	 */
+	Mogan.orderTrace.fixFilterStatus();
+	Mogan.orderTrace.itemListStore.load();
+	
+	/**
+	 * 鍵盤綁定
+	 */
 	var el = Ext.get('comboSearchKey');
 	var keyNav = new Ext.KeyNav(el, {
 				enter : function(e) {
 					itemListStore.load();
 				}
 			});
+			
+	/***
+	 * Tooltip 專區
+	 */
+	Ext.QuickTips.init();
+	
+    new Ext.ToolTip({
+        target: 'rb-ship_type_1',
+        html: '商品費用已結清，收貨時不用付錢，請選我'
+    });
+    
+	new Ext.ToolTip({
+        target: 'rb-ship_type_0',
+        html: '收貨時需支付運費或商品費用時，請選我'
+    });
+			
 });

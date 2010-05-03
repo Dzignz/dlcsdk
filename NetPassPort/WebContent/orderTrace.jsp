@@ -18,6 +18,7 @@
 
 <link rel="stylesheet" type="text/css" href="resources/css/ext-all.css" />
 <link rel="stylesheet" type="text/css" href="resources/mogan/mogan.css" />
+<link rel="stylesheet" type="text/css" href="resources/mogan/grid.css" />
 
 <script type="text/javascript" src="js/ext-base.js"></script>
 
@@ -38,10 +39,12 @@
 <script type="text/javascript" >
 
 <%
+	
 	final String modelName="BidManager";
 
 	DBConn conn = (DBConn)application.getAttribute("DBConn");// 呼叫 Bean 物件的 getConn() 方法，取得已建立完成的資料庫連結
 	JSONArray accountList=conn.queryJSONArray("mogan-DB","SELECT bid_id,CONCAT(account,CONCAT('-',website_name)) as diaplay_account,account FROM view_system_bid_id");
+	
 	JSONObject accountData=new JSONObject();//增加一個空白選項
 	JSONObject emptyAccount=new JSONObject();//增加一個空白選項
 	emptyAccount.put("bid_id","");
@@ -70,6 +73,7 @@
 	tempObj.put("columnDesc","摩根訂單編號");
 	tempTrnsColmList.add(tempObj);
 	p.put("TRNS_COLM_LIST",tempTrnsColmList);
+	System.out.println("[DEBUG] ot-3");
 	JSONArray trnsColmList=JSONArray.fromObject(p.get("TRNS_COLM_LIST"));	
 	JSONObject trnsColmData=new JSONObject();
 	trnsColmData.put("root",trnsColmList);
@@ -91,18 +95,31 @@
 	templateData.put("root",templateFileList);
 	
 	//代標訂單
-	Map colMap=conn.queryTabelStructure("mogan-VMDB","view_bid_item_order_v1");
+	Map colMap=conn.queryTabelStructure("mogan-DB","view_bid_item_order_v2");
 	Iterator it=colMap.keySet().iterator();
 	JSONArray colList=new JSONArray();
 	for (;it.hasNext();){
 		colList.add(it.next());
 	}
+	colList.add("memberColor");
+	colList.add("sellerColor");
+	colList.add("orderColor");
+	JSONObject orderItemListData=new JSONObject();
+	orderItemListData.put("root",new JSONArray());
+	
+	JSONObject payTypeData=new JSONObject();
+
+
+	JSONArray typeList=conn.queryJSONArray("mogan-DB","SELECT list_key,list_name FROM system_list_value WHERE group_key='pay type' ");
+	payTypeData.put("root",typeList);
 %>
 var itemOrderCol=<%=colList %>;
 var accountJSONData = <%=accountData %>;
 var trnsJSONData = <%=trnsData %>;
 var trnsColmJSONData = <%=trnsColmData %>;
 var templateJSONData = <%=templateData %>;
+var orderItemListJSONData = <%=orderItemListData %>;
+var payTypeJSONData = <%=payTypeData %>;
 
 </script>
 </head>

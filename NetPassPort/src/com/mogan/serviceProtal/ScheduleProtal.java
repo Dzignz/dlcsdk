@@ -20,10 +20,10 @@ import javax.servlet.http.HttpServletResponse;
 import org.dom4j.Element;
 
 import com.mogan.exception.schedule.ScheduleIncorrectDateSpecException;
-import com.mogan.sys.ModelManager;
-import com.mogan.sys.ProtoModel;
 import com.mogan.sys.SysAlert;
 import com.mogan.sys.SysCalendar;
+import com.mogan.sys.model.ModelManager;
+import com.mogan.sys.model.ProtoModel;
 import com.mogan.sys.model.ScheduleModelAdapter;
 
 /**

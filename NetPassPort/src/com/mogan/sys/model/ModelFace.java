@@ -1,4 +1,4 @@
-package com.mogan.sys;
+package com.mogan.sys.model;
 
 import java.util.List;
 import java.util.Properties;

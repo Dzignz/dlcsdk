@@ -21,7 +21,7 @@ import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 import javax.mail.internet.MimeUtility;
 
-import com.mogan.sys.SysLogger4j;
+import com.mogan.sys.log.SysLogger4j;
 
 
 /**
@@ -335,9 +335,9 @@ public class SimpleMailSender implements Runnable {
 			sendMailSession=null;
 			return true;
 		} catch (UnsupportedEncodingException e) {
-			SysLogger4j.error(e);
+			SysLogger4j.error("UnsupportedEncodingException",e);
 		} catch (MessagingException e) {
-			SysLogger4j.error(e);
+			SysLogger4j.error("MessagingException",e);
 		}
 		return false;
 	}

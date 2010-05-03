@@ -301,7 +301,7 @@ function encode(data){
 	return encdata;
 }
 
-function detectBrowser()//§PÂ_¬O§_¥ÎIEÂsÄý¾¹
+function detectBrowser()//ï¿½Pï¿½_ï¿½Oï¿½_ï¿½ï¿½IEï¿½sï¿½ï¿½
  { 
   var sAgent = navigator.userAgent.toLowerCase();
   this.isIE = (sAgent.indexOf('msie')!=-1); //IE6.0-7

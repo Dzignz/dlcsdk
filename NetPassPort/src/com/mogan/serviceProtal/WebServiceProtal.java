@@ -17,11 +17,12 @@ import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import net.sf.json.xml.XMLSerializer;
 
-import com.mogan.sys.ModelManager;
-import com.mogan.sys.ProtoModel;
-import com.mogan.sys.ServiceModelFace;
+import com.mogan.sys.SysAlert;
 import com.mogan.sys.SysKernel;
-import com.mogan.sys.SysLogger4j;
+import com.mogan.sys.log.SysLogger4j;
+import com.mogan.sys.model.ModelManager;
+import com.mogan.sys.model.ProtoModel;
+import com.mogan.sys.model.ServiceModelFace;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.xml.DomDriver;
 
@@ -96,6 +97,7 @@ public class WebServiceProtal extends HttpServlet {
 		}
 		SysLogger4j.info("webService Result::"+jsonResponse.getString("responseResult"));
 		SysLogger4j.debug("webService back::"+stringBuffer);
+		new SysAlert().run();
 		return stringBuffer.toString();
 	}
 

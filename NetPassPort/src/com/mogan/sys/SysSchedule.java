@@ -40,6 +40,7 @@ public class SysSchedule extends HttpServlet {
 	private void runSchedule(){
 		Timer timer = new Timer();
 		System.out.println("[DEBUG] init Schedule start.");
+        //timer.schedule(new SysAlert(), 0,1000*60*15);
         timer.schedule(new SysAlert(), 0,1000*60*15);
         
 	}
