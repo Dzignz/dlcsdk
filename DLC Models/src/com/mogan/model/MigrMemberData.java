@@ -1,14 +1,12 @@
 package com.mogan.model;
 
 import java.util.Map;
-
 import net.sf.json.JSONArray;
-
 import com.data.migration.MemberData;
 import com.mogan.model.netAgent.NetAgentYJ;
-import com.mogan.sys.ProtoModel;
-import com.mogan.sys.ServiceModelFace;
 import com.mogan.sys.SysCalendar;
+import com.mogan.sys.model.ProtoModel;
+import com.mogan.sys.model.ServiceModelFace;
 
 public class MigrMemberData extends ProtoModel implements ServiceModelFace{
 
@@ -34,7 +32,7 @@ public class MigrMemberData extends ProtoModel implements ServiceModelFace{
 	}
 	
 	@Override
-	public JSONArray doAction(Map parameterMap) throws Exception {
+	public JSONArray doAction(Map<String,String> parameterMap) throws Exception {
 		// TODO Auto-generated method stub
 		JSONArray jArray=new JSONArray();
 		if (this.getAct().equals("START")) {

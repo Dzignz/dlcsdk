@@ -12,6 +12,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -52,6 +53,7 @@ import com.mogan.face.NetAgentModel;
 import com.mogan.sys.DBConn;
 import com.mogan.sys.SysCalendar;
 import com.mogan.sys.SysEnCoding;
+import com.mogan.sys.log.SysLogger4j;
 import com.mogan.sys.mail.MailSenderInfo;
 import com.mogan.sys.mail.SimpleMailSender;
 
@@ -505,8 +507,11 @@ public class NetAgentYJ extends NetAgentModel implements BidFace {
 			returnStr = aId;
 			// http://page18.auctions.yahoo.co.jp/jp/show/resubmit?aID=w45993880
 		} catch (ParserException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			SysLogger4j.error("NetAgent Yahoo JP",e);
+		} catch (UnsupportedEncodingException e) {
+			SysLogger4j.error("NetAgent Yahoo JP",e);
+		} catch (SQLException e) {
+			SysLogger4j.error("NetAgent Yahoo JP",e);
 		}
 		jArray.add(returnStr);
 		return jArray;
@@ -1417,11 +1422,14 @@ public class NetAgentYJ extends NetAgentModel implements BidFace {
 			dataMap.put("order_form_status", hasOrderForm);
 			System.out.println("[DEBUG] getItemContactType::" + orderId + " "
 					+ dataMap + " " + hasOrderForm);
-			// conn.update("mogan-DB","member_message",conditionMap,dataMap);
 			conn.update("mogan-tw", "web_won", conditionMap, dataMap);
 		} catch (ParserException e) {
-			// TODO Auto-generated catch block
+			SysLogger4j.error("NetAgent Yahoo JP",e);
 			e.printStackTrace();
+		} catch (UnsupportedEncodingException e) {
+			SysLogger4j.error("NetAgent Yahoo JP",e);
+		} catch (SQLException e) {
+			SysLogger4j.error("NetAgent Yahoo JP",e);
 		}
 		return contactType;
 	}
@@ -2069,7 +2077,7 @@ public class NetAgentYJ extends NetAgentModel implements BidFace {
 						+ uId + "'");
 		if (jArray.size() > 0) {
 			return autoLogin(jArray.getJSONObject(0).getString("account"),
-					jArray.getJSONObject(0).getString("password"));
+					jArray.getJSONObject(0).getString("bid_password"));
 		} else {
 			throw new AccountNotExistException("此帳號不存在(" + uId + ")");
 		}

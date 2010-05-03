@@ -1,5 +1,7 @@
 package com.mogan.schedule;
 
+import java.io.UnsupportedEncodingException;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -39,7 +41,15 @@ public class JpServerTest extends ScheduleModelAdapter {
 		dataMap.put("create_date", new Date());
 		dataMap.put("info", t0+" ,"+t1+" ,"+t2);
 		
-		conn.newData("mogan-DB", "system_alert", dataMap );
+		try {
+			conn.newData("mogan-DB", "system_alert", dataMap );
+		} catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		netAgent.getDataWithGet("http://192.168.1.37/class/common/test.php?auctionID="+itemId);
 	}
 }

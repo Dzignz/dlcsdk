@@ -4,13 +4,13 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.security.Security;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.TimeZone;
-
 import javax.mail.Authenticator;
 import javax.mail.BodyPart;
 import javax.mail.FetchProfile;
@@ -30,20 +30,16 @@ import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMultipart;
 import javax.mail.internet.MimeUtility;
 import javax.mail.search.FlagTerm;
-
 import net.sf.json.JSONArray;
-
 import org.apache.commons.httpclient.Cookie;
 import org.htmlparser.filters.HasChildFilter;
 import org.htmlparser.util.NodeList;
 import org.htmlparser.util.ParserException;
-
 import com.mogan.exception.netAgent.AccountNotExistException;
 import com.mogan.face.NetAgentModel;
 import com.mogan.model.BidManager;
 import com.mogan.sys.DBConn;
-import com.mogan.sys.ServiceModelFace;
-import com.mogan.sys.SysLogger4j;
+import com.mogan.sys.log.SysLogger4j;
 import com.mogan.sys.mail.MyAuthenticator;
 
 /**
@@ -575,7 +571,13 @@ public class NetAgentGoogle extends NetAgentModel implements Runnable {
 				dataMap.put("alert", action);
 				dataMap.put("create_date", new Date());
 				dataMap.put("seq_no", autoNum);
-				conn.newData("mogan-DB", "system_alert", dataMap);
+				try {
+					conn.newData("mogan-DB", "system_alert", dataMap);
+				} catch (UnsupportedEncodingException e) {
+					SysLogger4j.error("NetAgent Gamil",e);
+				} catch (SQLException e) {
+					SysLogger4j.error("NetAgent Gamil",e);
+				}
 			}
 		}
 	}
@@ -639,9 +641,15 @@ public class NetAgentGoogle extends NetAgentModel implements Runnable {
 		for (int i = 0; i < wonList.size(); i++) {
 			Map tempMap = wonList.get(i);
 			String itemId = (String) tempMap.get("ITEM_ID");
-			conn.executSql("mogan-tw",
-					"update web_bidding set w_ykj=w_ykj+1 where item_id='"
-							+ itemId + "'");
+			try {
+				conn.executSql("mogan-tw",
+						"update web_bidding set w_ykj=w_ykj+1 where item_id='"
+								+ itemId + "'");
+			} catch (UnsupportedEncodingException e) {
+				SysLogger4j.error("NetAgent Gamil",e);
+			} catch (SQLException e) {
+				SysLogger4j.error("NetAgent Gamil",e);
+			}
 		}
 	}
 
@@ -730,8 +738,14 @@ public class NetAgentGoogle extends NetAgentModel implements Runnable {
 				dataMap.put("text_notify", infoMap.get("TEXT_NOTIFY"));// 簡訊
 				dataMap.put("is_keep", "0"); // 是否保留 0=不保留 1=保留
 				dataMap.put("delete_flag", "1"); // 刪除狀態 1=未刪除 0=已刪除
-				conn.newData("mogan-DB", "member_message", conditionMap,
-						dataMap);
+				try {
+					conn.newData("mogan-DB", "member_message", conditionMap,
+							dataMap);
+				} catch (UnsupportedEncodingException e) {
+					SysLogger4j.error("NetAgent Gamil",e);
+				} catch (SQLException e) {
+					SysLogger4j.error("NetAgent Gamil",e);
+				}
 			}
 		}
 	}
@@ -787,10 +801,13 @@ public class NetAgentGoogle extends NetAgentModel implements Runnable {
 						"'1'" + // 刪除狀態 1=未刪除 0=已刪除
 						")"; //
 				System.out.println("[DEBUG] insertSQL:" + insertSQL);
-				conn.executSql("mogan-DB", insertSQL);
-				// sendMsg("dianwork@hotmail.com", (String) msgList.get(0));
-				// sendMsg("mimio_omimi@yahoo.com.tw", (String) msgList.get(0));
-				// sendMsg("mimio_omimi@yahoo.com.tw", "總共有 "+msgList.size()+"筆被取消.");
+				try {
+					conn.executSql("mogan-DB", insertSQL);
+				} catch (UnsupportedEncodingException e) {
+					SysLogger4j.error("NetAgent Gamil",e);
+				} catch (SQLException e) {
+					SysLogger4j.error("NetAgent Gamil",e);
+				}
 			}
 		}
 	}

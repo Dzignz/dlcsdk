@@ -10,27 +10,22 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
-
 import org.apache.commons.httpclient.Cookie;
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.URI;
 import org.htmlparser.util.NodeList;
 import org.htmlparser.util.ParserException;
-
 import com.mogan.face.NetAgentModel;
-import com.mogan.sys.ModelFace;
-import com.mogan.sys.ServiceModelFace;
+import com.mogan.sys.model.ServiceModelFace;
 
 
 public class NetAgentManager extends NetAgentModel implements ServiceModelFace {

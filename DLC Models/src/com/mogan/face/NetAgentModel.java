@@ -11,15 +11,12 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import net.sf.json.JSONArray;
-
 import org.apache.commons.httpclient.Cookie;
 import org.apache.commons.httpclient.Header;
-
 import com.mogan.model.netAgent.NetAgent;
-import com.mogan.sys.ProtoModel;
-import com.mogan.sys.SysLogger4j;
+import com.mogan.sys.log.SysLogger4j;
+import com.mogan.sys.model.ProtoModel;
 
 /**
  * 包含COOKIE的保留及HEADER的印出，及輸出到檔案

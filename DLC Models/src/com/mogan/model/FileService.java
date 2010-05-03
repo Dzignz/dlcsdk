@@ -11,31 +11,27 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.StringTokenizer;
-
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import org.apache.tomcat.util.http.fileupload.DiskFileUpload;
 import org.apache.tomcat.util.http.fileupload.FileItem;
 import org.apache.tomcat.util.http.fileupload.FileUploadException;
-
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
-
 import com.mogan.sys.DBConn;
-import com.mogan.sys.FileModelFace;
-import com.mogan.sys.ModelFace;
-import com.mogan.sys.ProtoModel;
-import com.mogan.sys.ServiceModelFace;
-import com.mogan.sys.SysLogger4j;
+import com.mogan.sys.log.SysLogger4j;
+import com.mogan.sys.model.FileModelFace;
+import com.mogan.sys.model.ProtoModel;
+import com.mogan.sys.model.ServiceModelFace;
 
 /**
  * @author Dian
@@ -73,6 +69,7 @@ public class FileService extends ProtoModel implements ServiceModelFace,FileMode
 		String errMsg = "";
 		boolean errFlag = false;
 		JSONObject jObj = new JSONObject();
+		try {
 		String filePath = "/mail_templet/";
 		DBConn conn = (DBConn) this.getModelServletContext().getAttribute(
 				"DBConn");
@@ -87,7 +84,7 @@ public class FileService extends ProtoModel implements ServiceModelFace,FileMode
 
 		/* 更新檔案內容 */
 		FileWriter fw;
-		try {
+		
 
 			fw = new FileWriter(this.getModelServletContext().getRealPath("/")+this.getProperties().getProperty("uploadPath")
 					+ filePath + mailId);
@@ -97,19 +94,24 @@ public class FileService extends ProtoModel implements ServiceModelFace,FileMode
 			bfw.flush();
 			fw.close();
 
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			errMsg += "更新檔案錯誤.";
-			errFlag = true;
-			throw e;
-		}
 
 		if (errFlag) {
 			jObj.put("", "");
 		} else {
 			jObj.put("", "");
 		}
+		
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			SysLogger4j.error("File 上傳",e);
+			errMsg += "更新檔案錯誤.";
+			errFlag = true;
+			throw e;
+		} catch (SQLException e) {
+			SysLogger4j.error("File 上傳",e);
+			// TODO Auto-generated catch block
+		}
+
 		jArray.add(jObj);
 		return jArray;
 	}

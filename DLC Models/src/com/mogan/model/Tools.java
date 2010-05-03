@@ -1,11 +1,9 @@
 package com.mogan.model;
 
 import java.util.Map;
-
 import net.sf.json.JSONArray;
-
-import com.mogan.sys.ProtoModel;
-import com.mogan.sys.ServiceModelFace;
+import com.mogan.sys.model.ProtoModel;
+import com.mogan.sys.model.ServiceModelFace;
 
 public class Tools extends ProtoModel implements ServiceModelFace {
 

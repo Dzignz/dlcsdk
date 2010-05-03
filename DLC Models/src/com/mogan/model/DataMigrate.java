@@ -1,11 +1,9 @@
 package com.mogan.model;
 
 import java.util.Map;
-
 import net.sf.json.JSONArray;
-
-import com.mogan.sys.ProtoModel;
-import com.mogan.sys.ServiceModelFace;
+import com.mogan.sys.model.ProtoModel;
+import com.mogan.sys.model.ServiceModelFace;
 
 public class DataMigrate extends ProtoModel implements ServiceModelFace{
 	/** 會員資料 */
@@ -23,7 +21,7 @@ public class DataMigrate extends ProtoModel implements ServiceModelFace{
 
 	
 	@Override
-	public JSONArray doAction(Map arg0) throws Exception {
+	public JSONArray doAction(Map<String,String> parameterMap) throws Exception {
 		// TODO Auto-generated method stub
 		if (this.getAct().equals(MIGRATE_MEMBER)){
 			

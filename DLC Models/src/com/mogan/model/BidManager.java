@@ -1,29 +1,27 @@
 package com.mogan.model;
 
+import java.io.UnsupportedEncodingException;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import org.htmlparser.util.NodeList;
 import org.htmlparser.util.ParserException;
-
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import net.sf.json.JsonConfig;
-
 import com.mogan.dataBean.BidItemOrderBean;
 import com.mogan.exception.netAgent.AccountNotExistException;
 import com.mogan.io.FileIO;
 import com.mogan.model.netAgent.NetAgentYJ;
 import com.mogan.sys.DBConn;
-import com.mogan.sys.ProtoModel;
-import com.mogan.sys.ServiceModelFace;
+import com.mogan.sys.model.ProtoModel;
+import com.mogan.sys.model.ServiceModelFace;
 
 /**
  * <div style="background-color:#FBB117"> WEB_SITE_ID清單：<br /> 1=日本雅虎 </div> Model name=BidManager
@@ -222,9 +220,11 @@ public class BidManager extends ProtoModel implements ServiceModelFace {
 	 * @param orderId
 	 * @param jObj
 	 * @return
+	 * @throws SQLException 
+	 * @throws UnsupportedEncodingException 
 	 */
 	public JSONArray saveOrderInfo(String webSiteId, String orderId,
-			JSONObject jObj) {
+			JSONObject jObj) throws UnsupportedEncodingException, SQLException {
 		JSONArray jArray = new JSONArray();
 		DBConn conn = (DBConn) this.getModelServletContext().getAttribute(
 				"DBConn");

@@ -7,24 +7,19 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
-
-import com.mogan.sys.ModelFace;
 import com.mogan.sys.DBConn;
-import com.mogan.sys.ModelManager;
-import com.mogan.sys.ProtoModel;
-import com.mogan.sys.ServiceModelFace;
 import com.mogan.sys.SysKernel;
 import com.mogan.sys.mail.MailSenderInfo;
 import com.mogan.sys.mail.SimpleMailSender;
+import com.mogan.sys.model.ProtoModel;
+import com.mogan.sys.model.ServiceModelFace;
 
 /**
  * Servlet implementation class MailService

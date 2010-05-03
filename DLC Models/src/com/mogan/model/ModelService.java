@@ -4,26 +4,22 @@ import java.text.ParseException;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import org.dom4j.Document;
 import org.dom4j.Element;
-
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
-
 import com.mogan.exception.schedule.ScheduleIncorrectDateSpecException;
 import com.mogan.serviceProtal.ScheduleProtal;
 import com.mogan.serviceProtal.ScheduleProtal;
-import com.mogan.sys.ModelFace;
-import com.mogan.sys.ModelManager;
-import com.mogan.sys.ProtoModel;
-import com.mogan.sys.ServiceModelFace;
+import com.mogan.sys.log.SysLogger4j;
+import com.mogan.sys.model.ModelManager;
+import com.mogan.sys.model.ProtoModel;
 import com.mogan.sys.model.ScheduleModelAdapter;
 import com.mogan.sys.model.ScheduleModelFace;
+import com.mogan.sys.model.ServiceModelFace;
 
 public class ModelService extends ProtoModel implements ServiceModelFace {
 	private static ModelManager modelManager = new ModelManager();
@@ -46,7 +42,51 @@ public class ModelService extends ProtoModel implements ServiceModelFace {
 			jArray = this.stopSchedule(scheduleName);
 			jArray = this.loadModelData();
 		}
+		SysLogger4j.info("================");
+		showAllThread();
+		SysLogger4j.info("================");
 		return jArray;
+	}
+
+	/**
+	 * 列出所有Thread
+	 */
+	private void showAllThread(){
+		// Find the root thread group
+		ThreadGroup root = Thread.currentThread().getThreadGroup().getParent();
+		while (root.getParent() != null) {
+		    root = root.getParent();
+		}
+
+		// Visit each thread group
+		visit(root, 0);
+
+	}
+	
+
+	// This method recursively visits all thread groups under `group'.
+	public static void visit(ThreadGroup group, int level) {
+	    // Get threads in `group'
+	    int numThreads = group.activeCount();
+	    Thread[] threads = new Thread[numThreads*2];
+	    numThreads = group.enumerate(threads, false);
+
+	    // Enumerate each thread in `group'
+	    for (int i=0; i<numThreads; i++) {
+	        // Get thread
+	        Thread thread = threads[i];
+	        SysLogger4j.info("Name:["+thread.getName()+"] Class:["+thread.getClass()+"] Loader:["+thread.getContextClassLoader()+"]");
+	    }
+
+	    // Get thread subgroups of `group'
+	    int numGroups = group.activeGroupCount();
+	    ThreadGroup[] groups = new ThreadGroup[numGroups*2];
+	    numGroups = group.enumerate(groups, false);
+
+	    // Recursively visit each subgroup
+	    for (int i=0; i<numGroups; i++) {
+	        visit(groups[i], level+1);
+	    }
 	}
 
 	/**

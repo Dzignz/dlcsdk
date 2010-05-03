@@ -6,14 +6,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 import javax.mail.NoSuchProviderException;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import net.sf.jml.message.MsnControlMessage;
 import net.sf.jml.message.MsnInstantMessage;
 import net.sf.jml.message.MsnDatacastMessage;
-
 import net.sf.jml.Email;
 import net.sf.jml.MsnContact;
 import net.sf.jml.MsnList;
@@ -28,12 +25,11 @@ import net.sf.jml.event.MsnMessageAdapter;
 import net.sf.jml.event.MsnSwitchboardAdapter;
 import net.sf.jml.impl.MsnMessengerFactory;
 import net.sf.json.JSONArray;
-
 import com.mogan.model.netAgent.NetAgentGoogle;
 import com.mogan.sys.DBConn;
-import com.mogan.sys.ProtoModel;
-import com.mogan.sys.ServiceModelFace;
 import com.mogan.sys.mail.SimpleMailSender;
+import com.mogan.sys.model.ProtoModel;
+import com.mogan.sys.model.ServiceModelFace;
 
 /**
  * modelName=MsnBot Msn 機器人

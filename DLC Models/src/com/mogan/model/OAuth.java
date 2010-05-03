@@ -9,29 +9,24 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import javax.servlet.ServletContext;
-
 import org.apache.hadoop.hbase.util.Base64;
 import org.htmlparser.filters.AndFilter;
 import org.htmlparser.filters.HasParentFilter;
 import org.htmlparser.util.NodeList;
 import org.htmlparser.util.ParserException;
-
-
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
-
 import com.mogan.face.NetAgentModel;
 import com.mogan.io.FileIO;
 import com.mogan.model.netAgent.HTMLNodeFilter;
 import com.mogan.model.netAgent.NetAgent;
 import com.mogan.model.netAgent.NetAgentYJ;
 import com.mogan.sys.DBConn;
-import com.mogan.sys.ProtoModel;
-import com.mogan.sys.ServiceModelFace;
+import com.mogan.sys.model.ProtoModel;
+import com.mogan.sys.model.ServiceModelFace;
 
 public class OAuth extends ProtoModel implements ServiceModelFace{
 	NetAgentTool naTool=new NetAgentTool();

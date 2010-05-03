@@ -2,11 +2,9 @@ package com.mogan.debug;
 
 import java.util.Iterator;
 import java.util.Map;
-
 import net.sf.json.JSONArray;
-
-import com.mogan.sys.ProtoModel;
-import com.mogan.sys.ServiceModelFace;
+import com.mogan.sys.model.ProtoModel;
+import com.mogan.sys.model.ServiceModelFace;
 
 public class WsDebug  extends ProtoModel implements ServiceModelFace{
 

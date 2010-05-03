@@ -17,8 +17,8 @@ import net.sf.json.JSONArray;
 import com.mogan.model.MsnBot;
 import com.mogan.model.MsnBotEx;
 import com.mogan.sys.DBConn;
-import com.mogan.sys.ModelManager;
-import com.mogan.sys.ProtoModel;
+
+import com.mogan.sys.model.ModelManager;
 import com.mogan.sys.model.ScheduleModelAdapter;
 
 /**

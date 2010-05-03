@@ -14,27 +14,23 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
-
 import org.htmlparser.Node;
 import org.htmlparser.util.NodeList;
 import org.htmlparser.util.ParserException;
-
 import com.mogan.model.netAgent.NetAgent;
 import com.mogan.sys.DBConn;
-import com.mogan.sys.ProtoModel;
-import com.mogan.sys.ServiceModelFace;
 import com.mogan.sys.SysCalendar;
+import com.mogan.sys.model.ProtoModel;
+import com.mogan.sys.model.ServiceModelFace;
 
 public class WebWalker extends ProtoModel implements ServiceModelFace {
 	static NetAgent nAgent = new NetAgent();
 
-	private JSONArray fixKeyword() {
+	private JSONArray fixKeyword() throws UnsupportedEncodingException, SQLException {
 		JSONArray jArray = new JSONArray();
 		DBConn conn = (DBConn) this.getModelServletContext().getAttribute(
 				"DBConn");
@@ -99,7 +95,6 @@ public class WebWalker extends ProtoModel implements ServiceModelFace {
 							dataMap);
 					fixCount++;
 				}
-				// 4558
 				// System.out.println("[DEBUG] fixKeyword:("+j+")="+tempMap.get("id")+":"+tempMap.get("keyword_jp")+":"+tempMap.get("keyword_tw")+":"+
 				// tempMap.get("keyword_us"));
 			}
@@ -108,6 +103,90 @@ public class WebWalker extends ProtoModel implements ServiceModelFace {
 			// break;
 		}
 		jArray.add(fixCount+"/"+count);
+		
+		//分類
+		sql = "SELECT * FROM api_category WHERE category_jp IS NOT NULL AND  category_jp  NOT LIKE ''  AND (category_tw IS NULL OR category_tw='' OR category_en IS NULL OR category_en='' OR category_cn IS NULL OR category_cn='')";
+		count = conn.getQueryDataSize("mogan-DB", sql);
+
+		System.out.println("[INFO] fixKeyword-3:count="
+				+ ((count + pageSize) / pageSize));
+		
+		fixCount=0;//將修正數量歸零
+		for (int i = 0;  i < ((count + pageSize * 2) / pageSize); i++) {
+			fixCount = 0;
+			keywords = conn.queryWithPage("mogan-DB", sql, i * pageSize,
+					pageSize);
+
+			for (int j = 0; j < keywords.size(); j++) {
+				tempMap = (Map) keywords.get(j);
+				if (checkChart(tempMap.get("category_jp"))) {
+					conditionMap = new HashMap();
+					conditionMap.put("id", tempMap.get("id"));
+					dataMap = new HashMap();
+					dataMap.put("category_tw", tempMap.get("category_jp"));
+					dataMap.put("category_en", tempMap.get("category_jp"));
+					dataMap.put("category_cn", tempMap.get("category_jp"));
+					conn.update("mogan-DB", "api_category", conditionMap,
+							dataMap);
+					fixCount++;
+				}
+				// System.out.println("[DEBUG] fixKeyword:("+j+")="+tempMap.get("id")+":"+tempMap.get("keyword_jp")+":"+tempMap.get("keyword_tw")+":"+
+				// tempMap.get("keyword_us"));
+			}
+			System.out.println("[INFO] fixKeyword-3:已處理筆數=" + i * pageSize
+					+ ":" + fixCount);
+			// break;
+		}
+		jArray.add(fixCount+"/"+count);
+		
+		//分類-中文欄位為純英數
+		sql = "SELECT * FROM api_category WHERE category_jp IS NOT NULL AND  category_tw  NOT LIKE ''  AND category_jp IS NOT NULL AND ( category_en IS NULL OR category_en='' )";
+		count = conn.getQueryDataSize("mogan-DB", sql);
+
+		System.out.println("[INFO] fixKeyword-4:count="
+				+ ((count + pageSize) / pageSize));
+		
+		fixCount=0;//將修正數量歸零
+		for (int i = 0; i < ((count + pageSize * 2) / pageSize); i++) {
+			fixCount = 0;
+			keywords = conn.queryWithPage("mogan-DB", sql, i * pageSize,
+					pageSize);
+			for (int j = 0; j < keywords.size(); j++) {
+				tempMap = (Map) keywords.get(j);
+				if (checkChart(tempMap.get("category_tw"))) {
+					conn.executSql("mogan-DB", "UPDATE api_category SET category_en='"+tempMap.get("category_tw").replaceAll("'", "''")+"',category_tw='"+tempMap.get("category_tw").replaceAll("'", "''")+"' WHERE category_jp='"+tempMap.get("category_jp")+"' AND (category_en IS NULL OR category_en LIKE '')");
+					conn.executSql("mogan-DB", "UPDATE api_category SET category_tw='"+tempMap.get("category_tw").replaceAll("'", "''")+"' WHERE category_jp='"+tempMap.get("category_jp")+"' AND (category_tw IS NULL OR category_tw LIKE '')");
+					fixCount++;
+				}
+			}
+			System.out.println("[INFO] fixKeyword-4:已處理筆數=" + i * pageSize
+					+ ":" + fixCount);
+		}
+		jArray.add(fixCount+"/"+count);
+		
+		sql = "SELECT * FROM api_category WHERE category_tw IS NOT NULL AND  category_tw  NOT LIKE ''  AND category_jp IS NOT NULL AND ( category_cn IS NULL OR category_cn='' )";
+		count = conn.getQueryDataSize("mogan-DB", sql);
+
+		System.out.println("[INFO] fixKeyword-5:count="
+				+ ((count + pageSize) / pageSize));
+		fixCount=0;//將修正數量歸零
+		for (int i = 0; i < ((count + pageSize * 2) / pageSize); i++) {
+			fixCount = 0;
+			keywords = conn.queryWithPage("mogan-DB", sql, i * pageSize,
+					pageSize);
+			for (int j = 0; j < keywords.size(); j++) {
+				tempMap = (Map) keywords.get(j);
+				if (checkChart(tempMap.get("category_tw"))) {
+					conn.executSql("mogan-DB", "UPDATE api_category SET category_cn='"+tempMap.get("category_tw").replaceAll("'", "''")+"' WHERE category_jp='"+tempMap.get("category_jp")+"' AND (category_cn IS NULL OR category_cn LIKE '')");
+					conn.executSql("mogan-DB", "UPDATE api_category SET category_tw='"+tempMap.get("category_tw").replaceAll("'", "''")+"' WHERE category_jp='"+tempMap.get("category_jp")+"' AND (category_tw IS NULL OR category_tw LIKE '')");
+					fixCount++;
+				}
+			}
+			System.out.println("[INFO] fixKeyword-5:已處理筆數=" + i * pageSize
+					+ ":" + fixCount);
+		}
+		jArray.add(fixCount+"/"+count);
+		
 		System.out.println("[DEBUG] fixKeyword:END");
 		// jArray.add(keywords);
 		return jArray;

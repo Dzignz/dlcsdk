@@ -4,17 +4,14 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.Map;
 import java.util.Properties;
-
 import org.htmlparser.util.NodeList;
 import org.htmlparser.util.ParserException;
-
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
-
 import com.mogan.model.netAgent.HTMLNodeFilter;
 import com.mogan.model.netAgent.NetAgent;
-import com.mogan.sys.ProtoModel;
-import com.mogan.sys.ServiceModelFace;
+import com.mogan.sys.model.ProtoModel;
+import com.mogan.sys.model.ServiceModelFace;
 
 public class SMSModel extends ProtoModel implements ServiceModelFace {
 	private final static String LOG_SERVER_URL = "LOG_SERVER_URL";

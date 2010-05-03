@@ -1,19 +1,23 @@
 package com.mogan.model.yamato;
 
+import java.io.UnsupportedEncodingException;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
-
 import com.mogan.exception.yamoto.YamatoException;
 import com.mogan.sys.DBConn;
-import com.mogan.sys.ProtoModel;
-import com.mogan.sys.ServiceModelFace;
-import com.mogan.sys.SysLogger4j;
+import com.mogan.sys.model.ProtoModel;
+import com.mogan.sys.model.ServiceModelFace;
 
+/**
+ * YAMATO_MODEL
+ * @author Dian
+ *
+ */
 public class YamatoModel extends ProtoModel implements ServiceModelFace {
 	private String yamotoId = "SM-20091223-09";
 
@@ -42,9 +46,22 @@ public class YamatoModel extends ProtoModel implements ServiceModelFace {
 		return jArray;
 	}
 
+	/**
+	 * 輸入包裹資料，
+	 * @param itemOrderIdS 商品ID 以JSON型態傳入["IO-001","IO-002","IO-005"]
+	 * @param itemLength 商品長
+	 * @param itemWidth 商品寬
+	 * @param itemHeight 商品高
+	 * @param itemWeight 商品重
+	 * @param yamatoNo yamato NO，請自已產生
+	 * @return 建立結果 Result 1=成功，0=失敗
+	 * @throws YamatoException
+	 * @throws SQLException 
+	 * @throws UnsupportedEncodingException 
+	 */
 	private JSONArray keyInItem(Object itemOrderIdS, Object itemLength,
 			Object itemWidth, Object itemHeight, Object itemWeight,
-			Object yamatoNo) throws YamatoException {
+			Object yamatoNo) throws YamatoException, UnsupportedEncodingException, SQLException {
 		JSONArray jArray = new JSONArray();
 		JSONObject jObj = new JSONObject();
 		DBConn conn = (DBConn) this.getModelServletContext().getAttribute(
@@ -62,7 +79,7 @@ public class YamatoModel extends ProtoModel implements ServiceModelFace {
 		}
 		String tradeIdSql = "SELECT tied_id FROM item_order WHERE item_order_id in ("
 				+ ioIds + ") group by tied_id";
-		ArrayList<Map> tradeIds = conn.query("mogan-VMDB", tradeIdSql);
+		ArrayList<Map> tradeIds = conn.query("mogan-DB", tradeIdSql);
 		
 		String result="0";	//執行結果
 		
@@ -77,7 +94,7 @@ public class YamatoModel extends ProtoModel implements ServiceModelFace {
 
 			String tradeOrderId = (String) tradeIds.get(0).get("tied_id");
 			String packageId = "";
-			ArrayList<Map> packageList = conn.query("mogan-VMDB",
+			ArrayList<Map> packageList = conn.query("mogan-DB",
 					"SELECT package_id from item_package where p_varchar01='"
 							+ yamatoNo + "'");
 
@@ -86,10 +103,10 @@ public class YamatoModel extends ProtoModel implements ServiceModelFace {
 				packageId = (String) packageList.get(0).get("package_id");
 				String clearSql = "UPDATE item_order SET package_id = null WHERE package_id = '"
 						+ packageId + "'";
-				conn.executSql("mogan-VMDB", clearSql);
+				conn.executSql("mogan-DB", clearSql);
 				clearSql = null;
 			} else {
-				packageId = conn.getAutoNumber("mogan-VMDB", "IP-ID-01");
+				packageId = conn.getAutoNumber("mogan-DB", "IP-ID-01");
 			}
 
 			Map conditionMap = new HashMap();
@@ -106,7 +123,7 @@ public class YamatoModel extends ProtoModel implements ServiceModelFace {
 			dataMap.put("creator", yamotoId);
 
 			// TODO 檢查資料合理性
-			conn.newData("mogan-VMDB", "item_package", conditionMap, dataMap);
+			conn.newData("mogan-DB", "item_package", conditionMap, dataMap);
 
 			// TODO 更新同捆商品
 
@@ -115,20 +132,21 @@ public class YamatoModel extends ProtoModel implements ServiceModelFace {
 			while (ioIdArray.size() > 0) {
 				conditionMap = new HashMap();
 				conditionMap.put("item_order_id", ioIdArray.getString(0));
-				conn.update("mogan-VMDB", "item_order", conditionMap, dataMap);
+				conn.update("mogan-DB", "item_order", conditionMap, dataMap);
 				ioIdArray.remove(0);
 			}
 
 			String memberData = "SELECT member_id FROM item_order WHERE item_order_id in ("
 					+ ioIds + ") GROUP BY member_id";
-			ArrayList<Map> memberList = conn.query("mogan-VMDB", memberData);
+			ArrayList<Map> memberList = conn.query("mogan-DB", memberData);
 			memberData = "SELECT tel AS Tel,postcode AS ZIP,address AS Address,concat(first_name,last_name) AS UserName FROM member_data WHERE member_id='"
 					+ memberList.get(0).get("member_id") + "'";
-			jObj.putAll(conn.queryJSONArray("mogan-VMDB", memberData).getJSONObject(0));
-			conn.queryJSONArray("mogan-VMDB", memberData).getJSONObject(0);
+			jObj.putAll(conn.queryJSONArray("mogan-DB", memberData).getJSONObject(0));
+			conn.queryJSONArray("mogan-DB", memberData).getJSONObject(0);
 			result="1";
 		}
 		jObj.put("Result", result);
+		jArray.add(jObj);
 		return jArray;
 	}
 
@@ -165,8 +183,8 @@ public class YamatoModel extends ProtoModel implements ServiceModelFace {
 				+ "WHERE view_item_order_v2.delete_flag =1 AND view_item_order_v2.order_status LIKE '3-04' AND view_item_order_v2.first_tied=(SELECT first_tied FROM item_order WHERE item_order_id ='"
 				+ itemOrderId + "')";
 
-		jObj.put("DATA", conn.queryJSONArray("mogan-VMDB", sql));
-		jObj.put("TOTAL_SIZE", conn.getQueryDataSize("mogan-VMDB", sql));
+		jObj.put("DATA", conn.queryJSONArray("mogan-DB", sql));
+		jObj.put("TOTAL_SIZE", conn.getQueryDataSize("mogan-DB", sql));
 		jArray.add(jObj);
 		return jArray;
 	}
@@ -233,9 +251,9 @@ public class YamatoModel extends ProtoModel implements ServiceModelFace {
 					+ keyWord + "%')";
 		}
 
-		jObj.put("DATA", conn.queryJSONArrayWithPage("mogan-VMDB", sql,
+		jObj.put("DATA", conn.queryJSONArrayWithPage("mogan-DB", sql,
 				(pageIndex - 1) * 50, pageSize));
-		jObj.put("TOTAL_SIZE", conn.getQueryDataSize("mogan-VMDB", sql));
+		jObj.put("TOTAL_SIZE", conn.getQueryDataSize("mogan-DB", sql));
 
 		jArray.add(jObj);
 		return jArray;

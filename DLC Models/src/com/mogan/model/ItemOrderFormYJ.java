@@ -4,7 +4,8 @@ import java.util.Map;
 
 import com.mogan.exception.netAgent.AccountNotExistException;
 import com.mogan.model.netAgent.NetAgentYJ;
-import com.mogan.sys.ProtoModel;
+
+import com.mogan.sys.model.ProtoModel;
 import com.mogan.sys.model.ProxyModelFace;
 
 public class ItemOrderFormYJ extends ProtoModel implements ProxyModelFace {

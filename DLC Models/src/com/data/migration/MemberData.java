@@ -1,16 +1,16 @@
 package com.data.migration;
 
+import java.io.UnsupportedEncodingException;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-
 import javax.servlet.ServletContext;
-
 import com.mogan.face.MigrationFace;
 import com.mogan.sys.DBConn;
-import com.mogan.sys.ProtoModel;
-import com.mogan.sys.SysLogger4j;
 import com.mogan.sys.code.MD5;
+import com.mogan.sys.log.SysLogger4j;
+import com.mogan.sys.model.ProtoModel;
 
 public class MemberData extends ProtoModel implements MigrationFace{
 //	DBConn conn = (DBConn) this.getModelServletContext().getAttribute("DBConn");
@@ -65,8 +65,10 @@ public class MemberData extends ProtoModel implements MigrationFace{
 	
 	/**
 	 * 開始執行資料更新
+	 * @throws SQLException 
+	 * @throws UnsupportedEncodingException 
 	 */
-	public void doMigr() {
+	public void doMigr()  {
 		boolean flag = true;
 		
 		while (flag) {
@@ -134,14 +136,26 @@ public class MemberData extends ProtoModel implements MigrationFace{
 				
 				checkData.put("name", newData.get("name"));
 				//conn.newData("mogan-VMDB", "member_data", newData);
-				conn.newData("mogan-VMDB", "member_data",checkData, newData);
+				try {
+					conn.newData("mogan-VMDB", "member_data",checkData, newData);
+				} catch (UnsupportedEncodingException e) {
+					SysLogger4j.error("會員資料轉移",e);
+				} catch (SQLException e) {
+					SysLogger4j.error("會員資料轉移",e);
+				}
 
 				Map conditionMap = new HashMap();
 				conditionMap.put("id", tempData.get("id"));
 				Map dataMap = new HashMap();
 				dataMap.put("migr_no", MIGR_NO);
 				dataMap.put("migr_flag", "1");
-				conn.update("mogan-tw", "web_member", conditionMap, dataMap);
+				try {
+					conn.update("mogan-tw", "web_member", conditionMap, dataMap);
+				} catch (UnsupportedEncodingException e) {
+					SysLogger4j.error("會員資料轉移",e);
+				} catch (SQLException e) {
+					SysLogger4j.error("會員資料轉移",e);
+				}
 				//break;
 			}
 			

@@ -1,7 +1,8 @@
 package com.data.migration;
 
 import com.mogan.face.MigrationFace;
-import com.mogan.sys.ProtoModel;
+import com.mogan.sys.model.ProtoModel;
+
 
 public class TraceItemData extends ProtoModel implements MigrationFace {
 
