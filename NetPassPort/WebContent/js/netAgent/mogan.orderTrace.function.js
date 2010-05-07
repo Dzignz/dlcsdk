@@ -12,7 +12,7 @@ var loadBidItemsParams = {
 	CONDITION_KEY : '',
 	START_INDEX : 0,
 	PAGE_SIZE : 50,
-	ORDER_BY : 'time_at_03',
+	ORDER_BY : 'time_at_04',
 	DIR : 'ASC'
 };
 
@@ -73,9 +73,9 @@ Mogan.orderTrace.clickItem = function(grid, rowIndex, e) {
 	var r = grid.getStore().getAt(rowIndex);
 	Mogan.orderTrace.loadOrderData(grid, rowIndex, e);// 將資料顯示基本資料Tab //OK
 
-	Mogan.orderTrace.updateBidItemData(grid, rowIndex, e);// 更新商品資料
+	// Mogan.orderTrace.updateBidItemData(grid, rowIndex, e);// 更新商品資料
 	// Mogan.orderTrace.setSenderData(r);// 設定訊息發送Tab
-	Mogan.orderTrace.loadItemOrderForm();// 設定是否顯示order form
+	// Mogan.orderTrace.loadItemOrderForm();// 設定是否顯示order form
 
 	if (Mogan.orderTrace.templateSatus == 'EDIT') {
 		Mogan.orderTrace.changeTemplateMode();
@@ -240,7 +240,7 @@ Mogan.orderTrace.updateBidItemData = function(grid, rowIndex, e) {
 			if (json['responseResult'] == "failure") {
 				Ext.Msg.alert("錯誤", json['responseMsg']);
 			} else {
-				var r = itemListStore
+				var r = Mogan.orderTrace.itemListStore
 						.getAt(Ext
 								.getCmp("editorGridItemList")
 								.getStore()
@@ -271,7 +271,83 @@ Mogan.orderTrace.updateBidItemData = function(grid, rowIndex, e) {
 }
 
 /**
- * BM2
+ * 更新畫面上的資料
+ * 
+ * @param {}
+ *            response
+ * @param {}
+ *            checkTideId 是否要檢查tide id
+ */
+Mogan.orderTrace.refreshContactDataBak = function(response, checkTideId) {
+	var json = parserJSON(response.responseText);
+	if (json['responseResult'] == "failure") {
+		Ext.Msg.alert("錯誤", "請向程式開發者詢問<br />" + json['responseMsg']);
+	} else {
+
+		if (Ext.isBoolean(checkTideId) && checkTideId) {
+			if (Ext.getCmp('orderDataPanel').getForm().getValues()['tide_id'] != json['responseData'][0]['TideId']) {
+				// 回傳的資料與目前檢視的訂單為不同筆，直接取消
+				return;
+			}
+		}
+		if (Ext.isBoolean(checkTideId)) {
+			Mogan.orderTrace.msgRecordStore.loadData(json);
+		} else {
+			var tempJsonData = {
+				'responseData' : [{
+							'Msgs' : json['responseData'][0]['Datas']
+						}]
+			};
+			Mogan.orderTrace.msgRecordStore.loadData(tempJsonData);
+		}
+		Mogan.orderTrace.upadteLabelMsgUpdateTime();
+		
+
+	}
+}
+
+/**
+ * 更新訊息最後更新時間
+ */
+Mogan.orderTrace.upadteLabelMsgUpdateTime = function() {
+	var updateTimeDate = null;
+	var updateTimeStr = null;
+	var itemDesc = '';
+	if (Mogan.orderTrace.msgRecordStore.getCount()==0){
+		Ext.getCmp('labelMsgUpdateTime').setText('-');
+		return ;
+	}
+	
+	if (Ext.getCmp('comboItemOrderList').getValue() == '') {
+		Mogan.orderTrace.msgRecordStore.each(function(r) {
+					if (updateTimeDate == null) {
+						updateTimeDate = Date.parseDate(
+								r.data['order_time_at_16'], "Y-m-d H:i:s");
+						updateTimeStr = r.data['order_time_at_16'];
+					}
+					if (updateTimeDate < Date.parseDate(
+							r.data['order_time_at_16'], "Y-m-d H:i:s")) {
+						updateTimeDate = Date.parseDate(
+								r.data['order_time_at_16'], "Y-m-d H:i:s");
+						updateTimeStr = r.data['order_time_at_16'];
+					}
+					itemDesc = ' [' + r.data['item_order_id'] + '] '
+							+ r.data['item_name'];
+				});
+	} else {
+		updateTimeStr = Mogan.orderTrace.msgRecordStore.getAt(0).data['order_time_at_16'];
+		itemDesc = ' ['
+				+ Mogan.orderTrace.msgRecordStore.getAt(0).data['item_order_id']
+				+ '] '
+				+ Mogan.orderTrace.msgRecordStore.getAt(0).data['item_name'];
+	}
+
+	// TODO 更新 最後更新時間
+	Ext.getCmp('labelMsgUpdateTime').setText(updateTimeStr + itemDesc);
+}
+
+/**
+ * BM2 更新絡聯內容
  * 
  * @param {}
  *            response
@@ -280,33 +356,57 @@ Mogan.orderTrace.refreshContactData = function() {
 
 	var itemOrderIds = new Array();
 	// alert(Ext.getCmp('comboOrderCase').getValue());
-	if (Ext.getCmp('comboOrderCase').getValue() == '') {
+	if (Ext.getCmp('comboItemOrderList').getValue() == '') {
 		Mogan.orderTrace.orderItemListStore.each(function(r) {
 					itemOrderIds.push(r.data['item_order_id']);
 				});
 	} else {
-		itemOrderIds.push(Ext.getCmp('comboOrderCase').getValue());
+		itemOrderIds.push(Ext.getCmp('comboItemOrderList').getValue());
 	}
-	// alert(itemOrderIds);
 
 	Ext.Ajax.request({
-				url : 'AjaxPortal',
-				callback : function() {
-					Ext.Msg.hide();
-					Ext.getCmp('DetilPanel').setDisabled(false);
-				},
-				success : Mogan.orderTrace.showOrderData,
-				failure : function(response) {
-					Ext.Msg.alert("錯誤", "請向程式開發者詢問");
-				},
-				params : {
-					APP_ID : appId,
-					ACTION : "REFRESH_CONTACT_DATA",
-					RETURN_TYPE : "JSON",
-					MODEL_NAME : "BM2",
-					ITEM_ORDER_IDS : Ext.encode(itemOrderIds)
-				}
-			});
+		url : 'AjaxPortal',
+		callback : function() {
+			Ext.Msg.hide();
+			Ext.getCmp('DetilPanel').setDisabled(false);
+		},
+		success : Mogan.orderTrace.refreshContactDataBak,
+		failure : function(response) {
+			Ext.Msg.alert("錯誤", "請向程式開發者詢問");
+		},
+		params : {
+			APP_ID : appId,
+			ACTION : "REFRESH_CONTACT_DATA",
+			RETURN_TYPE : "JSON",
+			MODEL_NAME : "BM2",
+			TIDE_ID : Ext.getCmp('orderDataPanel').getForm().getValues()['tide_id'],
+			ITEM_ORDER_IDS : Ext.encode(itemOrderIds)
+		}
+	});
+}
+
+/**
+ * 依案件ID來篩選訊息
+ */
+Mogan.orderTrace.filterItemOrderMsg = function() {
+	Mogan.orderTrace.msgRecordStore.filter([{
+		fn : function(record) {
+			if (Ext.getCmp('comboItemOrderList').getValue()==''){
+				return true;
+			}else{
+				return record.get('item_order_id') == Ext.getCmp('comboItemOrderList').getValue();
+			}
+		}
+	}]);
+	Mogan.orderTrace.upadteLabelMsgUpdateTime();
+}
+
+/**
+ * 設定發送訊息介面
+ */
+Mogan.orderTrace.fixMsgSenderPanel = function() {
+	
+	Ext.getCmp('comboItemOrderList2').setValue(Mogan.orderTrace.orderItemListStore.getAt(0).data['item_order_id']);
 }
 
 /**
@@ -319,10 +419,11 @@ Mogan.orderTrace.showOrderData = function(response) {
 	var i = 0;
 	var json = parserJSON(response.responseText);
 	if (json['responseResult'] == "failure") {
-		Ext.Msg.alert("錯誤", "請向程式開發者詢問<br />"+json['responseMsg']);
+		Ext.Msg.alert("錯誤", "請向程式開發者詢問<br />" + json['responseMsg']);
 	} else {
-
-		// 訂單資料
+		/**
+		 * 訂單資料
+		 */
 		Ext.getCmp('labelOrderMemberMobile')
 				.setText(json['responseData'][0]['Datas']['tel']);
 		Ext.getCmp('labelOrderMemberEMail')
@@ -341,13 +442,14 @@ Mogan.orderTrace.showOrderData = function(response) {
 						+ '+' + json['responseData'][0]['Datas']['cost_3']
 						+ '+' + json['responseData'][0]['Datas']['cost_4']
 						+ ')', false);
-						
+
 		Ext.getCmp('labelOrderNote').setText(
 				json['responseData'][0]['Datas']['alert_group'], false);
 
 		Ext.getCmp('orderDataPanel').getForm()
 				.setValues(json['responseData'][0]['Datas']);
 
+		// 結清狀態
 		if (Ext.isEmpty(json['responseData'][0]['Datas']['ship_type'])) {
 			Ext.getCmp('radiogroupOrderShipType').setValue('rb_ship_type_0',
 					false);
@@ -366,6 +468,7 @@ Mogan.orderTrace.showOrderData = function(response) {
 			}
 		}
 
+		// 付費方式
 		if (Ext.isEmpty(Ext.getCmp('comboOrderPayType').getValue())) {
 			Ext.getCmp('comboOrderPayType').fireEvent('select',
 					Ext.getCmp('comboOrderPayType'), null);
@@ -378,13 +481,76 @@ Mogan.orderTrace.showOrderData = function(response) {
 									'list_key', Ext.getCmp('comboOrderPayType')
 											.getValue())));
 		}
-		
-		Ext.getCmp('textfieldOrderServiceCost').setValue(json['responseData'][0]['Datas']['cost_8']);
-		//Ext.getCmp('textfieldOrderIShipCost').setValue(json['responseData'][0]['Datas']['cost_9']);
-		
+
+		Ext.getCmp('textfieldOrderServiceCost')
+				.setValue(json['responseData'][0]['Datas']['cost_8']);
+
+		/**
+		 * order from 的畫面 如果只有一個商品就直接幫他帶出，如果有多個就由使用者手動帶出
+		 */
+		Ext.getCmp("tabItemOrderForm").setDisabled(true);
+		if (json['responseData'][0]['Datas']['seller_attribute_1'] == 0) {
+			Ext.getCmp("DetilPanel").setActiveTab(0);
+			Ext.getCmp("tabItemOrderForm").html = json['responseData'][0]['Datas']['seller_attribute_1'];
+		} else {/*
+				 * Ext.DomHelper.overwrite('tab-iframe-window-1', { tag :
+				 * 'iframe', src : './ProxyProtal?APP_ID=' + appId +
+				 * "&MODEL_NAME=ItemOrderFormYJ&ACTION=GET_ORDER_FORM&BID_ACCOUNT=" +
+				 * Ext.getCmp("itemPanel").getForm().getValues()['agent_account'] +
+				 * "&" + "ITEM_ID=" +
+				 * Ext.getCmp("itemPanel").getForm().getValues()['item_id'] +
+				 * "&" + "SELLER_ACCOUNT=" +
+				 * Ext.getCmp("itemPanel").getForm().getValues()['sell_name'],
+				 * style : 'width:100%; height:100%;', frameborder : '0' });
+				 */
+			// TODO order form
+			Ext.getCmp("tabItemOrderForm").setDisabled(false);
+		}
+
+		// 同捆清單
 		orderItemListJSONData['root'] = json['responseData'][0]['ItemList'];
 		Mogan.orderTrace.orderItemListStore.load();
+		//更新訊息記錄
+		Mogan.orderTrace.refreshContactDataBak(response, false);
+		//設定發訊介面
+		Mogan.orderTrace.fixMsgSenderPanel();
+		Ext.getCmp("textareaMsgContent").setValue('');
+		Mogan.orderTrace.fixComboMsgTitle(Ext.getCmp("comboMsgCategory"));
+		
+		
+		
 	}
+}
+
+
+Mogan.orderTrace.resizeToFitContent =function() {
+	if (!this.elMetrics)
+	{
+		this.elMetrics = Ext.util.TextMetrics.createInstance(this.getEl());
+	}
+	var m = this.elMetrics, width = 0, el = this.el, s = this.getSize();
+	this.store.each(function (r) {
+		var text = r.get(this.displayField);
+		width = Math.max(width, m.getWidth(text));
+	}, this);
+	if (el) {
+		width += el.getBorderWidth('lr');
+		width += el.getPadding('lr');
+	}
+	if (this.trigger) {
+		width += this.trigger.getWidth();
+	}
+	s.width = width;
+	this.setSize(s);
+	this.store.on({
+		'datachange': Mogan.orderTrace.resizeToFitContent,
+		'add': Mogan.orderTrace.resizeToFitContent,
+		'remove': Mogan.orderTrace.resizeToFitContent,
+		'load': Mogan.orderTrace.resizeToFitContent,
+		'update': Mogan.orderTrace.resizeToFitContent,
+		buffer: 10,
+		scope: this
+	});
 }
 
 /**
@@ -412,20 +578,15 @@ Mogan.orderTrace.loadOrderData = function(grid, rowIndex, e) {
 			? r.data['seller_account']
 			: r.data['seller_account'] + " - " + r.data['seller_name']);// 賣家名稱
 	Ext.getCmp('labelOrderWebSite').setText(r.data['website_name']);// 網站名稱
-	
-	if (r.data['order_status']=='3-01' || r.data['order_status']=='3-02'){
+
+	if (r.data['order_status'] == '3-01' || r.data['order_status'] == '3-02') {
 		Ext.getCmp("btnOrderSaveCost").setDisabled(false);
-		Ext.getCmp("btnOrderSubmitCost").setDisabled(false);	
-	}else{
+		Ext.getCmp("btnOrderSubmitCost").setDisabled(false);
+	} else {
 		Ext.getCmp("btnOrderSaveCost").setDisabled(true);
 		Ext.getCmp("btnOrderSubmitCost").setDisabled(true);
 	}
 
-	
-	// TODO 金流備忘
-	// TODO 物流備忘
-	// TODO 商品備忘
-	// TODO 連絡備忘
 	Ext.MessageBox.show({
 				msg : '訂單資料讀取中...',
 				progressText : 'Loading...',
@@ -502,7 +663,7 @@ Mogan.orderTrace.getloadBidItemsURL = function(store, options) {
 
 /**
  * 發送訊息
- * 
+ * BM2
  * @param {}
  *            value
  */
@@ -512,7 +673,6 @@ Mogan.orderTrace.sendMsg = function() {
 	var textfieldMsgTitle = Ext.getCmp("textfieldMsgTitle");// MAIL TITLE
 	var comboMsgTitle = Ext.getCmp("comboMsgTitle");// 標準格式 TITLE
 	var comboMsgCategory = Ext.getCmp("comboMsgCategory");// 留言方式
-	var hiddenItemOrderId = Ext.getCmp("hiddenItemOrderId");
 
 	Ext.Ajax.request({
 				url : 'AjaxPortal',
@@ -524,12 +684,17 @@ Mogan.orderTrace.sendMsg = function() {
 					if (json['responseResult'] == "failure") {
 						Ext.Msg.alert("錯誤", json['responseMsg']);
 					} else {
-						Ext.Msg.confirm("請確認", "訊息已發出，是否將清空已發出的訊息", function(
+						if ( json[0]){
+							Ext.Msg.confirm("請確認", "訊息已發出，是否將清空已發出的訊息", function(
 										btn, text) {
 									if (btn == 'yes') {
 										textareaMsgContent.setValue("");
 									}
-								});
+								});							
+						}else{
+							Ext.Msg.alert("錯誤", "訊息未送出");
+						}
+						
 					}
 				},
 				failure : function(response) {
@@ -539,13 +704,16 @@ Mogan.orderTrace.sendMsg = function() {
 					APP_ID : appId,
 					ACTION : "SEND_MESSAGE",
 					RETURN_TYPE : "JSON",
-					MODEL_NAME : "BidManager",
+					MODEL_NAME : "BM2",
+					MSG_DATAS : Ext.encode(Ext.getCmp('msgSenderPanel').getForm().getValues())
+					/*
 					ITEM_ORDER_ID : hiddenItemOrderId.getValue(),
 					WEB_SITE_ID : "SWD-2009-0001",
 					MSG : textareaMsgContent.getValue(),
 					SEND_METHOD : comboMsgCategory.getValue(),
 					SUBJECT_B : textfieldMsgTitle.getValue(),
 					SUBJECT_A : comboMsgTitle.getValue()
+					*/
 				}
 			});
 }
@@ -639,16 +807,16 @@ Mogan.orderTrace.updateTextareaMsgContent = function(msg) {
 	if (Mogan.orderTrace.templateSatus == 'EDIT') {
 
 	} else {
-		var m = trnsListStore.data.items.slice(0);
+		var m = Mogan.orderTrace.trnsListStore.data.items.slice(0);
 		Ext.each(m, function(item) {
 					var re = new RegExp(item.data['trnsCode'], "g");
-					var orderData = itemListStore.getAt(Ext
-							.getCmp("editorGridItemList").getStore().find(
-									'id',
-									Ext.getCmp('itemPanel').getForm()
-											.getValues()['id']));
-					msg = msg
-							.replace(re, orderData.data[item.data['trnsData']]);
+					var orderData = Mogan.orderTrace.orderItemListStore.getAt( Mogan.orderTrace.orderItemListStore.find(
+									'item_order_id',
+									Ext.getCmp('comboItemOrderList2').getValue()));
+									if (!Ext.isEmpty(orderData.data[item.data['trnsData']])){
+										msg = msg.replace(re, orderData.data[item.data['trnsData']]);										
+									}
+					
 				});
 	}
 	Ext.getCmp("textareaMsgContent").setValue(msg);
@@ -693,7 +861,7 @@ Mogan.orderTrace.loadTempletContent = function(templetName) {
 
 /**
  * 修正留言tilte
- * 
+ * BM2
  * @param {}
  *            comboBox
  */
@@ -724,19 +892,13 @@ Mogan.orderTrace.updateComboMsgTitle = function(comboBox) {
  *            record
  */
 Mogan.orderTrace.setSenderData = function(record) {
-	Ext.getCmp("labelMsgItemId").setText("商品ID: " + record.get("item_id"));
-	Ext.getCmp("labelMsgItemName").setText("商品名稱: " + record.get("item"));
 	// Ext.getCmp("hiddenMsgItemId").setValue(record.get("item_id"));
-	Ext.getCmp("hiddenItemOrderId").setValue(record.get("item_order_id"));
 
 	if (record.get("contact_type").indexOf("@") > 0) {
 		Ext.getCmp("comboMsgCategory").setValue('1');
 	} else {
 		Ext.getCmp("comboMsgCategory").setValue('0');
 	}
-	Mogan.orderTrace.fixComboMsgTitle(Ext.getCmp("comboMsgCategory"));
-	Ext.getCmp("textareaMsgContent").setValue('');
-	// Ext.getCmp("hiddenBidAccount").setValue(record.get("jyahooid"));
 }
 
 /**
@@ -920,8 +1082,8 @@ Mogan.orderTrace.saveMsg = function(status) {
 }
 
 /**
- * 商品列表右鍵快速選單
- * BM2
+ * 商品列表右鍵快速選單 BM2
+ * 
  * @param {}
  *            grid
  * @param {}
@@ -954,8 +1116,7 @@ Mogan.orderTrace.showItemListMenu = function(grid, rowIndex, e) {
 }
 
 /**
- * 取回可移動訂單 show
- * BM2
+ * 取回可移動訂單 show BM2
  */
 Mogan.orderTrace.getMoveableTideList = function() {
 	var menuItem = Ext.getCmp('itemListMenuTransOrder');
@@ -980,8 +1141,8 @@ Mogan.orderTrace.getMoveableTideList = function() {
 }
 
 /**
- * 設定可移動的訂單範圍
- * BM2
+ * 設定可移動的訂單範圍 BM2
+ * 
  * @param {}
  *            response
  */
@@ -1179,41 +1340,115 @@ Mogan.orderTrace.saveTrnsList = function() {
 }
 
 /**
+ * 顯示備忘編輯畫面 BM2
+ */
+Mogan.orderTrace.showOrderAlertPanel = function() {
+	Mogan.orderTrace.getOrderAlertPanel();
+	Ext.getCmp('textareaAlertContent').setValue('');
+	Mogan.orderTrace.fixTextareaAlertContent();
+	Mogan.orderTrace.orderAlertPanel.show();
+}
+
+/**
+ * 選擇備忘類型時同時更改textarea區塊的內容 BM2
+ */
+Mogan.orderTrace.fixTextareaAlertContent = function() {
+	var orderData = Ext.getCmp('orderDataPanel').getForm().getValues();
+	Ext.getCmp('textareaAlertContent').setValue(orderData[Ext
+			.getCmp('comboxAlertType').getValue()]);
+
+}
+
+Mogan.orderTrace.saveAlertData = function() {
+	var alertData = Ext.getCmp('orderAlertPanelForm').getForm().getValues();
+	Ext.MessageBox.show({
+				msg : 'Saving...',
+				progressText : 'Saving...',
+				width : 300,
+				wait : true,
+				waitConfig : {
+					interval : 200
+				}
+			});
+	Ext.Ajax.request({
+		url : 'AjaxPortal',
+		callback : function() {
+		},
+		success : function(response) {
+			var json = parserJSON(response.responseText);
+			if (json['responseResult'] == "failure") {
+				Ext.Msg.alert("錯誤", json['responseMsg']);
+			} else {
+				Ext.getCmp('labelOrderNote').setText(
+						json['responseData'][0]['alert_group'], false);
+				Ext.Msg.alert("通知", "儲存成功.");
+			}
+		},
+		failure : function(response) {
+			Ext.Msg.alert("錯誤", "請向程式開發者詢問");
+		},
+		params : {
+			APP_ID : appId,
+			ACTION : "SAVE_ALERT_DATA",
+			RETURN_TYPE : "JSON",
+			MODEL_NAME : "BM2",
+			ALERT_DATA : Ext.encode(alertData),
+			TIDE_ID : Ext.getCmp('orderDataPanel').getForm().getValues()['tide_id']
+		}
+	});
+}
+
+/**
+ * 判斷資料是否未儲存。 BM2
+ */
+Mogan.orderTrace.confirmAlertPanel = function() {
+	if (Ext.getCmp('orderAlertPanelForm').getForm().isDirty()) {
+		Ext.MessageBox.confirm('將關閉備忘編輯畫面', '資料尚未儲存，請是否確定關閉備忘編輯畫面?', function(
+						btn) {
+					if (btn == 'yes') {
+						Ext.getCmp('orderAlertPanel').hide();
+					}
+				})
+	} else {
+		Ext.getCmp('orderAlertPanel').hide();
+	}
+}
+
+/**
  * 確認訂單費用 BM2
  */
 Mogan.orderTrace.submitOrderCostMoney = function() {
 
-	var validateMsg="";
+	var validateMsg = "";
 	// 先檢查資料是否正確及完整
-	if (!Ext.getCmp('radiogroupOrderShipType').validate()){
-		validateMsg+="費用是否已結清 - 未填.<br />";
+	if (!Ext.getCmp('radiogroupOrderShipType').validate()) {
+		validateMsg += "費用是否已結清 - 未填.<br />";
 	}
-	if (!Ext.getCmp('comboOrderPayType').validate()){
-		validateMsg+="費用支付方式 - 未填.<br />";
+	if (!Ext.getCmp('comboOrderPayType').validate()) {
+		validateMsg += "費用支付方式 - 未填.<br />";
 	}
-	if (!Ext.getCmp('textfieldOrderServiceCost').validate()){
-		validateMsg+="手續費 - 未填或格式錯誤 <br />";
+	if (!Ext.getCmp('textfieldOrderServiceCost').validate()) {
+		validateMsg += "手續費 - 未填或格式錯誤 <br />";
 	}
-	if (!Ext.getCmp('textfieldOrderRemitCost').validate()){
-		validateMsg+="匯款費 - 未填或格式錯誤 <br />";
+	if (!Ext.getCmp('textfieldOrderRemitCost').validate()) {
+		validateMsg += "匯款費 - 未填或格式錯誤 <br />";
 	}
-	if (!Ext.getCmp('textfieldOrderRemitCost').validate()){
-		validateMsg+="其他費用 - 未填或格式錯誤 <br />";
+	if (!Ext.getCmp('textfieldOrderRemitCost').validate()) {
+		validateMsg += "其他費用 - 未填或格式錯誤 <br />";
 	}
-	if (!Ext.getCmp('textfieldOrderTaxCost').validate()){
-		validateMsg+="稅金 - 未填或格式錯誤 <br />";
+	if (!Ext.getCmp('textfieldOrderTaxCost').validate()) {
+		validateMsg += "稅金 - 未填或格式錯誤 <br />";
 	}
-		if(!Ext.getCmp('textfieldOrderOtherCost').getForm().isValid()){
-		Ext.Msg.alert("請檢查資料","請檢查下列欄位<br />"+validateMsg);
-		return ;
+	if (!Ext.getCmp('textfieldOrderOtherCost').getForm().isValid()) {
+		Ext.Msg.alert("請檢查資料", "請檢查下列欄位<br />" + validateMsg);
+		return;
 	}
-	
+
 	var orderData = Ext.getCmp('orderDataPanel').getForm().getValues();
 	var totalPirce = 0;
 	totalPirce += (orderData['item_total_price'] - 0);
 	totalPirce += (orderData['cost_3'] - 0);
 	totalPirce += (orderData['cost_4'] - 0);
-	
 
 	var computeStr = "";
 	computeStr = "請確認下列資料是否正確<br />";
@@ -1228,8 +1463,7 @@ Mogan.orderTrace.submitOrderCostMoney = function() {
 	computeStr += "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"
 			+ orderData['cost_4'] + " (當地運費)<br />";
 	computeStr += "";
-	
-	
+
 	Ext.MessageBox.confirm('請確認訂單支出費用', computeStr, function(btn, text) {
 
 		if (btn != 'yes') {
@@ -1246,13 +1480,13 @@ Mogan.orderTrace.submitOrderCostMoney = function() {
 					Ext.Msg.alert("錯誤", json['responseMsg']);
 				} else {
 					Ext.Msg.alert("訊息", "匯款要求已送出.");
-					//Mogan.orderTrace.showOrderData(response);
+					// Mogan.orderTrace.showOrderData(response);
 					Mogan.orderTrace.itemListStore.each(function(record) {
 								if (record['data']['tide_id'] == orderData['tide_id']) {
 									record.set("order_status", "3-03");
 								}
 							});
-							Ext.getCmp('editorGridItemList').getView().refresh();
+					Ext.getCmp('editorGridItemList').getView().refresh();
 				}
 			},
 			failure : function(response) {
@@ -1381,7 +1615,7 @@ Mogan.orderTrace.rendererContactType = function(value) {
 /**
  * 修正 OrderForm按鈕
  */
-Mogan.orderTrace.rendererOrderForm = function(value) {
+Mogan.orderTrace.rendererOrderFormIcon = function(value) {
 	var html = "";
 	if (value == "1") {
 		html = "<img src='./resources/mogan/images/form_edit.png' />";
@@ -1444,7 +1678,7 @@ Mogan.orderTrace.rendererFixDate = function(value) {
 };
 
 /**
- * 修正網站顯示ICON
+ * 修正網站顯示ICON BM2
  * 
  * @param {}
  *            value 網站ID
@@ -1459,7 +1693,7 @@ Mogan.orderTrace.rendererFixWebsiteIcon = function(value) {
 };
 
 /**
- * 修正訂單狀態
+ * 修正訂單狀態 BM2
  * 
  * @param {}
  *            value
@@ -1468,3 +1702,27 @@ Mogan.orderTrace.rendererFixWebsiteIcon = function(value) {
 Mogan.orderTrace.rendererFixOrderStatus = function(value) {
 	return Mogan.orderTrace.statusNameMap[value];
 };
+
+/**
+ * orderform 填寫按鈕
+ * 
+ * @param {}
+ *            value
+ * @return {}
+ */
+Mogan.orderTrace.rendererOrderFormBtn = function(value) {
+	var btn = '<input type="button" value="不用填寫" disabeld="disabeld" />';
+	
+	switch (value-0) {
+		case 1 :
+			btn = '<input type="button" value="不用填寫" disabeld="disabeld" />';
+			break;
+		case 2 :
+			btn = '<input type="button"value="尚未填寫" disabeld="disabeld" />';
+			break;
+		case 3 :
+			btn = '<input type="button" value="填寫完成" disabeld="disabeld" />';
+			break;
+	}
+	return btn;
+}

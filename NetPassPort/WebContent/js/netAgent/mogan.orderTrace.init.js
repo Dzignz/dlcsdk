@@ -29,8 +29,47 @@ Mogan.orderTrace.statusNameMap['3-08'] = '收貨點已收貨';
 Mogan.orderTrace.statusNameMap['3-09'] = '收貨點已發貨';
 Mogan.orderTrace.statusNameMap['3-10'] = '會員已收貨';
 
-Ext.onReady(function() {
+/**
+ * 發送訊息相關設定
+ * @type 
+ */
+Mogan.orderTrace.msgCategoryData = [
+		[
+				'0',
+				'留言版',
+				[['1', '送付先住所、支払い、発送などについて'], ['2', '支払いが完了しました'],
+						['3', '商品を受け取りました'], ['4', 'その他']]],
+		['1', 'e-mail', []], ['2', '揭示版', [['no', '公開しない'], ['yes', '公開する']]]];
 
+Ext.onReady(function() {
+	
+	/**
+	 * 留言版類型，留言版，e-mail，揭示版
+	 */
+	Mogan.orderTrace.msgCategoryStore = new Ext.data.SimpleStore({// 下拉式選單資料
+		fields : ['value', 'text', 'data'],
+		data : Mogan.orderTrace.msgCategoryData
+	});
+	
+	/**
+	 * 留言版標題
+	 */
+	Mogan.orderTrace.msgTitleStore = new Ext.data.SimpleStore({// 下拉式選單資料
+		fields : ['value', 'text'],
+		data : Mogan.orderTrace.msgCategoryStore.getAt(0).get('data')
+	});
+	
+	
+	// 備忘類型清單
+	Mogan.orderTrace.alertTypeStore = new Ext.data.Store({
+				reader : new Ext.data.JsonReader({
+							root : 'root'
+						}, ['list_key', 'list_name']),
+				proxy : new Ext.data.MemoryProxy(alertTypeJSONData)
+			});
+	Mogan.orderTrace.alertTypeStore.load();
+
+	// 付款方式清單
 	Mogan.orderTrace.payTypeStore = new Ext.data.Store({
 				reader : new Ext.data.JsonReader({
 							root : 'root'
@@ -38,7 +77,7 @@ Ext.onReady(function() {
 				proxy : new Ext.data.MemoryProxy(payTypeJSONData)
 			});
 	Mogan.orderTrace.payTypeStore.load();
-			
+
 	// 初始化資料 下標帳號清單
 	Mogan.orderTrace.accountListStore = new Ext.data.Store({
 				reader : new Ext.data.JsonReader({
@@ -57,7 +96,7 @@ Ext.onReady(function() {
 					root : 'root'
 				},
 				['item_order_id', 'item_id', 'item_name', 'buy_price',
-						'buy_unit', 'time_at_03', 'bid_account', 'item_id_name']),
+						'buy_unit', 'time_at_03', 'bid_account', 'item_id_name','seller_attribute_1']),
 		proxy : new Ext.data.MemoryProxy(orderItemListJSONData)
 	});
 	Mogan.orderTrace.orderItemListStore.load();
@@ -88,16 +127,17 @@ Ext.onReady(function() {
 
 	// 留言資料
 	Mogan.orderTrace.msgRecordStore = new Ext.data.JsonStore({
-				root : 'responseData[0]["CONTACT_MSG"]["Datas"]',
-				totalProperty : 'responseData[0]["CONTACT_MSG"]["Records"]',
+				root : 'responseData[0]["Msgs"]',
+				totalProperty : 'responseData[0]["MsgRecords"]',
 				idProperty : 'threadid',
 				remoteSort : true,
 				fields : ['contact_id', 'seller_id', 'member_account',
-						'bid_account', 'transaction_id', 'item_id',
-						'msg_category', 'msg_id', 'msg_title', 'msg_from',
-						'msg_contact', 'msg_date', 'is_read', 'read_date',
-						'note']
+						'item_order_id', 'item_id', 'msg_category', 'msg_id',
+						'msg_title', 'msg_from', 'msg_contact', 'msg_date',
+						'is_read', 'read_date', 'note', 'order_time_at_16',
+						'item_name']
 			});
+	// Mogan.orderTrace.msgRecordStore.on('load',Mogan.orderTrace.filterItemOrderMsg);
 
 	/**
 	 * 範本列表專用data store
@@ -188,13 +228,13 @@ Ext.onReady(function() {
 							items : Mogan.orderTrace.createDetilPanel()
 						}]
 			});
-			
+
 	/**
 	 * 資料讀取
 	 */
 	Mogan.orderTrace.fixFilterStatus();
 	Mogan.orderTrace.itemListStore.load();
-	
+
 	/**
 	 * 鍵盤綁定
 	 */
@@ -204,20 +244,20 @@ Ext.onReady(function() {
 					itemListStore.load();
 				}
 			});
-			
-	/***
+
+	/***************************************************************************
 	 * Tooltip 專區
 	 */
 	Ext.QuickTips.init();
-	
-    new Ext.ToolTip({
-        target: 'rb-ship_type_1',
-        html: '商品費用已結清，收貨時不用付錢，請選我'
-    });
-    
+
 	new Ext.ToolTip({
-        target: 'rb-ship_type_0',
-        html: '收貨時需支付運費或商品費用時，請選我'
-    });
-			
+				target : 'rb-ship_type_1',
+				html : '商品費用已結清，收貨時不用付錢，請選我'
+			});
+
+	new Ext.ToolTip({
+				target : 'rb-ship_type_0',
+				html : '收貨時需支付運費或商品費用時，請選我'
+			});
+
 });

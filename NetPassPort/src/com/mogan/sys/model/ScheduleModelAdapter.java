@@ -279,7 +279,7 @@ public abstract class ScheduleModelAdapter extends TimerTask implements Schedule
 	 * @param modelName
 	 * @return
 	 */
-	final static public Date setLastExecuteDate(String modelName){
+	final static public Date getLastExecuteDate(String modelName){
 		Map tempScheduleStatus=getMyStatus(modelName);
 		return (Date) tempScheduleStatus.get("execute_date");
 	}

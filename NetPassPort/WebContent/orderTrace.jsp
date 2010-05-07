@@ -108,10 +108,11 @@
 	orderItemListData.put("root",new JSONArray());
 	
 	JSONObject payTypeData=new JSONObject();
-
-
 	JSONArray typeList=conn.queryJSONArray("mogan-DB","SELECT list_key,list_name FROM system_list_value WHERE group_key='pay type' ");
 	payTypeData.put("root",typeList);
+	
+	JSONObject alertTypeData=new JSONObject();
+	alertTypeData.put("root",conn.queryJSONArray("mogan-DB","SELECT list_key,list_name FROM system_list_value WHERE group_key='alert type' "));
 %>
 var itemOrderCol=<%=colList %>;
 var accountJSONData = <%=accountData %>;
@@ -120,10 +121,11 @@ var trnsColmJSONData = <%=trnsColmData %>;
 var templateJSONData = <%=templateData %>;
 var orderItemListJSONData = <%=orderItemListData %>;
 var payTypeJSONData = <%=payTypeData %>;
+var alertTypeJSONData = <%=alertTypeData %>;
 
 </script>
 </head>
 <body>
-
+<div id="iframe-window"></div>
 </body>
 </html>

@@ -90,7 +90,7 @@
 		<scheduleDiscription>入帳系統</scheduleDiscription>
 		<load-on-startup>false</load-on-startup>
 		<loop>true</loop>
-		<interval>3</interval>
+		<interval>1</interval>
 	</schedule>
 	<model>
 		<modelName>oAuth</modelName>

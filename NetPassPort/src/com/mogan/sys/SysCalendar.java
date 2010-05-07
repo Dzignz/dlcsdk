@@ -6,6 +6,8 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
+import com.mogan.sys.log.SysLogger4j;
+
 public class SysCalendar {
 	Calendar calendar = Calendar.getInstance();
 	DateFormat dateFormat;
@@ -62,6 +64,10 @@ public class SysCalendar {
 	}
 	
 	static public String getFormatDate(Date d, String formatString) {
+		if (d==null){
+			return null;
+		}
+		
 		DateFormat dateFormat=new SimpleDateFormat(formatString);
 		dateFormat=setDateFormat(dateFormat,formatString);
 		return dateFormat.format(d);

@@ -164,6 +164,25 @@ public class DBConn extends HttpServlet {
 		}*/
 		return jArray;
 	}
+	
+	/**
+	 * 使用map查詢
+	 * @param connAlias - 連線名稱
+	 * @param table - table 名稱
+	 * @param conditionMap - 查詢條件
+	 * @return
+	 */
+	public JSONArray queryJSONArray(String connAlias,String table, Map conditionMap) {
+		JSONArray jArray = new JSONArray();
+		ArrayList dataList = query(connAlias,table, conditionMap);
+		jArray.addAll(dataList);
+		/*
+		for (int i = 0; i < dataList.size(); i++) {
+			// Map tempMap=(Map) dataList.get(i);
+			jArray.add(JSONObject.fromObject(dataList.get(i)));
+		}*/
+		return jArray;
+	}
 
 	/**
 	 * 更新資料庫
@@ -328,6 +347,25 @@ public class DBConn extends HttpServlet {
 		return query(connAlias, sql);
 	}
 
+	/**
+	 * 使用Map 查詢
+	 * @param connAlias
+	 * @param table
+	 * @param conditionMap
+	 * @return
+	 */
+	public ArrayList query(String connAlias, String table,
+			Map conditionMap) {
+		String sql = "SELECT * FROM " + table;
+		StringBuffer whereStr = new StringBuffer();
+		Map colStrctMap = queryTabelStructure(connAlias, table, conditionMap);
+
+		if (conditionMap.size() > 0) {
+			sql += " WHERE " + getSqlWhereStr(conditionMap, colStrctMap);
+		}
+		return query(connAlias, sql);
+	}
+	
 	/**
 	 * 以conditionMap查詢目前資料筆數
 	 * 
@@ -640,6 +678,8 @@ public class DBConn extends HttpServlet {
 		String pageSql = fixPageSql(connAlias, sql, startIndex, pageSize);
 		return query(connAlias, pageSql);
 	}
+	
+
 
 	/**
 	 * 回傳ArrayList
@@ -680,8 +720,7 @@ public class DBConn extends HttpServlet {
 					String columnName = (String) clo.get("columnName");
 					switch (((Integer) clo.get("columnType")).intValue()) {
 					case 93:
-						// rowMap.put(columnName, rst.getDate(columnName));
-						rowMap.put(columnName, rst.getString(columnName));
+						rowMap.put(columnName, SysCalendar.getFormatDate(rst.getTimestamp(columnName), SysCalendar.yyyy_MM_dd_HH_mm_ss_Mysql)  );
 						break;
 					default:
 						rowMap.put(columnName, rst.getString(columnName));

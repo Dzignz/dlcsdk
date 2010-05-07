@@ -41,12 +41,12 @@ public final class InitSys extends HttpServlet {
 	public void init(ServletConfig config) throws ServletException {
 		super.init(config);
 		initSystemParameter();
-		
+
 		InputStream  inputStream = getServletContext().getResourceAsStream("/WEB-INF/appid.properties");
 		Properties props = new Properties();
 		try {
 			if (inputStream==null){
-				SysLogger4j.warn("appid.properties not exists.");	
+				SysLogger4j.warn("appid.properties not exists.");
 			}else if (inputStream.available()==0){
 			
 			}else{
