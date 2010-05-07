@@ -188,8 +188,7 @@ public class NetAgentGoogle extends NetAgentModel implements Runnable {
 			// Store用來收信,Store類實現特定郵件協議上的讀、寫、監視、查找等操作。
 			SysLogger4j.warn("getMailFolder:"+store.isConnected());
 			if (!store.isConnected()) {
-				SysLogger4j.warn("getMailFolder try to connect:"+store.isConnected());
-				store.connect("elgoogdian@gmail.com","vfbyfnfvygo");
+				store.connect();
 				SysLogger4j.warn("getMailFolder:"+folderName+" "+store.isConnected());
 			}
 			inbox = store.getFolder(folderName);// 收件箱

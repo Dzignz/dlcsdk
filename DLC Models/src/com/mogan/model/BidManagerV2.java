@@ -11,6 +11,7 @@ import java.util.Map;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import com.mogan.exception.NonPrivilegeException;
+import com.mogan.exception.netAgent.AccountNotExistException;
 import com.mogan.log.MoganLogger;
 import com.mogan.model.netAgent.NetAgentYJV2;
 import com.mogan.sys.DBConn;
@@ -156,37 +157,140 @@ public class BidManagerV2 extends ProtoModel implements ServiceModelFace {
 			jArray = moveItem2NewOrder(itemOrderId, fromTideId);
 		} else if (this.getAct().equals("REFRESH_CONTACT_DATA")){
 			String itemOrderIds=parameterMap.get("ITEM_ORDER_IDS");
+			String tideId=parameterMap.get("TIDE_ID");
 			refreshContactData(itemOrderIds);
+			jArray=getContactData(tideId,itemOrderIds);
 		} else if (this.getAct().equals("SUBMIT_TRADE_ORDER_MONEY")){
 			JSONObject orderData = JSONObject.fromObject(parameterMap
 					.get("ORDER_DATA"));
 			saveTideOrder(orderData);
 			submitOrderMoney(orderData);
-			/*
-			String money=parameterMap.get("MONEY");
+		} else if (this.getAct().equals("SAVE_ALERT_DATA")){
+			JSONObject orderData = JSONObject.fromObject(parameterMap
+					.get("ALERT_DATA"));
 			String tideId=parameterMap.get("TIDE_ID");
-			*/
-			//refreshContactData(itemOrderIds);
+			jArray=saveAlertData(tideId,orderData);
+		} else if (this.getAct().equals("SEND_MESSAGE")){
+			sendMsg(JSONObject.fromObject(parameterMap.get("MSG_DATAS")));
+			
 		}
 		return jArray;
 	}
 	
 	/**
+	 * 發送訊息給賣家
+	 * @param msgData
+	 * @return
+	 * @throws AccountNotExistException 
+	 */
+	private JSONArray  sendMsg(JSONObject msgData) throws AccountNotExistException{
+		JSONArray jArray = new JSONArray();
+		/**
+		 * TODO
+		 * 留言版 0
+		 * 揭示版 2
+		 * email 1 
+		 * */
+		NetAgentYJV2 na= new NetAgentYJV2(this.getModelServletContext(),this.getAppId());
+		int sendMethod=msgData.getInt("SEND_METHOD");
+		jArray.add(na.sendMsg(msgData.getString("ITEM_ORDER_ID"), msgData.getString("SUBJECT_A"), msgData.getString("MSG"), sendMethod));
+		return jArray;
+	}
+	
+	/**
+	 * 儲存備忘資料
+	 * @param tideId
+	 * @param alertData
+	 * @return
+	 * @throws SQLException 
+	 * @throws UnsupportedEncodingException 
+	 */
+	private JSONArray saveAlertData(String tideId,JSONObject alertData) throws UnsupportedEncodingException, SQLException{
+		JSONArray jArray = new JSONArray();
+		DBConn conn = (DBConn) this.getModelServletContext().getAttribute(
+		"DBConn");
+		String logId = conn.getAutoNumber(this.CONN_ALIAS, "LR-ID-01");
+		String userId="DIAN TEST";
+		Map logDataMap=MoganLogger.getItemTideSaveAlert(logId, tideId, userId,  (String)this.getSession().getAttribute("CLIENT_IP"));
+		Map logConditionMap=new HashMap();
+		logConditionMap.put("log_id", logId);
+		conn.newData(BidManagerV2.CONN_ALIAS, "log_record", logConditionMap, logDataMap);
+		
+		Map conditionMap=new HashMap();
+		Map dataMap=new HashMap();
+		conditionMap.put("tide_id", tideId);
+		dataMap.put(alertData.getString("alert_type"), alertData.getString("alert_text"));
+		conn.update(BidManagerV2.CONN_ALIAS, "item_tide", conditionMap, dataMap);
+		
+
+		logDataMap.put("varchar1", "OK"); 
+		conn.newData(BidManagerV2.CONN_ALIAS, "log_record", logConditionMap, logDataMap);
+
+		jArray.add(loadTideOder(tideId).getJSONObject(0).getJSONObject("Datas"));
+		
+		return jArray;
+	}
+	
+	/**
 	 * TODO 更新聯絡資料
-	 * @param itemOrderIds
+	 * @param itemOrderIds String
 	 * @return
 	 */
 	private JSONArray refreshContactData(String itemOrderIds){
 		JSONArray jArray = new JSONArray();
 		NetAgentYJV2 na= new NetAgentYJV2(this.getModelServletContext(),this.getAppId());
 		try {
-			na.getItemContactMsg(JSONArray.fromObject(itemOrderIds));
+			na.updateItemContactMsg(JSONArray.fromObject(itemOrderIds));
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
 		return jArray;
+	}
+	
+	/**
+	 * 更新聯絡資料
+	 * @param itemOrderIds JSONArray
+	 * @return
+	 */
+	private JSONArray refreshContactData(JSONArray itemOrderIds){
+		JSONArray ids=new JSONArray();
+		for (int i=0;i<itemOrderIds.size();i++){
+			ids.add(itemOrderIds.getJSONObject(i).get("item_order_id"));
+		}
+		return refreshContactData(ids.toString());
+	}
+	
+	/**
+	 * 取得聯絡資料
+	 * @param tideId
+	 * @param itemOrderIds
+	 * @return
+	 */
+	private JSONArray getContactData(String tideId,String itemOrderIds){
+		JSONArray jArray = new JSONArray();
+		JSONObject jObj = new JSONObject();
+		NetAgentYJV2 na= new NetAgentYJV2(this.getModelServletContext(),this.getAppId());
+		jObj.put("TideId", tideId);
+		jObj.put("Datas", na.getItemContactMsgFromDB(JSONArray.fromObject(itemOrderIds)));
+		jObj.put("Records", jObj.getJSONArray("Datas").size());
+		jArray.add(jObj);
+		return jArray;
+	}
+	
+	/**
+	 * 取得聯絡資料
+	 * @param tideId
+	 * @param itemOrderIds
+	 * @return
+	 */
+	private JSONArray getContactData(String tideId,JSONArray itemOrderIds){
+		JSONArray ids=new JSONArray();
+		for (int i=0;i<itemOrderIds.size();i++){
+			ids.add(itemOrderIds.getJSONObject(i).get("item_order_id"));
+		}
+		return getContactData(tideId,ids.toString());
 	}
 	
 	/**
@@ -219,11 +323,11 @@ public class BidManagerV2 extends ProtoModel implements ServiceModelFace {
 		//建立log資料
 		String logId = conn.getAutoNumber(this.CONN_ALIAS, "LR-ID-01");
 		String userId="DIAN TEST";
-		Map logConditionMap=new HashMap();
-		Map logDataMap=MoganLogger.getItemTideSubmitMoeny(orderData.getString("tide_id"), String.valueOf(tatolPrice), userId, (String)this.getSession().getAttribute("CLIENT_IP"));
-		logDataMap.put("log_id", logId);
 		
+		Map logDataMap=MoganLogger.getItemTideSubmitMoeny(logId,orderData.getString("tide_id"), String.valueOf(tatolPrice), userId, (String)this.getSession().getAttribute("CLIENT_IP"));
+		Map logConditionMap=new HashMap();
 		logConditionMap.put("log_id", logId);
+		
 		//建立log資料 開始修改資料
 		conn.newData(BidManagerV2.CONN_ALIAS, "log_record", logConditionMap, logDataMap);
 		
@@ -236,11 +340,13 @@ public class BidManagerV2 extends ProtoModel implements ServiceModelFace {
 		conditionMap.put("tide_id", orderData.getString("tide_id"));		
 		dataMap=new HashMap();				//更新同捆訂單狀態
 		dataMap.put("tide_status", "3-03");
+		
 		conn.update(BidManagerV2.CONN_ALIAS, "item_tide", conditionMap, dataMap);
 		MoganLogger.logger.info("修改訂單狀態 ["+orderData.getString("tide_id")+"] dataMap:"+dataMap);
 		
 		dataMap=new HashMap();				//更新得標商品狀態
 		dataMap.put("order_status", "3-03");
+		dataMap.put("time_06", new Date());
 		conn.update(BidManagerV2.CONN_ALIAS, "item_order", conditionMap, dataMap);
 		MoganLogger.logger.info("修改下標商品狀態 ["+orderData.getString("tide_id")+"] dataMap:"+dataMap);
 		
@@ -311,7 +417,7 @@ public class BidManagerV2 extends ProtoModel implements ServiceModelFace {
 		dataMap.putAll(list.get(0));
 		dataMap.put("tide_id", newTideId);
 		dataMap.put("date_1", new Date());
-		dataMap.put("item_alert", "由["+"Dian"+"]建立新訂單，舊訂單為"+fromTideId+"執行日期為"+new SysCalendar().getFormatDate(SysCalendar.yyyy_MM_dd_HH_mm_ss_Mysql));
+		dataMap.put("item_alert", "由["+"Dian"+"]建立新訂單，舊訂單為"+fromTideId+" -"+new SysCalendar().getFormatDate(SysCalendar.yyyy_MM_dd_HH_mm_ss_Mysql));
 		String logId = conn.getAutoNumber(this.CONN_ALIAS, "LR-ID-01");
 		String userId="DIAN TEST";
 		Map logDataMap=MoganLogger.getItemOrderMoveTide(logId,itemOrderId,fromTideId,newTideId, userId, (String)this.getSession().getAttribute("CLIENT_IP"));
@@ -501,7 +607,7 @@ public class BidManagerV2 extends ProtoModel implements ServiceModelFace {
 		JSONArray orderArray = new JSONArray();
 		DBConn conn = (DBConn) this.getModelServletContext().getAttribute(
 				"DBConn");
-		String sql = "SELECT tel,email,items_count,item_order_id,item_id,item_name,concat(concat(item_id,' - '),item_name) as item_id_name,buy_price,buy_unit,cost_1,cost_2,cost_3,cost_4,cost_5,cost_6,cost_7,cost_8,cost_9,cost_10,item_total_price,time_at_03,bid_account,classfly,remit_to,remit_id,money_alert,item_alert,contact_alert,ship_alert,ship_type  FROM view_item_tide_v1 WHERE delete_flag=1 AND tide_id='"
+		String sql = "SELECT tel,email,items_count,item_order_id,item_id,item_name,concat(concat(item_id,' - '),item_name) as item_id_name,buy_price,buy_unit,cost_1,cost_2,cost_3,cost_4,cost_5,cost_6,cost_7,cost_8,cost_9,cost_10,item_total_price,time_at_03,bid_account,classfly,remit_to,remit_id,money_alert,item_alert,contact_alert,ship_alert,ship_type,seller_attribute_1  FROM view_item_tide_v1 WHERE delete_flag=1 AND tide_id='"
 				+ tideId + "'";
 		SysLogger4j.info("loadTideOder:" + sql);
 		orderArray = conn.queryJSONArray(BidManagerV2.CONN_ALIAS, sql);
@@ -516,16 +622,21 @@ public class BidManagerV2 extends ProtoModel implements ServiceModelFace {
 				"-"); // 物流備註
 		orderArray.getJSONObject(0).put(
 				"alert_group",
-				("商品註釋：" + itmeAlert + "<br />聯絡備註：" + contactAlert
-						+ "<br />金流備註：" + moneyAlert + "<br />物流備註："
-						+ shipAlert).replaceAll("null", "-"));
+				("<p>商品註釋：" + itmeAlert + "</p><p>聯絡備註：" + contactAlert
+						+ "</p><p>金流備註：" + moneyAlert + "</p><p>物流備註："
+						+ shipAlert).replaceAll("null", "-").replaceAll("[\\r\\n|\\r|\\n]", "<br />")+"</p>");
 		
-		//orderArray.add(value);
 		jObj.put("Datas", orderArray.getJSONObject(0));
 		jObj.put("ItemList", orderArray);
-		jObj
-				.put("Records", conn.getQueryDataSize(BidManagerV2.CONN_ALIAS,
-						sql));
+		jObj.put("Records",jObj.getJSONArray("ItemList").size());
+		
+		sql = "SELECT item_order_id  FROM item_order WHERE delete_flag=1 AND tide_id='"
+			+ tideId + "'";
+		
+		jObj.put("Msgs",this.getContactData(tideId,conn.queryJSONArray(BidManagerV2.CONN_ALIAS, sql)).getJSONObject(0).getJSONArray("Datas"));
+		jObj.put("MsgRecords",jObj.getJSONArray("Msgs").size());
+
+		
 		jArray.add(jObj);
 		return jArray;
 	}
@@ -628,18 +739,16 @@ public class BidManagerV2 extends ProtoModel implements ServiceModelFace {
 		if (dir != null) {
 			sql += " " + dir;
 		}
-		/*
-		 * if (Boolean.valueOf(checkSameSeller)){ sql+=" OR ( "+sql+" )"; }
-		 */
-		/* order status */
+
+
 		SysLogger4j.info(sql);
 		jObj.put("Datas", conn.queryJSONArrayWithPage(BidManagerV2.CONN_ALIAS,
 				sql, startIndex, pageSize));
 		jObj
 				.put("Records", conn.getQueryDataSize(BidManagerV2.CONN_ALIAS,
 						sql));
-		// jObj.put("Fileds", conn.queryTabelStructure(CONN_ALIAS,"view_bid_item_order_v2"));
 		fixDataColor(jObj.getJSONArray("Datas"));
+		
 		jArray.add(jObj);
 		return jArray;
 	}

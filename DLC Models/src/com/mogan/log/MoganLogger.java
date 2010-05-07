@@ -41,8 +41,9 @@ abstract public class MoganLogger {
 	 * @param ip
 	 * @return
 	 */
-	static public Map getItemTideSubmitMoeny(String tideId,String money,String userId,String ip){
+	static public Map getItemTideSubmitMoeny(String logId,String tideId,String money,String userId,String ip){
 		Map logDataMap =new HashMap();
+		logDataMap.put("log_id", logId);
 		logDataMap.put("log_status", "LR-8002");
 		logDataMap.put("money", money);
 		logDataMap.put("item_order_id", tideId);
@@ -51,6 +52,8 @@ abstract public class MoganLogger {
 		logDataMap.put("admin_name", userId);
 		return logDataMap;
 	}
+	
+
 	
 	/**
 	 *	修改訂單資料 
@@ -124,11 +127,37 @@ abstract public class MoganLogger {
 		return logDataMap;
 	}
 	
+	/**
+	 * 訂單移動記錄
+	 * @param logId
+	 * @param itemOrderId
+	 * @param userId
+	 * @param ip
+	 * @return
+	 */
 	static public Map getItemOrderMove(String logId,String itemOrderId,String userId,String ip){
 		Map logDataMap =new HashMap();
 		logDataMap.put("log_id", logId);
 		logDataMap.put("log_status", "LR-8004");
 		logDataMap.put("item_order_id", itemOrderId);
+		logDataMap.put("time_at", new Date());
+		logDataMap.put("user_ip", ip);
+		logDataMap.put("admin_name", userId);
+		return logDataMap;
+	}
+	
+	/**
+	 *	修改訂單備忘資料 
+	 * @param tideId
+	 * @param userId
+	 * @param ip
+	 * @return
+	 */
+	static public Map getItemTideSaveAlert(String logId,String tideId,String userId,String ip){
+		Map logDataMap =new HashMap();
+		logDataMap.put("log_id", logId);
+		logDataMap.put("log_status", "LR-8006");
+		logDataMap.put("item_order_id", tideId);
 		logDataMap.put("time_at", new Date());
 		logDataMap.put("user_ip", ip);
 		logDataMap.put("admin_name", userId);

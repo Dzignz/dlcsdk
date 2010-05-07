@@ -34,6 +34,7 @@ import org.apache.commons.httpclient.NameValuePair;
 import org.apache.commons.httpclient.UsernamePasswordCredentials;
 import org.apache.commons.httpclient.auth.AuthScope;
 import org.htmlparser.Node;
+import org.htmlparser.NodeFilter;
 import org.htmlparser.beans.StringBean;
 import org.htmlparser.filters.AndFilter;
 import org.htmlparser.filters.HasChildFilter;
@@ -64,7 +65,7 @@ import com.mogan.sys.mail.SimpleMailSender;
  */
 public class NetAgentYJV2 extends NetAgentModel implements BidFace {
 	final static private String CONN_ALIAS = "mogan-DB";
-	
+
 	private final String loginURL = "https://login.yahoo.co.jp/config/login";
 	private final String bidURL = "https://login.yahoo.co.jp/config/login";
 
@@ -321,10 +322,10 @@ public class NetAgentYJV2 extends NetAgentModel implements BidFace {
 	 * @return
 	 * @throws AccountNotExistException
 	 */
-	public JSONArray sendMsg(String bidAccount, String itemId,
+	public JSONArray sendMsgold(String bidAccount, String itemId,
 			String sendMethod, String msgTitle, String msgContact)
 			throws AccountNotExistException {
-		return sendMsg(bidAccount, itemId, sendMethod, msgTitle, msgContact, "");
+		return sendMsgold(bidAccount, itemId, sendMethod, msgTitle, msgContact, "");
 	}
 
 	/**
@@ -508,11 +509,11 @@ public class NetAgentYJV2 extends NetAgentModel implements BidFace {
 			returnStr = aId;
 			// http://page18.auctions.yahoo.co.jp/jp/show/resubmit?aID=w45993880
 		} catch (ParserException e) {
-			SysLogger4j.error("NetAgent Yahoo JP",e);
+			SysLogger4j.error("NetAgent Yahoo JP", e);
 		} catch (UnsupportedEncodingException e) {
-			SysLogger4j.error("NetAgent Yahoo JP",e);
+			SysLogger4j.error("NetAgent Yahoo JP", e);
 		} catch (SQLException e) {
-			SysLogger4j.error("NetAgent Yahoo JP",e);
+			SysLogger4j.error("NetAgent Yahoo JP", e);
 		}
 		jArray.add(returnStr);
 		return jArray;
@@ -856,6 +857,138 @@ public class NetAgentYJV2 extends NetAgentModel implements BidFace {
 	}
 
 	/**
+	 * 新版送訊息
+	 * @param itemOrderId
+	 * @param msgTitle
+	 * @param msg
+	 * @param sendMethod
+	 * @return
+	 * @throws AccountNotExistException
+	 */
+	public boolean sendMsg(String itemOrderId, String msgTitle, String msg,
+			int sendMethod) throws AccountNotExistException {
+		
+		DBConn conn = (DBConn) this.getModelServletContext().getAttribute(
+				"DBConn");
+		ArrayList<Map> orders = conn
+				.query(
+						"mogan-DB",
+						"SELECT buyer_account,item_id,bid_id FROM view_bid_item_order_v1 WHERE item_order_id ='"
+								+ itemOrderId + "'");
+		String buyerAccount = (String) orders.get(0).get("buyer_account");
+		String bidID = (String) orders.get(0).get("bid_id");
+		String itemId = (String) orders.get(0).get("item_id");
+		NetAgent nAgent = new NetAgent();
+		
+		NodeList nodes;
+		String postMsgURL;
+		NodeFilter[] nodefilter;
+		boolean results = false;
+		autoLogin(bidID);
+		Cookie[] cookies = getLoginSessionCookie(getAppId(), buyerAccount);
+		nAgent.getState().addCookies(cookies);
+		Map postDataMap = new HashMap(); // 送出資料
+		try {
+			switch (sendMethod) {
+			case 0: // 留言版
+				postDataMap.put("aID", itemId);
+				postDataMap.put("subject", msgTitle);
+				postDataMap.put("comment", "msgContact");// 使用簡單的訊息避過第一次的字數簡查
+				nAgent.setPostDataMap(postDataMap);
+				nAgent.postMaptoData();
+				nAgent.getDataWithPost(previewMsgURL);	//預覽送出
+				SysLogger4j.info("postDataMap ::"+postDataMap);
+				SysLogger4j.info("previewMsgURL ::"+previewMsgURL);
+				this.outputTofile(nAgent.getResponseBody(), "previewMsgURL");
+				
+				postDataMap = new HashMap();// 清空準備確認送出
+				 nodefilter = new NodeFilter[3];
+				nodefilter[0] = new HTMLNodeFilter("INPUT");
+				nodefilter[1] = new HasParentFilter(new HTMLNodeFilter(
+						"contact_submit"));
+				nodefilter[2] = new HTMLNodeFilter("NAME");
+				nodes = nAgent.filterItem(new AndFilter(nodefilter));
+				for (int n = 0; n < nodes.size(); n++) {
+					postDataMap.put(nodes.elementAt(n).toHtml()
+							.split("NAME=\"")[1].split("\"")[0], nodes
+							.elementAt(n).toHtml().split("VALUE=\"")[1]
+							.split("\"")[0]);
+				}
+				postDataMap.put("comment", msg);
+				nAgent.setPostDataMap(postDataMap);
+				nAgent.postMaptoData();
+				//取得送出網址
+				nodes = nAgent.filterItem(new AndFilter(new HTMLNodeFilter("METHOD"),
+						new HTMLNodeFilter("disabledSubmit")));
+				this.outputTofile(nAgent.getResponseBody(), "sendmsg");
+				SysLogger4j.info("TRY ::"+nodes.toHtml());
+				postMsgURL = "";
+				for (int n = 0; n < nodes.size(); n++) {
+					postMsgURL = "http"
+							+ nodes.elementAt(n).toHtml().split("\"http")[1]
+									.split("\"")[0];
+				}
+				nAgent.getDataWithPost(postMsgURL, charSet);
+				if (nAgent.filterItem(new HTMLNodeFilter(this.CONTACT_FINISH))
+						.size() > 0) {
+					results = true;
+				}
+				break;
+			case 2: // 揭示版
+				postDataMap.put("aID", itemId);
+				postDataMap.put("cc", "jp");
+				postDataMap.put("showdiscuss", msgTitle);
+				postDataMap.put("comment", msg);
+				nAgent.setPostDataMap(postDataMap);
+				nAgent.postMaptoData();
+				nAgent.getDataWithPost(discussPreviewURL);	//預覽送出
+				
+				nodefilter = new NodeFilter[3];
+				nodefilter[0] = new HTMLNodeFilter("INPUT");
+				nodefilter[1] = new HasParentFilter(new HTMLNodeFilter(
+				"ACTION=\"http"));
+				nodefilter[2] =  new HTMLNodeFilter("name");
+
+				nodes = nAgent.filterItem(new AndFilter(nodefilter));
+				for (int n = 0; n < nodes.size(); n++) {
+					System.out.println("[DEBUG]" + nodes.elementAt(n).toHtml());
+					postDataMap.put(
+							nodes.elementAt(n).toHtml().split("name=")[1]
+									.split(" ")[0], nodes.elementAt(n).toHtml()
+									.split("VALUE=\"")[1].split("\"")[0]);
+				}
+				postDataMap.put("comment", msg);
+				nAgent.setPostDataMap(postDataMap);
+				nAgent.postMaptoData();
+				
+
+				nodes = nAgent.filterItem(new AndFilter(new HTMLNodeFilter("METHOD"),
+						new HTMLNodeFilter("discussion_submit")));
+				postMsgURL = "";
+				for (int n = 0; n < nodes.size(); n++) {
+					postMsgURL = "http"
+							+ nodes.elementAt(n).toHtml().split("\"http")[1]
+									.split("\"")[0];
+				}
+				nAgent.getDataWithPost(postMsgURL, charSet);
+
+				if (nAgent.filterItem(new HTMLNodeFilter(this.DISCUSS_FINISH))
+						.size() > 0) {
+					results = true;
+				}
+				break;
+			case 1: // email
+				break;
+			}
+		} catch (ParserException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return results;
+	}
+
+	/**
 	 * 傳送訊息
 	 * 
 	 * @param bidAccount
@@ -873,7 +1006,7 @@ public class NetAgentYJV2 extends NetAgentModel implements BidFace {
 	 * @return
 	 * @throws AccountNotExistException
 	 */
-	public JSONArray sendMsg(String bidAccount, String itemId,
+	public JSONArray sendMsgold(String bidAccount, String itemId,
 			String sendMethod, String msgTitle, String msgContact,
 			String toAddress) throws AccountNotExistException {
 
@@ -938,8 +1071,7 @@ public class NetAgentYJV2 extends NetAgentModel implements BidFace {
 				this.outputTofile(msgContact, "sendwonmsg");
 				nAgent.setPostDataMap(postDataMap);
 				nAgent.postMaptoData();
-				
-				 
+
 				nAgent.getDataWithPost(postMsgURL, charSet);
 
 				if (nAgent.filterItem(new HTMLNodeFilter(this.CONTACT_FINISH))
@@ -1195,6 +1327,7 @@ public class NetAgentYJV2 extends NetAgentModel implements BidFace {
 	/**
 	 * 直接抓目前資料庫中所儲存的連絡資料
 	 * 
+	 * @version 2.0
 	 * @param bidAccount
 	 *            下標帳號
 	 * @param itemId
@@ -1203,8 +1336,7 @@ public class NetAgentYJV2 extends NetAgentModel implements BidFace {
 	 *            交易ID
 	 * @return
 	 */
-	public JSONArray getItemContactMsgFromDB(String bidAccount, String itemId,
-			String transactionId) {
+	public JSONArray getItemContactMsgFromDB(String itemOrderId) {
 		JSONArray jArray = new JSONArray();
 		DBConn conn = (DBConn) this.getModelServletContext().getAttribute(
 				"DBConn");
@@ -1214,14 +1346,33 @@ public class NetAgentYJV2 extends NetAgentModel implements BidFace {
 		String orderType = "DESC";
 		jArray = conn.queryJSONArray("mogan-DB",
 				"SELECT * FROM view_item_contact_record_v1 WHERE "
-						// + "item_id='"
-						// + itemId
-						// + "' and bid_account='"
-						// + bidAccount
-						// + "' and transaction_id='"
-						+ " transaction_id='" + transactionId + 
-						"' ORDER BY "+ orderBy + //排序欄位
-						" "+orderType);//排序方法
+						+ " item_order_id='" + itemOrderId + "' ORDER BY "
+						+ orderBy + // 排序欄位
+						" " + orderType);// 排序方法
+		return jArray;
+	}
+
+	/**
+	 * 取得絡聯內容
+	 * 
+	 * @param itemOrderIds
+	 * @return
+	 */
+	public JSONArray getItemContactMsgFromDB(JSONArray itemOrderIds) {
+		JSONArray jArray = new JSONArray();
+		DBConn conn = (DBConn) this.getModelServletContext().getAttribute(
+				"DBConn");
+		// 排序方式
+		// 排序欄位
+		String orderBy = "msg_date";
+		String orderType = "DESC";
+		jArray = conn.queryJSONArray("mogan-DB",
+				"SELECT * FROM view_item_contact_record_v1 WHERE "
+						+ " item_order_id IN ("
+						+ itemOrderIds.toString().replaceAll("\"", "'")
+								.replaceAll("\\[|\\]", "") + ")  ORDER BY "
+						+ orderBy + // 排序欄位
+						" " + orderType);// 排序方法
 		return jArray;
 	}
 
@@ -1382,15 +1533,15 @@ public class NetAgentYJV2 extends NetAgentModel implements BidFace {
 				"DBConn");
 
 		NetAgent nAgent = new NetAgent();
-		
+
 		autoLogin(bidAccount);
 		Cookie[] cookies = getLoginSessionCookie(this.getAppId(), bidAccount);
 		nAgent.getState().addCookies(cookies);
-		System.out.println("[DEBUG] getItemContactType::"+ITEM_DATA_URL.replaceAll("\\$YAHOO_ITEM_ID",
-				itemId));
+		System.out.println("[DEBUG] getItemContactType::"
+				+ ITEM_DATA_URL.replaceAll("\\$YAHOO_ITEM_ID", itemId));
 		nAgent.getDataWithGet(ITEM_DATA_URL.replaceAll("\\$YAHOO_ITEM_ID",
 				itemId));
-		
+
 		HTMLNodeFilter hrefNf = new HTMLNodeFilter("href");// href
 		HasParentFilter parnetFilter = new HasParentFilter(new HTMLNodeFilter(
 				"decBg01 decBg05"));// decBg01 decBg05
@@ -1426,11 +1577,11 @@ public class NetAgentYJV2 extends NetAgentModel implements BidFace {
 			// conn.update("mogan-DB","member_message",conditionMap,dataMap);
 			conn.update("mogan-tw", "web_won", conditionMap, dataMap);
 		} catch (ParserException e) {
-			SysLogger4j.error("NetAgent Yahoo JP",e);
+			SysLogger4j.error("NetAgent Yahoo JP", e);
 		} catch (UnsupportedEncodingException e) {
-			SysLogger4j.error("NetAgent Yahoo JP",e);
+			SysLogger4j.error("NetAgent Yahoo JP", e);
 		} catch (SQLException e) {
-			SysLogger4j.error("NetAgent Yahoo JP",e);
+			SysLogger4j.error("NetAgent Yahoo JP", e);
 		}
 		return contactType;
 	}
@@ -1481,62 +1632,331 @@ public class NetAgentYJV2 extends NetAgentModel implements BidFace {
 	}
 
 	/**
-	 * 取得聯絡資料新版
+	 * 取得聯絡資料新版 TODO 正要開始做
 	 * 
 	 * @version 2.0
 	 * @param itemOrderId
 	 * @return
 	 * @throws Exception
 	 */
-	public JSONArray getItemContactMsg(JSONArray itemOrderIds) throws Exception {
+	public JSONArray updateItemContactMsg(JSONArray itemOrderIds) {
 		JSONArray jArray = new JSONArray();
 		DBConn conn = (DBConn) this.getModelServletContext().getAttribute(
-		"DBConn");
-		SysLogger4j.info(itemOrderIds.toString());
-		ArrayList orderList = conn.query(CONN_ALIAS,
-				"SELECT * FROM item_order WHERE item_order_id IN ("
-						+ itemOrderIds.toString().replaceAll("\"", "'").replaceAll("\\[|\\]", "") + ") AND delete_flag = 1 ");
-		
+				"DBConn");
+		ArrayList orderList = conn
+				.query(
+						CONN_ALIAS,
+						"SELECT item_order_id,item_id,bid_id,item_url,item_id,buyer_account,member_id,seller_id FROM view_bid_item_order_v1 WHERE item_order_id IN ("
+								+ itemOrderIds.toString().replaceAll("\"", "'")
+										.replaceAll("\\[|\\]", "")
+								+ ") AND delete_flag = 1 ");
+		for (int orderIndex = 0; orderIndex < orderList.size(); orderIndex++) {
+			Map<String, String> orderMap = (Map) orderList.get(orderIndex);
+			String bidId = orderMap.get("bid_id");
+			String bidAccount = orderMap.get("buyer_account");
+			try {
+				autoLogin(bidId);
+			} catch (AccountNotExistException e) {
+				// TODO Auto-generated catch block
+				SysLogger4j.error("帳號不存在", e);
+			}
+			Cookie[] cookies = getLoginSessionCookie(this.getAppId(),
+					bidAccount);
+			NetAgent nAgent = new NetAgent();
+
+			nAgent.getState().addCookies(cookies);
+
+			String itemServer = orderMap.get("item_url").split("http://")[1]
+					.split("\\.")[0];
+			String itemId = orderMap.get("item_id");
+			String memberId = orderMap.get("member_id");
+			String itemOrderId = orderMap.get("item_order_id");
+			String sellerId = orderMap.get("seller_id");
+
+			JSONArray jDataArray = getItemContactMsgFromDB(itemOrderId);
+			Map contactMap = new HashMap();
+			for (int i = 0; i < jDataArray.size(); i++) {
+				contactMap.put(jDataArray.getJSONObject(i).get("msg_id"),
+						jDataArray.getJSONObject(i));
+			}
+
+			try {
+				/**
+				 * 更新order from 狀態
+				 */
+				nAgent.getDataWithGet(ITEM_DATA_URL.replaceAll(
+						"\\$YAHOO_ITEM_ID", itemId));
+				this.outputTofile(nAgent.getResponseBody(), "order from");
+				HTMLNodeFilter hrefNf = new HTMLNodeFilter("href");// href
+				HasParentFilter parnetFilter = new HasParentFilter(
+						new HTMLNodeFilter("decBg01 decBg05"));// decBg01 decBg05
+
+				AndFilter andFilter = new AndFilter(hrefNf, parnetFilter);
+
+				HTMLNodeFilter EvaluationNf = new HTMLNodeFilter("rating");// 評價
+				HTMLNodeFilter pointNf = new HTMLNodeFilter(
+						"/points.yahoo.co.jp");
+				andFilter = new AndFilter(andFilter,
+						new NotFilter(EvaluationNf));
+				andFilter = new AndFilter(andFilter, new NotFilter(pointNf));
+				NodeList nodes;
+				// orderForm status 是否要填寫order form 1=不必 2=需要
+				int hasOrderForm = 1;
+
+				nodes = nAgent.filterItem(andFilter);
+
+				nodes = nAgent.filterItem(new HTMLNodeFilter("オーダーフォーム"));
+				if (nodes.size() > 0) {
+					hasOrderForm = 2;
+				}
+
+				Map sellerConditionMap = new HashMap();
+				sellerConditionMap.put("seller_id", sellerId);
+				Map sellerDataMap = new HashMap();
+				sellerDataMap.put("attribute_1", hasOrderForm);
+				conn.update(CONN_ALIAS, "item_seller", sellerConditionMap,
+						sellerDataMap);
+
+				/**
+				 * 先讀取揭示版 但如果商品未結標，揭示版不會出來需要避過
+				 */
+				nAgent.getDataWithGet(ITEM_DISCUSSION_MSG_URL.replaceAll(
+						"\\$YAHOO_ITEM_ID", itemId).replaceAll("\\$YAHOO_PAGE",
+						itemServer));
+				NodeList discussionNodes = nAgent
+						.filterItem(new HTMLNodeFilter("id=\"modBlbdForm\""));// 揭示版
+				if (discussionNodes.size() > 0 // 是否有揭示版
+						&& discussionNodes.elementAt(0).getChildren().size() > 5// 揭示版是否有內容
+				) {
+
+					if (discussionNodes.toHtml().contains(
+							".*※投稿できるのは、出品者と落札者のみです。.*")) {
+						SysLogger4j.info("跳出 discussionNodes::"
+								+ discussionNodes.toHtml());
+						break;
+					}
+					// 子項必需超過5個才可判斷為有內容
+					discussionNodes = discussionNodes.elementAt(0)
+							.getChildren();
+
+					discussionNodes = discussionNodes.elementAt(5)
+							.getChildren();
+
+					Map discussMap = new HashMap();
+					discussMap.put("member_account", memberId);
+					discussMap.put("bid_account", bidAccount);
+					discussMap.put("transaction_id", itemOrderId);
+					discussMap.put("item_id", itemId);
+					discussMap.put("seller_id", sellerId);
+
+					for (int i = 0; i < discussionNodes.size(); i++) {
+
+						if (discussionNodes.elementAt(i).toPlainTextString()
+								.matches("^(\\s投稿|\\s答え)(.|\\s)*")) {
+
+							// 標題
+							String msgId = discussionNodes.elementAt(i)
+									.toPlainTextString().split("\\n")[1];
+							String msgFrom = discussionNodes.elementAt(i)
+									.toPlainTextString().split("\\n")[2]
+									.split("(\\(|\\（)")[0];
+							System.out.println("[DEBUG] 有揭示版." + msgId);
+							for (int d = 3; d < discussionNodes.elementAt(i)
+									.toPlainTextString().split("\\n").length; d++) {
+								if (discussionNodes.elementAt(i)
+										.toPlainTextString().split("\\n")[d]
+										.indexOf("月") > 0) {
+									String msgDate = discussionNodes.elementAt(
+											i).toPlainTextString().split("\\n")[d];
+									msgDate = fixYJDate(msgDate);// 修正留言時間為資料庫可以接受的時間格式
+									discussMap.put("msg_date", msgDate);
+								}
+							}
+							discussMap.put("msg_id", msgId);
+							discussMap.put("msg_title", msgId);
+							discussMap.put("msg_category", "連絡掲示板");
+							discussMap.put("msg_from", msgFrom);
+
+						} else if (discussionNodes.elementAt(i)
+								.toPlainTextString().matches("^\\s*")) {
+							// 空白
+
+						} else {
+							// 內文
+							discussMap.put("msg_contact", discussionNodes
+									.elementAt(i).toHtml());
+
+							discussMap.put("member_id", memberId);
+							/** bid_account 將被修改為 bid_id */
+							discussMap.put("bid_id", bidAccount);
+							discussMap.put("item_order_id", itemOrderId);
+							discussMap.put("item_id", itemId);
+
+							/**
+							 * 2010 02 10 修正資料更新方式
+							 */
+							Map conditionMap = new HashMap();
+							conditionMap.put("item_order_id", itemOrderId);
+							conditionMap
+									.put("msg_id", discussMap.get("msg_id"));
+							this.outputTofile(nAgent.getResponseBody(),
+									"discussMap");
+							conn.newData("mogan-DB", "item_contact_record",
+									conditionMap, discussMap);
+
+							Map itemOrderConditionMap = new HashMap();
+							itemOrderConditionMap.put("item_order_id",
+									itemOrderId);
+							Map itemOrderDataMap = new HashMap();
+							itemOrderDataMap.put("time_at_16", new Date());
+							conn.update("mogan-DB", "item_order",
+									itemOrderConditionMap, itemOrderDataMap);
+						}
+					}
+				}
+
+				/**
+				 * 再讀取留言版
+				 */
+				nAgent.getDataWithGet(ITEM_CONTACT_MSG_URL.replaceAll(
+						"\\$YAHOO_ITEM_ID", itemId));
+				HTMLNodeFilter aNf = new HTMLNodeFilter("a");
+				HTMLNodeFilter crumbNf = new HTMLNodeFilter(".crumb");// 20091026確定
+				nodes = nAgent.filterItem(new AndFilter(aNf, crumbNf));
+				String linkURL = "";
+
+				String msgId = ""; // 訊息SEQ
+				String msgTitle = ""; // 訊息標題
+				String msgFrom = ""; // 訊息由誰發出
+				String msgContact = ""; // 訊息內容
+				String msgDate = ""; // 訊息發出時間
+
+				for (int i = 0; i < nodes.size(); i++) {
+
+					linkURL = nodes.elementAt(i).getText().split("\"")[1]
+							.split("\"")[0];
+					msgId = linkURL.split("&no=")[1].split("&")[0].replaceAll(
+							"&no=", "");
+
+					if (!contactMap.containsKey(msgId)) {
+
+						// 開啟留言畫面
+						nAgent.getDataWithGet(contactDetailUrl + linkURL);//
+
+						// 取得留言內容
+						HTMLNodeFilter fromNf = new HTMLNodeFilter(
+								msgFrom_KeyWord);
+						HTMLNodeFilter cssNf = new HTMLNodeFilter(
+								msgContactCSS_KeyWord);
+						NodeList contactNodes = nAgent.filterItem(cssNf);
+						msgContact = contactNodes.elementAt(0).toHtml();
+						msgContact = msgContact.replaceAll(
+								"(<small>|</small>)", "");
+
+						// 找到"投稿者："的位置，再找出投稿者與留言時間的資料
+						NodeList tableFromNodes = nAgent.filterItem(fromNf)
+								.elementAt(0).getParent().getParent()
+								.getParent().getChildren();
+
+						msgTitle = tableFromNodes.elementAt(1).getChildren()
+								.elementAt(1).toPlainTextString();// 留言標題
+						msgFrom = tableFromNodes.elementAt(3).getChildren()
+								.elementAt(1).toPlainTextString();// 留言者
+						msgDate = tableFromNodes.elementAt(3).getChildren()
+								.elementAt(3).toPlainTextString();// 留言時間
+
+						// 修正留言者的留言內容
+						msgFrom = msgFrom.replaceAll(msgFrom_KeyWord, "");
+
+						msgDate = fixYJDate(msgDate);// 修正留言時間為資料庫可以接受的時間格式
+
+						Map dataMap = new HashMap();
+						dataMap.put("seller_id", sellerId);
+						dataMap.put("member_id", memberId);
+						dataMap.put("bid_id", bidId);
+						dataMap.put("item_order_id", itemOrderId);
+						dataMap.put("item_id", itemId);
+						dataMap.put("msg_id", msgId);
+						dataMap.put("msg_title", msgTitle);
+						dataMap.put("msg_from", msgFrom);
+						dataMap.put("msg_contact", msgContact);
+						dataMap.put("msg_date", msgDate);
+						dataMap.put("msg_category", "取引ナビ");
+
+						/**
+						 * 2010 02 10 修正資料更新方式
+						 */
+						Map conditionMap = new HashMap();
+						conditionMap.put("item_order_id", itemOrderId);
+						conditionMap.put("msg_id", msgId);
+
+						conn.newData("mogan-DB", "item_contact_record",
+								conditionMap, dataMap);
+
+						// conn.newData("mogan-DB", "item_contact_record", dataMap);
+					}
+				}
+				Map itemOrderConditionMap = new HashMap();
+				itemOrderConditionMap.put("item_order_id", itemOrderId);
+				Map itemOrderDataMap = new HashMap();
+				itemOrderDataMap.put("time_at_16", new Date());
+				conn.update("mogan-DB", "item_order", itemOrderConditionMap,
+						itemOrderDataMap);
+			} catch (ParserException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (UnsupportedEncodingException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+
+		}
+
 		return jArray;
 	}
-	
+
 	/**
 	 * 取得聯絡資料新版
 	 * 
-	 * @version 2.0
 	 * @param itemOrderId
 	 * @return
 	 * @throws Exception
 	 */
 	public JSONArray getItemContactMsg(String itemOrderId) throws Exception {
 		JSONArray jArray = new JSONArray();
-		//getItemContactType(itemOrderId);
-		DBConn conn = (DBConn) this.getModelServletContext().getAttribute("DBConn");
-		
+		DBConn conn = (DBConn) this.getModelServletContext().getAttribute(
+				"DBConn");
+
 		ArrayList orderList = conn.query(CONN_ALIAS,
-				"SELECT * FROM item_order WHERE item_order_id='"
+				"SELECT item_id,bid_id FROM item_order WHERE item_order_id='"
 						+ itemOrderId + "'");
-		
+
 		// 沒有訂單可能是因為該訂單為特殊填單
 		Map<String, String> orderMap = (Map) orderList.get(0);
-
 		NetAgent nAgent = new NetAgent();
-		String bidAccount = orderMap.get("account");
-		/** 因舊版資料舊庫yahoo 帳號沒有ID*/
-		String bidId = orderMap.get("account");
-		String itemId = orderMap.get("item_id");
-		String itemServer = orderMap.get("url").split("http://")[1].split("\\.")[0];
-		String sellerId = orderMap.get("seller_id");
-		String memberAccount = orderMap.get("member_account");
-		System.out.println("###[DEBUG]getItemContactMsgxx::"+bidAccount+" "+itemId+" "+itemOrderId);
-		autoLogin(bidAccount);
-		Cookie[] cookies = getLoginSessionCookie(this.getAppId(), bidAccount);
+		String bidId = orderMap.get("bid_id");
+		/*
+		 * String bidAccount = orderMap.get("account"); String bidId = orderMap.get("account"); String itemId = orderMap.get("item_id"); String
+		 * itemServer = orderMap.get("url").split("http://")[1].split("\\.")[0]; String sellerId = orderMap.get("seller_id"); String memberAccount =
+		 * orderMap.get("member_account"); System.out.println("###[DEBUG]getItemContactMsgxx::"+bidAccount+" "+itemId+" "+itemOrderId);
+		 */
+		autoLogin(bidId);
+		Cookie[] cookies = getLoginSessionCookie(this.getAppId(), bidId);
 		nAgent.getState().addCookies(cookies);
+
+		String bidAccount = orderMap.get("account");
+		String itemId = orderMap.get("item_id");
+		String itemServer = orderMap.get("url").split("http://")[1]
+				.split("\\.")[0];
+		String memberAccount = orderMap.get("member_account");
+		String sellerId = orderMap.get("seller_id");
 
 		try {
 			// 取出連絡記錄， 透過下標ID 商品ID 交易ID來辦識不同的資料
-			JSONArray jDataArray = getItemContactMsgFromDB(bidAccount, itemId,
-					itemOrderId);
+			JSONArray jDataArray = getItemContactMsgFromDB(itemOrderId);
 			Map contactMap = new HashMap();
 
 			for (int i = 0; i < jDataArray.size(); i++) {
@@ -1545,15 +1965,16 @@ public class NetAgentYJV2 extends NetAgentModel implements BidFace {
 			}
 
 			nAgent.getDataWithGet(ITEM_DISCUSSION_MSG_URL.replaceAll(
-					"\\$YAHOO_ITEM_ID", itemId).replaceAll("\\$YAHOO_PAGE", itemServer));
+					"\\$YAHOO_ITEM_ID", itemId).replaceAll("\\$YAHOO_PAGE",
+					itemServer));
 
 			NodeList discussionNodes = nAgent.filterItem(new HTMLNodeFilter(
 					"id=\"modBlbdForm\""));// 揭示版
 			// 當商品未結標，揭示版不會出來需要避過 2010 02 10
-			if (discussionNodes.size() > 0 //是否有揭示版
-					&& discussionNodes.elementAt(0).getChildren().size() > 5//揭示版是否有內容
-					) {
-				
+			if (discussionNodes.size() > 0 // 是否有揭示版
+					&& discussionNodes.elementAt(0).getChildren().size() > 5// 揭示版是否有內容
+			) {
+
 				// 子項必需超過5個才可判斷為有內容
 				discussionNodes = discussionNodes.elementAt(0).getChildren();
 				discussionNodes = discussionNodes.elementAt(5).getChildren();
@@ -1568,14 +1989,14 @@ public class NetAgentYJV2 extends NetAgentModel implements BidFace {
 				for (int i = 0; i < discussionNodes.size(); i++) {
 					if (discussionNodes.elementAt(i).toPlainTextString()
 							.matches("^(\\s投稿|\\s答え)(.|\\s)*")) {
-						
+
 						// 標題
 						String msgId = discussionNodes.elementAt(i)
 								.toPlainTextString().split("\\n")[1];
 						String msgFrom = discussionNodes.elementAt(i)
 								.toPlainTextString().split("\\n")[2]
 								.split("(\\(|\\（)")[0];
-						System.out.println("[DEBUG] 有揭示版."+msgId);
+						System.out.println("[DEBUG] 有揭示版." + msgId);
 						for (int d = 3; d < discussionNodes.elementAt(i)
 								.toPlainTextString().split("\\n").length; d++) {
 							if (discussionNodes.elementAt(i)
@@ -1592,7 +2013,6 @@ public class NetAgentYJV2 extends NetAgentModel implements BidFace {
 						discussMap.put("msg_category", "連絡掲示板");
 						discussMap.put("msg_from", msgFrom);
 
-
 					} else if (discussionNodes.elementAt(i).toPlainTextString()
 							.matches("^\\s*")) {
 						// 空白
@@ -1602,23 +2022,22 @@ public class NetAgentYJV2 extends NetAgentModel implements BidFace {
 						discussMap.put("msg_contact", discussionNodes
 								.elementAt(i).toHtml());
 
-						
-
 						discussMap.put("member_id", memberAccount);
-						/** bid_account 將被修改為 bid_id*/
+						/** bid_account 將被修改為 bid_id */
 						discussMap.put("bid_id", bidAccount);
 						discussMap.put("item_order_id", itemOrderId);
 						discussMap.put("transaction_id", itemOrderId);
 						discussMap.put("item_id", itemId);
-						
-						/**2010 02 10
-						 * 修正資料更新方式
+
+						/**
+						 * 2010 02 10 修正資料更新方式
 						 */
 						Map conditionMap = new HashMap();
-						conditionMap.put("transaction_id",itemOrderId);
-						conditionMap.put("msg_id",discussMap.get("msg_id"));
-						
-						conn.newData("mogan-DB", "item_contact_record", conditionMap,discussMap);
+						conditionMap.put("transaction_id", itemOrderId);
+						conditionMap.put("msg_id", discussMap.get("msg_id"));
+
+						conn.newData("mogan-DB", "item_contact_record",
+								conditionMap, discussMap);
 					}
 				}
 			}
@@ -1678,11 +2097,11 @@ public class NetAgentYJV2 extends NetAgentModel implements BidFace {
 
 					Map dataMap = new HashMap();
 					dataMap.put("seller_id", sellerId);
-					/** member_account 將被修改為 member_id*/
+					/** member_account 將被修改為 member_id */
 					dataMap.put("member_account", memberAccount);
 					dataMap.put("member_id", memberAccount);
 					dataMap.put("bid_account", bidAccount);
-					/** bid_account 將被修改為 bid_id*/
+					/** bid_account 將被修改為 bid_id */
 					dataMap.put("bid_id", bidAccount);
 					dataMap.put("item_order_id", itemOrderId);
 					dataMap.put("transaction_id", itemOrderId);
@@ -1693,16 +2112,17 @@ public class NetAgentYJV2 extends NetAgentModel implements BidFace {
 					dataMap.put("msg_contact", msgContact);
 					dataMap.put("msg_date", msgDate);
 					dataMap.put("msg_category", "取引ナビ");
-					
-					/**2010 02 10
-					 * 修正資料更新方式
+
+					/**
+					 * 2010 02 10 修正資料更新方式
 					 */
 					Map conditionMap = new HashMap();
-					conditionMap.put("transaction_id",itemOrderId);
-					conditionMap.put("msg_id",msgId);
-					
-					conn.newData("mogan-DB", "item_contact_record", conditionMap,dataMap);
-//					conn.newData("mogan-DB", "item_contact_record", dataMap);
+					conditionMap.put("transaction_id", itemOrderId);
+					conditionMap.put("msg_id", msgId);
+
+					conn.newData("mogan-DB", "item_contact_record",
+							conditionMap, dataMap);
+					// conn.newData("mogan-DB", "item_contact_record", dataMap);
 				}
 			}
 		} catch (ParserException e) {
@@ -1744,10 +2164,9 @@ public class NetAgentYJV2 extends NetAgentModel implements BidFace {
 		if (dataSource.equals(this.DATA_SOURCE_WEB)) {
 			getItemContactMsg(transactionId);
 		}
-		
+
 		// 取出連絡記錄， 透過下標ID 商品ID 交易ID來辦識不同的資料
-		JSONArray jDataArray = getItemContactMsgFromDB(bidAccount, itemId,
-				transactionId);
+		JSONArray jDataArray = getItemContactMsgFromDB(transactionId);
 
 		return jDataArray;
 	}
@@ -1765,9 +2184,21 @@ public class NetAgentYJV2 extends NetAgentModel implements BidFace {
 	 *            - 下標價
 	 * @param qty
 	 *            - 下標數量
-	 * @return 下標結果，以數字表示 <br /> 0 - 無法判斷<br /> 1 - 下標成功，非最高出價<br /> 2 - 下標成功，已得標<br/> 3 - 下標成功，最高出價<br /> 4 - 無法下標<br /> - 下標失敗，錯誤出價(未完成)<br /> -
-	 *         下標失敗，已結標(未完成)<br /> - 下標失敗，無下標連結(未完成)<br /> - 下標失敗，評價不足(未完成)<br /> - 下標失敗，密碼錯誤(未完成)<br /> - 下標失敗，下標價過低(未完成)<br /> - 下標失敗，數量錯誤(未完成)<br
-	 *         /> - 下標失敗，無法下標(未完成)<br />
+	 * @return 下標結果，以數字表示 <br />
+	 *         0 - 無法判斷<br />
+	 *         1 - 下標成功，非最高出價<br />
+	 *         2 - 下標成功，已得標<br/>
+	 *         3 - 下標成功，最高出價<br />
+	 *         4 - 無法下標<br />
+	 *         - 下標失敗，錯誤出價(未完成)<br />
+	 *         - 下標失敗，已結標(未完成)<br />
+	 *         - 下標失敗，無下標連結(未完成)<br />
+	 *         - 下標失敗，評價不足(未完成)<br />
+	 *         - 下標失敗，密碼錯誤(未完成)<br />
+	 *         - 下標失敗，下標價過低(未完成)<br />
+	 *         - 下標失敗，數量錯誤(未完成)<br
+	 *         />
+	 *         - 下標失敗，無法下標(未完成)<br />
 	 * @throws Exception
 	 */
 	@Override
@@ -1906,9 +2337,20 @@ public class NetAgentYJV2 extends NetAgentModel implements BidFace {
 	 *            - 商品網址
 	 * @param qty
 	 *            - 下標數量
-	 * @return 下標結果，以數字表示 0 - 下標失敗<br /> 1 - 下標成功，目前最高標<br /> 2 - 下標成功，非最高標<br /> 3 - 下標成功，已得標<br /> 4 - 下標失敗，無法下標<br /> - 下標失敗，錯誤出價(未完成)<br /> -
-	 *         下標失敗，已結標(未完成)<br /> - 下標失敗，無下標連結(未完成)<br /> - 下標失敗，評價不足(未完成)<br /> - 下標失敗，密碼錯誤(未完成)<br /> - 下標失敗，下標價過低(未完成)<br /> - 下標失敗，數量錯誤(未完成)<br
-	 *         /> - 下標失敗，無法下標(未完成)<br />
+	 * @return 下標結果，以數字表示 0 - 下標失敗<br />
+	 *         1 - 下標成功，目前最高標<br />
+	 *         2 - 下標成功，非最高標<br />
+	 *         3 - 下標成功，已得標<br />
+	 *         4 - 下標失敗，無法下標<br />
+	 *         - 下標失敗，錯誤出價(未完成)<br />
+	 *         - 下標失敗，已結標(未完成)<br />
+	 *         - 下標失敗，無下標連結(未完成)<br />
+	 *         - 下標失敗，評價不足(未完成)<br />
+	 *         - 下標失敗，密碼錯誤(未完成)<br />
+	 *         - 下標失敗，下標價過低(未完成)<br />
+	 *         - 下標失敗，數量錯誤(未完成)<br
+	 *         />
+	 *         - 下標失敗，無法下標(未完成)<br />
 	 * @throws AccountNotExistException
 	 * @throws Exception
 	 */
@@ -1969,8 +2411,14 @@ public class NetAgentYJV2 extends NetAgentModel implements BidFace {
 	 * @param itemURL
 	 * @param bidPrice
 	 *            下標價
-	 * @return 回傳數字<br /> 0 - 未得標<br /> 1 - 最高出價者<br /> 2 - 已得標<br /> 3 - 出價被取消，未結標(未完成)<br /> 4 - 出價被取消，已結標(未完成)<br /> 5 - 出價被超過(未完成)<br /> 6 -
-	 *         流標(未完成)<br />
+	 * @return 回傳數字<br />
+	 *         0 - 未得標<br />
+	 *         1 - 最高出價者<br />
+	 *         2 - 已得標<br />
+	 *         3 - 出價被取消，未結標(未完成)<br />
+	 *         4 - 出價被取消，已結標(未完成)<br />
+	 *         5 - 出價被超過(未完成)<br />
+	 *         6 - 流標(未完成)<br />
 	 * @throws Exception
 	 */
 	@Override
@@ -2003,17 +2451,23 @@ public class NetAgentYJV2 extends NetAgentModel implements BidFace {
 	 * @param pwd
 	 * @param checkLoginSession
 	 *            是否重覆登入
-	 * @return 回傳數字<br /> 0-未登入 <br /> 1-登入成功 <br /> 2-登入失敗 <br /> 3-帳號已登入
+	 * @return 回傳數字<br />
+	 *         0-未登入 <br />
+	 *         1-登入成功 <br />
+	 *         2-登入失敗 <br />
+	 *         3-帳號已登入
 	 * @throws Exception
 	 */
 	@Override
 	public JSONArray login(String uId, String pwd) throws Exception {
 		JSONArray jArray = new JSONArray();
 		NetAgent nAgent = new NetAgent();
+//		HostConfiguration config = nAgent.getHostConfiguration();
+//		config.setProxy("222.58.225.137", 3128);
 		String loginMsg = "0";// 未登入
 		NodeList nodes;
 		try {
-			nAgent.getDataWithGet(this.getLoginURL());// 開啟登入畫面
+			nAgent.getDataWithGetiPhone(this.getLoginURL());// 開啟登入畫面
 			nodes = nAgent.filterInputItem();// 取得input項目
 			nAgent.setParserNodesToPostDataMap(nodes);// 將nodes設入要post項目
 			Map tempMap = new HashMap();// 設定帳號及密碼
@@ -2023,15 +2477,14 @@ public class NetAgentYJV2 extends NetAgentModel implements BidFace {
 			nAgent.postMaptoData();// 將postMap轉成postData
 
 			nodes = nAgent.filterFormLoginHref();// 過濾登入項目
-			// System.out.println("[INFO] YAHOO JP LOGIN :::::::::::");
-			// System.out.println(nAgent.getResponseBody());
+
 			setWebSiteURL(nodes.elementAt(0).getText());
 			setWebSiteURL(nAgent.getUrl(getWebSiteURL()));
 			nAgent.getDataWithPost(getWebSiteURL());
 			if (nAgent.getResponseCookies().length == 0) {
 				loginMsg = "2";// 登入失敗
 			} else {
-				this.setLoginCookieMap(this.getWebSiteName(), uId,pwd, nAgent
+				this.setLoginCookieMap(this.getWebSiteName(), uId, pwd, nAgent
 						.getResponseCookies());
 				loginMsg = "1";// 登入成功
 			}
@@ -2041,6 +2494,7 @@ public class NetAgentYJV2 extends NetAgentModel implements BidFace {
 		}
 		System.out.println("[INFO] YAHOO JP LOGIN loginMsg::" + loginMsg
 				+ " account:" + uId + ":" + pwd);
+		this.outputTofile(nAgent.getResponseBody());
 		jArray.add(loginMsg);
 		return jArray;
 	}
@@ -2051,22 +2505,23 @@ public class NetAgentYJV2 extends NetAgentModel implements BidFace {
 		if (this.getLoginSessionCookie(this.getAppId(), uId).length > 0) {
 			System.out.println("[DEBUG] CHECK COOKIE:"
 					+ this.getLoginSessionCookie(this.getAppId(), uId).length);
-			
+
 			NetAgent nAgent = new NetAgent();
 			Cookie[] cookies = getLoginSessionCookie(this.getAppId(), uId);
 			nAgent.getState().addCookies(cookies);
-			nAgent.getDataWithGet("https://lh.login.yahoo.co.jp/");
-			this.outputTofile(nAgent.getResponseBody());
+			nAgent.getDataWithGetiPhone("https://lh.login.yahoo.co.jp/");
 			try {
-				if (nAgent.filterItem(new HTMLNodeFilter("履歴 - Yahoo! JAPAN")).size()>0){
+				if (nAgent.filterItem(new HTMLNodeFilter("履歴 - Yahoo! JAPAN"))
+						.size() > 0) {
 					return true;
-				}else{
+				} else {
 					return false;
 				}
 			} catch (ParserException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+
 			return false;
 		} else {
 			try {
@@ -2082,23 +2537,23 @@ public class NetAgentYJV2 extends NetAgentModel implements BidFace {
 	/**
 	 * 只接收帳號，自動到資料庫找密碼
 	 * 
-	 * @param uId
+	 * @param bidId
 	 * @return
 	 * @throws AccountNotExistException
 	 *             帳號不存在
 	 */
-	public boolean autoLogin(String uId) throws AccountNotExistException {
+	public boolean autoLogin(String bidId) throws AccountNotExistException {
 		String pwd = "";
 		DBConn conn = (DBConn) this.getModelServletContext().getAttribute(
 				"DBConn");
 		JSONArray jArray = conn.queryJSONArray("mogan-DB",
-				"SELECT * FROM system_bid_id WHERE DELETE_FLAG='1' and account='"
-						+ uId + "'");
+				"SELECT * FROM system_bid_id WHERE DELETE_FLAG='1' and bid_id='"
+						+ bidId + "'");
 		if (jArray.size() > 0) {
 			return autoLogin(jArray.getJSONObject(0).getString("account"),
 					jArray.getJSONObject(0).getString("bid_password"));
 		} else {
-			throw new AccountNotExistException("此帳號不存在(" + uId + ")");
+			throw new AccountNotExistException("此帳號不存在(" + bidId + ")");
 		}
 	}
 
@@ -2126,7 +2581,12 @@ public class NetAgentYJV2 extends NetAgentModel implements BidFace {
 	/**
 	 * 判斷下標結果，判斷是否DIV的ID，yaucBidRcd為非最高出價，yaucBidAct為最高出價，modWlBtnArea結標追縱代表未結標
 	 * 
-	 * @return 回傳數字<br /> 0 - 無法判斷<br /> 1 - 下標成功，非最高出價<br /> 2 - 下標成功，已得標<br />3 - 下標成功，最高出價<br /> 4 - 無法下標<br />
+	 * @return 回傳數字<br />
+	 *         0 - 無法判斷<br />
+	 *         1 - 下標成功，非最高出價<br />
+	 *         2 - 下標成功，已得標<br />
+	 *         3 - 下標成功，最高出價<br />
+	 *         4 - 無法下標<br />
 	 * @throws ParserException
 	 */
 	private String checkBidResult(String html) throws ParserException {

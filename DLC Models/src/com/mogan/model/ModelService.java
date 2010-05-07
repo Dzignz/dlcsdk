@@ -161,8 +161,8 @@ public class ModelService extends ProtoModel implements ServiceModelFace {
 			
 			jObj.put("status", ScheduleProtal.getScheduleStatus(e
 					.elementText("scheduleName")));
-			if(ScheduleModelAdapter.setLastExecuteDate(scheduleName)!=null){
-				jObj.put("last_exe_date", ScheduleModelAdapter.setLastExecuteDate(scheduleName).toString());	
+			if(ScheduleModelAdapter.getLastExecuteDate(scheduleName)!=null){
+				jObj.put("last_exe_date", ScheduleModelAdapter.getLastExecuteDate(scheduleName).toString());	
 			}
 			
 			if(ScheduleModelAdapter.getStartScheduleDate(scheduleName)!=null){

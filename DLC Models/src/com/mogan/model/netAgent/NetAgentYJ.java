@@ -1965,7 +1965,9 @@ public class NetAgentYJ extends NetAgentModel implements BidFace {
 		nAgent.getState().addCookies(cookies);
 		nAgent.getDataWithPost(itemURL);
 		// this.printHeaders(nAgent.getResponseHeader());
+		this.outputTofile(nAgent.getResponseBody(), "isMyBid");
 		bidItemMsg = nAgent.isMyBid(price);
+		
 		// outputTofile(nAgent.getResponseBody());
 		jArray.add(bidItemMsg);
 		return jArray;
@@ -2005,7 +2007,8 @@ public class NetAgentYJ extends NetAgentModel implements BidFace {
 
 			nodes = nAgent.filterFormLoginHref();// 過濾登入項目
 			// System.out.println("[INFO] YAHOO JP LOGIN :::::::::::");
-			// System.out.println(nAgent.getResponseBody());
+//			this.outputTofile(nAgent.getResponseBody(),"loginui");
+			 
 			setWebSiteURL(nodes.elementAt(0).getText());
 			setWebSiteURL(nAgent.getUrl(getWebSiteURL()));
 			nAgent.getDataWithPost(getWebSiteURL());
@@ -2037,7 +2040,7 @@ public class NetAgentYJ extends NetAgentModel implements BidFace {
 			Cookie[] cookies = getLoginSessionCookie(this.getAppId(), uId);
 			nAgent.getState().addCookies(cookies);
 			nAgent.getDataWithGet("https://lh.login.yahoo.co.jp/");
-			this.outputTofile(nAgent.getResponseBody());
+//			this.outputTofile(nAgent.getResponseBody());
 			try {
 				if (nAgent.filterItem(new HTMLNodeFilter("履歴 - Yahoo! JAPAN")).size()>0){
 					return true;

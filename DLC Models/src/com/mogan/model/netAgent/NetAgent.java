@@ -18,6 +18,7 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.httpclient.Cookie;
 import org.apache.commons.httpclient.Header;
+import org.apache.commons.httpclient.HostConfiguration;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.NameValuePair;
@@ -93,22 +94,26 @@ public class NetAgent extends HttpClient {
 	}
 	
 	/**
-	 * 提供網址，使用get進行連線
-	 * 
-	 * @param urlString
-	 * @return 連線結果
+	 * 執行指定的GetMethod
+	 * @param getMethod
+	 * @return
 	 */
-	public int getDataWithGet(String urlString) {
-		GetMethod getMethod = new GetMethod(urlString);
+	private int getDataWithGet(GetMethod getMethod){
 		statusCode = 0;
-		try {
-			getMethod
-					.setRequestHeader(
-							"User-Agent",
-							"Mozilla/5.0 (Windows; U; Windows NT 6.1; zh-TW; rv:1.9.1.3) Gecko/20090824 Firefox/3.5.3 GTB6 (.NET CLR 3.5.30729)");
-			
+		try {		
+//			HostConfiguration config = this.getHostConfiguration();
+//			config.setProxy("222.58.225.137", 3128);
+			/*
+			System.setProperty("http.proxyHost", "222.58.225.137");
+			System.setProperty("http.proxyPort", "3128");
+			System.setProperty("https.proxyHost", "222.58.225.137");
+			System.setProperty("https.proxyPort", "3128");
+			*/
+	        
+	        //this.getState().setProxyCredentials(authscope, credentials)
+			//Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("123.0.0.1", 8080));
+			//this.
 			statusCode = this.executeMethod(getMethod);
-			
 			
 			this.setResponseBody(getMethod.getResponseBodyAsStream(), getMethod
 					.getResponseCharSet());
@@ -125,10 +130,38 @@ public class NetAgent extends HttpClient {
 			// getMethod.releaseConnection();
 			// 必須釋放連線資源
 		}
-
+		return statusCode;
+	}
+	
+	/**
+	 * 提供網址，使用get進行連線，User-Agent為iPhone
+	 * @param urlString
+	 * @return
+	 */
+	public int getDataWithGetiPhone(String urlString){
+		GetMethod getMethod = new GetMethod(urlString);
+		getMethod.setRequestHeader("User-Agent","Mozilla/5.0 (iPhone; U; CPU iPhone OS 3_0 like Mac OS X; en-us) AppleWebKit/528.18 (KHTML, like Gecko) Version/4.0 Mobile/7A341 Safari/528.16");
+		statusCode=getDataWithGet(getMethod);
+		return statusCode;
+		
+	}
+	
+	
+	/**
+	 * 提供網址，使用get進行連線，User-Agent為firefox
+	 * 
+	 * @param urlString
+	 * @return 連線結果
+	 */
+	public int getDataWithGet(String urlString) {
+		GetMethod getMethod = new GetMethod(urlString);
+		getMethod.setRequestHeader("User-Agent","Mozilla/5.0 (Windows; U; Windows NT 6.1; zh-TW; rv:1.9.1.3) Gecko/20090824 Firefox/3.5.3 GTB6 (.NET CLR 3.5.30729)");
+		statusCode=getDataWithGet(getMethod);
 		return statusCode;
 	}
 
+
+	
 	/**
 	 * 提供網址及參數，使用post連線
 	 * 
@@ -144,11 +177,8 @@ public class NetAgent extends HttpClient {
 		}
 		statusCode = 0;
 		try {
-			postMethod
-					.setRequestHeader(
-							"User-Agent",
-							"Mozilla/5.0 (Windows; U; Windows NT 6.1; zh-TW; rv:1.9.1.3) Gecko/20090824 Firefox/3.5.3 GTB6 (.NET CLR 3.5.30729)");
-			
+//			HostConfiguration config = this.getHostConfiguration();
+//			config.setProxy("222.58.225.137", 3128);
 			statusCode = this.executeMethod(postMethod);
 			this.setResponseBody(postMethod.getResponseBodyAsStream(),
 					postMethod.getResponseCharSet());
@@ -187,11 +217,8 @@ public class NetAgent extends HttpClient {
 
 			postMethod.setRequestEntity(new MultipartRequestEntity(multipart,postMethod.getParams()));
 
-			postMethod
-					.setRequestHeader(
-							"User-Agent",
-							"Mozilla/5.0 (Windows; U; Windows NT 6.1; zh-TW; rv:1.9.1.3) Gecko/20090824 Firefox/3.5.3 GTB6 (.NET CLR 3.5.30729)");
-			
+//			HostConfiguration config = this.getHostConfiguration();
+//			config.setProxy("222.58.225.137", 3128);
 			statusCode = this.executeMethod(postMethod);
 			this.setResponseBody(postMethod.getResponseBodyAsStream(),
 					postMethod.getResponseCharSet());
@@ -217,6 +244,18 @@ public class NetAgent extends HttpClient {
 	 */
 	public int getDateWithPostFile(String urlString) {
 		EncodePostMethod postMethod = new EncodePostMethod(urlString);
+		postMethod.setRequestHeader("User-Agent","Mozilla/5.0 (Windows; U; Windows NT 6.1; zh-TW; rv:1.9.1.3) Gecko/20090824 Firefox/3.5.3 GTB6 (.NET CLR 3.5.30729)");
+		return getDateWithPostFile(postMethod);
+	}
+	
+	/**
+	 * 上傳檔案專用POST
+	 * @param urlString 網址
+	 * @return
+	 */
+	public int getDateWithPostFileIPhone(String urlString) {
+		EncodePostMethod postMethod = new EncodePostMethod(urlString);
+		postMethod.setRequestHeader("User-Agent","Mozilla/5.0 (iPhone; U; CPU iPhone OS 3_0 like Mac OS X; en-us) AppleWebKit/528.18 (KHTML, like Gecko) Version/4.0 Mobile/7A341 Safari/528.16");
 		return getDateWithPostFile(postMethod);
 	}
 	
@@ -228,9 +267,22 @@ public class NetAgent extends HttpClient {
 	 */
 	public int getDateWithPostFile(String urlString, String charset) {
 		EncodePostMethod postMethod = new EncodePostMethod(urlString, charset);
+		postMethod.setRequestHeader("User-Agent","Mozilla/5.0 (Windows; U; Windows NT 6.1; zh-TW; rv:1.9.1.3) Gecko/20090824 Firefox/3.5.3 GTB6 (.NET CLR 3.5.30729)");
 		return getDateWithPostFile(postMethod);
 	}
 
+	/**
+	 * 上傳檔案專用POST
+	 * @param urlString 網址
+	 * @param charset 編碼
+	 * @return
+	 */
+	public int getDateWithPostFileIPhone(String urlString, String charset) {
+		EncodePostMethod postMethod = new EncodePostMethod(urlString, charset);
+		postMethod.setRequestHeader("User-Agent","Mozilla/5.0 (iPhone; U; CPU iPhone OS 3_0 like Mac OS X; en-us) AppleWebKit/528.18 (KHTML, like Gecko) Version/4.0 Mobile/7A341 Safari/528.16");
+		return getDateWithPostFile(postMethod);
+	}
+	
 	/**
 	 * 呼叫前必須設定POST資料，呼叫postMaptoData()或setPostData()
 	 * 
@@ -242,10 +294,25 @@ public class NetAgent extends HttpClient {
 	 */
 	public int getDataWithPost(String urlString, String charset) {
 		EncodePostMethod postMethod = new EncodePostMethod(urlString, charset);
-		
+		postMethod.setRequestHeader("User-Agent","Mozilla/5.0 (Windows; U; Windows NT 6.1; zh-TW; rv:1.9.1.3) Gecko/20090824 Firefox/3.5.3 GTB6 (.NET CLR 3.5.30729)");
 		return getDataWithPost(postMethod);
 	}
 
+	/**
+	 * 呼叫前必須設定POST資料，呼叫postMaptoData()或setPostData()
+	 * 
+	 * @param urlString
+	 *            網址
+	 * @param charset
+	 *            編碼
+	 * @return
+	 */
+	public int getDataWithPostIPhone(String urlString, String charset) {
+		EncodePostMethod postMethod = new EncodePostMethod(urlString, charset);
+		postMethod.setRequestHeader("User-Agent","Mozilla/5.0 (iPhone; U; CPU iPhone OS 3_0 like Mac OS X; en-us) AppleWebKit/528.18 (KHTML, like Gecko) Version/4.0 Mobile/7A341 Safari/528.16");
+		return getDataWithPost(postMethod);
+	}
+	
 	/**
 	 * 呼叫前必須設定POST資料，呼叫postMaptoData()或setPostData()
 	 * 
@@ -255,9 +322,24 @@ public class NetAgent extends HttpClient {
 	 */
 	public int getDataWithPost(String urlString) {
 		EncodePostMethod postMethod = new EncodePostMethod(urlString);
+		postMethod.setRequestHeader("User-Agent","Mozilla/5.0 (Windows; U; Windows NT 6.1; zh-TW; rv:1.9.1.3) Gecko/20090824 Firefox/3.5.3 GTB6 (.NET CLR 3.5.30729)");
 		return getDataWithPost(postMethod);
 	}
-
+	
+	/**
+	 * 呼叫前必須設定POST資料，呼叫postMaptoData()或setPostData()
+	 * 
+	 * @param urlString
+	 *            網址
+	 * @return
+	 */
+	public int getDataWithPostIPhone(String urlString) {
+		EncodePostMethod postMethod = new EncodePostMethod(urlString);
+		postMethod.setRequestHeader("User-Agent","Mozilla/5.0 (iPhone; U; CPU iPhone OS 3_0 like Mac OS X; en-us) AppleWebKit/528.18 (KHTML, like Gecko) Version/4.0 Mobile/7A341 Safari/528.16");
+		return getDataWithPost(postMethod);
+	}
+	
+	
 	/**
 	 * 提供網址及參數，使用post連線
 	 * 
