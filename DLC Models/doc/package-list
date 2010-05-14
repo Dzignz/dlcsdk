@@ -2,9 +2,11 @@ com.data.migration
 com.mogan.dataBean
 com.mogan.debug
 com.mogan.exception
-com.mogan.exception.NetAgent
+com.mogan.exception.netAgent
 com.mogan.exception.schedule
+com.mogan.exception.yamoto
 com.mogan.face
 com.mogan.model
 com.mogan.model.netAgent
+com.mogan.model.yamato
 com.mogan.schedule

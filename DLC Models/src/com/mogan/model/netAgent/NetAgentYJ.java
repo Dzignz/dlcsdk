@@ -1158,7 +1158,10 @@ public class NetAgentYJ extends NetAgentModel implements BidFace {
 				"\\$YAHOO_BIDDER_ACCOUNT", bidAccount).replaceAll(
 				"\\$YAHOO_ITEM_ID", itemId).replaceAll(
 				"\\$YAHOO_SELLER_ACCOUNT", sellerId));
-
+		SysLogger4j.info("getItemOrderForm::"+this.ORDER_FORM_URL_A.replaceAll(
+				"\\$YAHOO_BIDDER_ACCOUNT", bidAccount).replaceAll(
+				"\\$YAHOO_ITEM_ID", itemId).replaceAll(
+				"\\$YAHOO_SELLER_ACCOUNT", sellerId));
 		String sb = nAgent.getResponseBody();
 
 		/*
@@ -2033,14 +2036,13 @@ public class NetAgentYJ extends NetAgentModel implements BidFace {
 	public boolean autoLogin(String uId, String pwd) {
 		// TODO Auto-generated method stub
 		if (this.getLoginSessionCookie(this.getAppId(), uId).length > 0) {
-			System.out.println("[DEBUG] CHECK COOKIE:"
-					+ this.getLoginSessionCookie(this.getAppId(), uId).length);
+			System.out.println("[DEBUG] CHECK COOKIE:"+ this.getLoginSessionCookie(this.getAppId(), uId).length);
 			
 			NetAgent nAgent = new NetAgent();
 			Cookie[] cookies = getLoginSessionCookie(this.getAppId(), uId);
 			nAgent.getState().addCookies(cookies);
 			nAgent.getDataWithGet("https://lh.login.yahoo.co.jp/");
-//			this.outputTofile(nAgent.getResponseBody());
+			this.outputTofile(nAgent.getResponseBody());
 			try {
 				if (nAgent.filterItem(new HTMLNodeFilter("履歴 - Yahoo! JAPAN")).size()>0){
 					return true;

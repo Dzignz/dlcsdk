@@ -264,6 +264,7 @@ public class GmailTask extends ScheduleModelAdapter {
 						dataMap.put("item_order_id", itemOrderId);
 						dataMap.put("alert", action);
 						dataMap.put("create_date", new Date());
+						dataMap.remove("info");
 						dataMap.put("seq_no", autoNum);
 
 						conn.newData("mogan-DB", "system_alert", dataMap);

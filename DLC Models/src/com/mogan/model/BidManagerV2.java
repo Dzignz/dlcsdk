@@ -10,8 +10,11 @@ import java.util.Iterator;
 import java.util.Map;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
+
+import com.mogan.exception.MoganException;
 import com.mogan.exception.NonPrivilegeException;
 import com.mogan.exception.netAgent.AccountNotExistException;
+import com.mogan.exception.privilege.PrivilegeException;
 import com.mogan.log.MoganLogger;
 import com.mogan.model.netAgent.NetAgentYJV2;
 import com.mogan.sys.DBConn;
@@ -29,31 +32,34 @@ import com.mogan.sys.model.ServiceModelFace;
 public class BidManagerV2 extends ProtoModel implements ServiceModelFace {
 
 	final static private String CONN_ALIAS = "mogan-DB";
-
+	final static private String PRIVILEGE_VIEW="view";
+	final static private String PRIVILEGE_UP="up";
+	final static private String PRIVILEGE_DEL="del";
+	final static private String PRIVILEGE_ADD="add";
+	final static private String PRIVILEGE_MODEL_TIDE_MONEY="SF-201005-07";	//費用維護
+	final static private String PRIVILEGE_MODEL_TIDE_STATE="SF-201004-17";	//訂單狀態管理
+	final static private String PRIVILEGE_MODEL_SEND_MSG="SF-201004-16";	//聯絡賣家
+	final static private String PRIVILEGE_MODEL_TIDE_DATA="SF-201005-08";	//訂單備忘管理
+	
 	/**
 	 * 檢驗權限
-	 * TODO 未完成
-	 * @param action
-	 * @return
+	 * 
+	 * @param action 	動作
+	 * @param modelId	權限ID
+	 * @return true/false 是否擁有該權限
 	 */
-	private boolean checkPrivilege(String action) {
-		if (true){
-			return true;
-		}
+	@SuppressWarnings("finally")
+	private boolean checkPrivilege(String action,String privilegeId) {
 		try {
-			Map modelPrivMap = (Map) this.getSession()
-					.getAttribute("Privilege");
-			Map privMap = (Map) modelPrivMap.get(this.getModelName());
-			if (privMap.get(action) == null) {
-				return false;
-			} else {
-				return (Boolean) privMap.get(action);
-			}
+			JSONObject privObj = (JSONObject) this.getSession()
+					.getAttribute("USER_PRIVILEGE");
+			SysLogger4j.debug((String)this.getSession().getAttribute("USER_ID") +" : "+ privObj.getJSONObject(privilegeId));
+			SysLogger4j.info((String)this.getSession().getAttribute("USER_ID") +" : "+ privilegeId+" : " + privObj.getJSONObject(privilegeId).getBoolean(action));
+			return privObj.getJSONObject(privilegeId).getBoolean(action);
 		} catch (Exception e) {
 			SysLogger4j.error("Exception",e);
-		} finally {
-			return false;
 		}
+		return false;
 	}
 	
 	/**
@@ -173,24 +179,97 @@ public class BidManagerV2 extends ProtoModel implements ServiceModelFace {
 		} else if (this.getAct().equals("SEND_MESSAGE")){
 			sendMsg(JSONObject.fromObject(parameterMap.get("MSG_DATAS")));
 			
+		}else if (this.getAct().equals("DEL_TIDE")){
+			String delType=parameterMap.get("DEL_TYPE");
+			String tideId=parameterMap.get("TIDE_ID");
+			
+			delTide(tideId,delType);
 		}
 		return jArray;
 	}
+	
+	/**
+	 * 刪單或棄標操作,如果訂單已經進入已付款狀態，就無法刪除訂單或棄標
+	 * @param tideId
+	 * @param delType 0-刪單 1-棄標
+	 * @return
+	 * @throws PrivilegeException
+	 * @throws SQLException 
+	 * @throws UnsupportedEncodingException 
+	 */
+	private JSONArray delTide(String tideId,String delType) throws PrivilegeException, UnsupportedEncodingException, SQLException{
+		if (!checkPrivilege(PRIVILEGE_UP,PRIVILEGE_MODEL_TIDE_STATE) || !checkPrivilege(PRIVILEGE_DEL,PRIVILEGE_MODEL_TIDE_STATE)){
+			throw new PrivilegeException("無調整訂單狀態權限 - ["+PRIVILEGE_UP+","+PRIVILEGE_DEL+"]");
+		}
+		Map currencyMap=new HashMap();
+		currencyMap.put("TWD", "sum_ntd");
+		//currencyMap.put("", arg1);
+		//currencyMap.put(arg0, arg1);
+		//currencyMap.put(arg0, arg1);
+		
+		JSONArray jArray = new JSONArray();
+		DBConn conn = (DBConn) this.getModelServletContext().getAttribute(
+		"DBConn");
+		
+		JSONArray datas =conn.queryJSONArray(CONN_ALIAS, "SELECT tide_status,income,member_id,currency FROM item_tide WHERE tide_id ='"+tideId+"' AND delete_flag =1 ");
+		if (!datas.getJSONObject(0).getString("tide_status").matches("3-0[123]")){
+			throw new PrivilegeException("訂單已付款，無法刪單或棄標!!");
+		}
+		
+		if (delType.equals("0")){		//刪單
+			String income=datas.getJSONObject(0).getString("income");
+			String currency=datas.getJSONObject(0).getString("currency");
+			SysLogger4j.debug("退款 SQL:"+"UPDATE member_data SET "+currencyMap.get(currency)+"="+currencyMap.get(currency)+"+"+income+"  WHERE member_id='"+datas.getJSONObject(0).getString("member_id")+"'");
+			//TODO 商品費用退款
+			
+			//TODO 訂單退款 log
+			conn.executSql(CONN_ALIAS, "UPDATE member_data SET sum_ntd=sum_ntd+"+income+"  WHERE member_id='MD-20100222-0032684'");
+			Map conditionMap=new HashMap();
+			Map dataMap=new HashMap();
+			conditionMap.put("tide_id", tideId);
+			dataMap.put("income", "0");
+			dataMap.put("member_pay_status", "1");
+			conn.update(CONN_ALIAS, "item_tide", conditionMap, dataMap);
+			//TODO 修正訂單收取金額
+			deleteOrder(tideId);
+		}else if (delType.equals("1")){	//棄標
+			
+		}
+			
+			
+		/*
+		JSONArray costData=conn.queryJSONArray(CONN_ALIAS, "SELECT sum(member_item_cost) AS sum_item_cost FROM view_item_order_v3 WHERE tide_id ='"+tideId+"' AND delete_flag=1 AND o_varchar01='1' ");//已結商品費用
+		
+		costData=conn.queryJSONArray(CONN_ALIAS, "SELECT sum(member_item_cost) AS sum_item_cost FROM view_item_order_v3 WHERE tide_id ='"+tideId+"' AND delete_flag=1 AND o_varchar01='0' ");//未結商品費用
+		
+		Map conditionMap=new HashMap();
+		Map dataMap=new HashMap();
+		conditionMap.put("tide_id", tideId);
+		dataMap.put("delete_flag", 0);
+		
+		deleteOrder(tideId);
+		*/
+		//TODO 刪單
+		
+		//TODO 棄標
+		
+		
+		return jArray;
+	}
+	
 	
 	/**
 	 * 發送訊息給賣家
 	 * @param msgData
 	 * @return
 	 * @throws AccountNotExistException 
+	 * @throws PrivilegeException 
 	 */
-	private JSONArray  sendMsg(JSONObject msgData) throws AccountNotExistException{
+	private JSONArray  sendMsg(JSONObject msgData) throws AccountNotExistException, PrivilegeException{
+		if (!checkPrivilege(PRIVILEGE_ADD,PRIVILEGE_MODEL_SEND_MSG)){
+			throw new PrivilegeException("無發送訊息權限 - ["+PRIVILEGE_ADD+"]");
+		}
 		JSONArray jArray = new JSONArray();
-		/**
-		 * TODO
-		 * 留言版 0
-		 * 揭示版 2
-		 * email 1 
-		 * */
 		NetAgentYJV2 na= new NetAgentYJV2(this.getModelServletContext(),this.getAppId());
 		int sendMethod=msgData.getInt("SEND_METHOD");
 		jArray.add(na.sendMsg(msgData.getString("ITEM_ORDER_ID"), msgData.getString("SUBJECT_A"), msgData.getString("MSG"), sendMethod));
@@ -204,17 +283,21 @@ public class BidManagerV2 extends ProtoModel implements ServiceModelFace {
 	 * @return
 	 * @throws SQLException 
 	 * @throws UnsupportedEncodingException 
+	 * @throws PrivilegeException 
 	 */
-	private JSONArray saveAlertData(String tideId,JSONObject alertData) throws UnsupportedEncodingException, SQLException{
+	private JSONArray saveAlertData(String tideId,JSONObject alertData) throws UnsupportedEncodingException, SQLException, PrivilegeException{
+		if (!checkPrivilege(PRIVILEGE_UP,PRIVILEGE_MODEL_TIDE_DATA)){
+			throw new PrivilegeException("無儲存備忘資料權限 - ["+PRIVILEGE_UP+"]");
+		}
 		JSONArray jArray = new JSONArray();
 		DBConn conn = (DBConn) this.getModelServletContext().getAttribute(
 		"DBConn");
-		String logId = conn.getAutoNumber(this.CONN_ALIAS, "LR-ID-01");
-		String userId="DIAN TEST";
-		Map logDataMap=MoganLogger.getItemTideSaveAlert(logId, tideId, userId,  (String)this.getSession().getAttribute("CLIENT_IP"));
+		String logId = conn.getAutoNumber(CONN_ALIAS, "LR-ID-01");
+		MoganLogger mLogger=new MoganLogger(conn);
+		Map logDataMap=mLogger.getItemTideSaveAlert(logId, tideId, (String) this.getSession().getAttribute("USER_ID"),  (String)this.getSession().getAttribute("CLIENT_IP"));
 		Map logConditionMap=new HashMap();
 		logConditionMap.put("log_id", logId);
-		conn.newData(BidManagerV2.CONN_ALIAS, "log_record", logConditionMap, logDataMap);
+		mLogger.preLog(logDataMap, logConditionMap);
 		
 		Map conditionMap=new HashMap();
 		Map dataMap=new HashMap();
@@ -222,9 +305,8 @@ public class BidManagerV2 extends ProtoModel implements ServiceModelFace {
 		dataMap.put(alertData.getString("alert_type"), alertData.getString("alert_text"));
 		conn.update(BidManagerV2.CONN_ALIAS, "item_tide", conditionMap, dataMap);
 		
-
-		logDataMap.put("varchar1", "OK"); 
-		conn.newData(BidManagerV2.CONN_ALIAS, "log_record", logConditionMap, logDataMap);
+		mLogger.commitLog(logDataMap, logConditionMap);
+		
 
 		jArray.add(loadTideOder(tideId).getJSONObject(0).getJSONObject("Datas"));
 		
@@ -301,8 +383,12 @@ public class BidManagerV2 extends ProtoModel implements ServiceModelFace {
 	 * @return
 	 * @throws SQLException 
 	 * @throws UnsupportedEncodingException 
+	 * @throws PrivilegeException 
 	 */
-	private JSONArray submitOrderMoney(JSONObject orderData) throws UnsupportedEncodingException, SQLException{
+	private JSONArray submitOrderMoney(JSONObject orderData) throws UnsupportedEncodingException, SQLException, PrivilegeException{
+		if (!checkPrivilege(PRIVILEGE_UP,PRIVILEGE_MODEL_TIDE_STATE)){
+			throw new PrivilegeException("無改變訂單狀態權限 - ["+PRIVILEGE_UP+"]");
+		}
 		JSONArray jArray = new JSONArray();
 		String money="";
 		DBConn conn = (DBConn) this.getModelServletContext().getAttribute(
@@ -322,14 +408,11 @@ public class BidManagerV2 extends ProtoModel implements ServiceModelFace {
 		
 		//建立log資料
 		String logId = conn.getAutoNumber(this.CONN_ALIAS, "LR-ID-01");
-		String userId="DIAN TEST";
-		
-		Map logDataMap=MoganLogger.getItemTideSubmitMoeny(logId,orderData.getString("tide_id"), String.valueOf(tatolPrice), userId, (String)this.getSession().getAttribute("CLIENT_IP"));
+		MoganLogger mLogger=new MoganLogger(conn);
+		Map logDataMap=mLogger.getItemTideSubmitMoeny(logId,orderData.getString("tide_id"), String.valueOf(tatolPrice), (String) this.getSession().getAttribute("USER_ID"), (String)this.getSession().getAttribute("CLIENT_IP"));
 		Map logConditionMap=new HashMap();
 		logConditionMap.put("log_id", logId);
-		
-		//建立log資料 開始修改資料
-		conn.newData(BidManagerV2.CONN_ALIAS, "log_record", logConditionMap, logDataMap);
+		mLogger.preLog(logDataMap, logConditionMap);	//建立log資料 開始修改資料
 		
 		// 更新支出清單 
 		conn.update( BidManagerV2.CONN_ALIAS, "remit_list",conditionMap, dataMap);
@@ -350,11 +433,8 @@ public class BidManagerV2 extends ProtoModel implements ServiceModelFace {
 		conn.update(BidManagerV2.CONN_ALIAS, "item_order", conditionMap, dataMap);
 		MoganLogger.logger.info("修改下標商品狀態 ["+orderData.getString("tide_id")+"] dataMap:"+dataMap);
 		
-		//建立log資料 資料修改完成
-		logDataMap.put("varchar1", "OK");
-		conn.newData(BidManagerV2.CONN_ALIAS, "log_record", logConditionMap, logDataMap);
-		
-		
+		mLogger.commitLog(logDataMap, logConditionMap); //建立log資料 資料修改完成
+				
 		return jArray;
 	}
 	
@@ -363,9 +443,12 @@ public class BidManagerV2 extends ProtoModel implements ServiceModelFace {
 	 * @param tideId
 	 * @throws SQLException 
 	 * @throws UnsupportedEncodingException 
+	 * @throws PrivilegeException 
 	 */
-	private void deleteOrder(String tideId) throws UnsupportedEncodingException, SQLException {
-		
+	private void deleteOrder(String tideId) throws UnsupportedEncodingException, SQLException, PrivilegeException {
+		if (!checkPrivilege(PRIVILEGE_DEL,PRIVILEGE_MODEL_TIDE_STATE)){
+			throw new PrivilegeException("無刪除訂單權限 - ["+PRIVILEGE_DEL+"]");
+		}
 		DBConn conn = (DBConn) this.getModelServletContext().getAttribute(
 				"DBConn");
 		ArrayList<Map> list = conn.query(BidManagerV2.CONN_ALIAS,
@@ -376,9 +459,9 @@ public class BidManagerV2 extends ProtoModel implements ServiceModelFace {
 			conditionMap.put("tide_id", tideId);
 			Map dataMap = new HashMap();
 			dataMap.put("delete_flag", "0");
-			String userId="DIAN TEST";
+			
 			String logId = conn.getAutoNumber(this.CONN_ALIAS, "LR-ID-01");
-			Map logDataMap=MoganLogger.getItemTideDelete(tideId, userId, (String)this.getSession().getAttribute("CLIENT_IP"));
+			Map logDataMap=MoganLogger.getItemTideDelete(tideId, (String) this.getSession().getAttribute("USER_ID"), (String)this.getSession().getAttribute("CLIENT_IP"));
 			Map logConditionMap=new HashMap();
 			logConditionMap.put("log_id", logId);
 			logDataMap.put("log_id", logId);
@@ -401,8 +484,12 @@ public class BidManagerV2 extends ProtoModel implements ServiceModelFace {
 	 * @return
 	 * @throws SQLException 
 	 * @throws UnsupportedEncodingException 
+	 * @throws PrivilegeException 
 	 */
-	private JSONArray moveItem2NewOrder(String itemOrderId, String fromTideId) throws UnsupportedEncodingException, SQLException {
+	private JSONArray moveItem2NewOrder(String itemOrderId, String fromTideId) throws UnsupportedEncodingException, SQLException, PrivilegeException {
+		if (!checkPrivilege(PRIVILEGE_DEL,PRIVILEGE_MODEL_TIDE_STATE) || !checkPrivilege(PRIVILEGE_UP,PRIVILEGE_MODEL_TIDE_STATE)|| !checkPrivilege(PRIVILEGE_ADD,PRIVILEGE_MODEL_TIDE_STATE)){
+			throw new PrivilegeException("無調整訂單權限 - ["+PRIVILEGE_DEL+","+PRIVILEGE_UP+","+PRIVILEGE_ADD+"]");
+		}
 		JSONArray jArray = new JSONArray();
 		DBConn conn = (DBConn) this.getModelServletContext().getAttribute(
 				"DBConn");
@@ -417,10 +504,10 @@ public class BidManagerV2 extends ProtoModel implements ServiceModelFace {
 		dataMap.putAll(list.get(0));
 		dataMap.put("tide_id", newTideId);
 		dataMap.put("date_1", new Date());
-		dataMap.put("item_alert", "由["+"Dian"+"]建立新訂單，舊訂單為"+fromTideId+" -"+new SysCalendar().getFormatDate(SysCalendar.yyyy_MM_dd_HH_mm_ss_Mysql));
+		dataMap.put("item_alert", "由["+(String) this.getSession().getAttribute("USER_NAME")+"]建立新訂單，舊訂單為"+fromTideId+" -"+new SysCalendar().getFormatDate(SysCalendar.yyyy_MM_dd_HH_mm_ss_Mysql));
 		String logId = conn.getAutoNumber(this.CONN_ALIAS, "LR-ID-01");
-		String userId="DIAN TEST";
-		Map logDataMap=MoganLogger.getItemOrderMoveTide(logId,itemOrderId,fromTideId,newTideId, userId, (String)this.getSession().getAttribute("CLIENT_IP"));
+		
+		Map logDataMap=MoganLogger.getItemOrderMoveTide(logId,itemOrderId,fromTideId,newTideId, (String) this.getSession().getAttribute("USER_ID"), (String)this.getSession().getAttribute("CLIENT_IP"));
 		Map logConditionMap=new HashMap();
 		logConditionMap.put("log_id", logId);
 		conn.newData(BidManagerV2.CONN_ALIAS, "log_record", logConditionMap, logDataMap);
@@ -436,7 +523,7 @@ public class BidManagerV2 extends ProtoModel implements ServiceModelFace {
 		
 
 		logId = conn.getAutoNumber(this.CONN_ALIAS, "LR-ID-01");
-		 logDataMap=MoganLogger.getItemOrderMove(logId,itemOrderId, userId, (String)this.getSession().getAttribute("CLIENT_IP"));
+		 logDataMap=MoganLogger.getItemOrderMove(logId,itemOrderId, (String) this.getSession().getAttribute("USER_ID"), (String)this.getSession().getAttribute("CLIENT_IP"));
 		 logConditionMap=new HashMap();
 		logConditionMap.put("log_id", logId);
 		conn.newData(BidManagerV2.CONN_ALIAS, "log_record", logConditionMap, logDataMap);
@@ -457,9 +544,13 @@ public class BidManagerV2 extends ProtoModel implements ServiceModelFace {
 	 * @return
 	 * @throws SQLException 
 	 * @throws UnsupportedEncodingException 
+	 * @throws PrivilegeException 
 	 */
 	private JSONArray moveItem2Order(String itemOrderId, String tideId,
-			String fromTideId) throws UnsupportedEncodingException, SQLException {
+			String fromTideId) throws UnsupportedEncodingException, SQLException, PrivilegeException {
+		if (!checkPrivilege(PRIVILEGE_DEL,PRIVILEGE_MODEL_TIDE_STATE) || !checkPrivilege(PRIVILEGE_UP,PRIVILEGE_MODEL_TIDE_STATE)){
+			throw new PrivilegeException("無調整訂單權限 - ["+PRIVILEGE_DEL+","+PRIVILEGE_UP+"]");
+		}
 		JSONArray jArray = new JSONArray();
 		DBConn conn = (DBConn) this.getModelServletContext().getAttribute(
 				"DBConn");
@@ -472,8 +563,8 @@ public class BidManagerV2 extends ProtoModel implements ServiceModelFace {
 		//TODO log記錄修改item order 對應tide id
 		
 		String logId = conn.getAutoNumber(BidManagerV2.CONN_ALIAS, "LR-ID-01");
-		String userId="DIAN TEST";
-		Map logDataMap=MoganLogger.getItemOrderMoveTide(logId,itemOrderId,tideId,(String)tideList.get(0).get("tide_id"), userId, (String)this.getSession().getAttribute("CLIENT_IP"));
+		
+		Map logDataMap=MoganLogger.getItemOrderMoveTide(logId,itemOrderId,tideId,(String)tideList.get(0).get("tide_id"), (String) this.getSession().getAttribute("USER_ID"), (String)this.getSession().getAttribute("CLIENT_IP"));
 		Map logConditionMap=new HashMap();
 		logConditionMap.put("log_id", logId);
 		
@@ -519,8 +610,12 @@ public class BidManagerV2 extends ProtoModel implements ServiceModelFace {
 	 * @return
 	 * @throws SQLException 
 	 * @throws UnsupportedEncodingException 
+	 * @throws PrivilegeException 
 	 */
-	private JSONArray saveTideOrder(JSONObject orderObj) throws UnsupportedEncodingException, SQLException {
+	private JSONArray saveTideOrder(JSONObject orderObj) throws UnsupportedEncodingException, SQLException, PrivilegeException {
+		if (!checkPrivilege(PRIVILEGE_UP,PRIVILEGE_MODEL_TIDE_MONEY)){
+			throw new PrivilegeException("無調整訂單費用權限 - ["+PRIVILEGE_UP+"]");
+		}
 		JSONArray jArray = new JSONArray();
 		SysLogger4j.info("saveTideOrder:" + orderObj.toString());
 		DBConn conn = (DBConn) this.getModelServletContext().getAttribute(
@@ -550,7 +645,7 @@ public class BidManagerV2 extends ProtoModel implements ServiceModelFace {
 			//TODO 沒有儲存過費用資料
 			remitId=conn.getAutoNumber(CONN_ALIAS, "RL-ID-01");
 			remitDataMap.put("remit_classify", "RL-901");
-			remitDataMap.put("creator", "DIAN TEST");
+			remitDataMap.put("creator", (String) this.getSession().getAttribute("USER_ID"));
 			remitDataMap.put("delete_flag", "1");
 			remitDataMap.put("create_date",new Date());
 		}else{
@@ -570,9 +665,9 @@ public class BidManagerV2 extends ProtoModel implements ServiceModelFace {
 			//dataMap.put("cost_9", dataMap.get("cost_5"));
 		}
 		
-		String userId="DIAN TEST";
+		
 		String logId = conn.getAutoNumber(this.CONN_ALIAS, "LR-ID-01");
-		Map logDataMap=MoganLogger.getItemTideSaveMoney(logId, orderObj.getString("tide_id"), userId, (String)this.getSession().getAttribute("CLIENT_IP"));
+		Map logDataMap=MoganLogger.getItemTideSaveMoney(logId, orderObj.getString("tide_id"), (String) this.getSession().getAttribute("USER_ID"), (String)this.getSession().getAttribute("CLIENT_IP"));
 		Map logConditionMap = new HashMap();
 		logConditionMap.put("log_id", logId); // log id 
 		SysLogger4j.info(logDataMap);
@@ -597,17 +692,21 @@ public class BidManagerV2 extends ProtoModel implements ServiceModelFace {
 	 * @return
 	 */
 	private JSONArray loadTideOder(String tideId) {
-		if (!checkPrivilege(SysPrivilege.READ)) {
-			// TODO 待模組完成
-			// throw new NonPrivilegeException("權限不足 - BidManagerV2.loadBidIOs["+SysPrivilege.READ+"]");
-		}
+		
+
 		JSONArray jArray = new JSONArray();
 		JSONObject jObj = new JSONObject();
 		
 		JSONArray orderArray = new JSONArray();
 		DBConn conn = (DBConn) this.getModelServletContext().getAttribute(
 				"DBConn");
-		String sql = "SELECT tel,email,items_count,item_order_id,item_id,item_name,concat(concat(item_id,' - '),item_name) as item_id_name,buy_price,buy_unit,cost_1,cost_2,cost_3,cost_4,cost_5,cost_6,cost_7,cost_8,cost_9,cost_10,item_total_price,time_at_03,bid_account,classfly,remit_to,remit_id,money_alert,item_alert,contact_alert,ship_alert,ship_type,seller_attribute_1  FROM view_item_tide_v1 WHERE delete_flag=1 AND tide_id='"
+		String sql = "SELECT tel,email,items_count,item_order_id,item_id,item_name," +
+				"concat(concat(item_id,' - '),item_name) as item_id_name,buy_price," +
+				"buy_unit,cost_1,cost_2,cost_3,cost_4,cost_5,cost_6,cost_7,cost_8,cost_9,cost_10," +
+				"item_total_price,time_at_03,bid_account,classfly,remit_to,remit_id,money_alert," +
+				"item_alert,contact_alert,ship_alert,ship_type,seller_attribute_1,seller_account,o_varchar01," +
+				"tide_status"+
+				"  FROM view_item_tide_v1 WHERE delete_flag=1 AND tide_id='"
 				+ tideId + "'";
 		SysLogger4j.info("loadTideOder:" + sql);
 		orderArray = conn.queryJSONArray(BidManagerV2.CONN_ALIAS, sql);
@@ -664,10 +763,6 @@ public class BidManagerV2 extends ProtoModel implements ServiceModelFace {
 	private JSONArray loadBidIOs(String page, String size, String conditionKey,
 			String statusCondit, String checkSameSeller, String dir,
 			String orderBy) throws NonPrivilegeException {
-		if (!checkPrivilege(SysPrivilege.READ)) {
-			// TODO 待模組完成
-			// throw new NonPrivilegeException("權限不足 - BidManagerV2.loadBidIOs["+SysPrivilege.READ+"]");
-		}
 
 		DBConn conn = (DBConn) this.getModelServletContext().getAttribute(
 				"DBConn");

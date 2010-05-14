@@ -1686,6 +1686,7 @@ public class NetAgentYJV2 extends NetAgentModel implements BidFace {
 				 */
 				nAgent.getDataWithGet(ITEM_DATA_URL.replaceAll(
 						"\\$YAHOO_ITEM_ID", itemId));
+				/*
 				this.outputTofile(nAgent.getResponseBody(), "order from");
 				HTMLNodeFilter hrefNf = new HTMLNodeFilter("href");// href
 				HasParentFilter parnetFilter = new HasParentFilter(
@@ -1704,8 +1705,9 @@ public class NetAgentYJV2 extends NetAgentModel implements BidFace {
 				int hasOrderForm = 1;
 
 				nodes = nAgent.filterItem(andFilter);
-
-				nodes = nAgent.filterItem(new HTMLNodeFilter("オーダーフォーム"));
+*/
+				int hasOrderForm = 1;
+				NodeList nodes = nAgent.filterItem(new HTMLNodeFilter("http://i.yimg.jp/images/auct/template/ui/auc_mod/bg_step_01_02.gif"));
 				if (nodes.size() > 0) {
 					hasOrderForm = 2;
 				}

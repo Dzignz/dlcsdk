@@ -1,10 +1,17 @@
 package com.mogan.model;
 
+import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
+
+import javax.servlet.RequestDispatcher;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+
 import com.mogan.model.netAgent.NetAgent;
+import com.mogan.sys.log.SysLogger4j;
 import com.mogan.sys.model.AuthModelAdapter;
 
 /**
@@ -22,18 +29,43 @@ public class PHPAuthorization extends AuthModelAdapter {
 
 	@Override
 	public boolean doAuth(HttpServletRequest req, HttpServletResponse res) throws Exception {
-		// TODO Auto-generated method stub
+
+		RequestDispatcher rd; //
 		String userId=req.getParameter("USER_ID");
 		String modelId=req.getParameter("MODEL_ID");
 		// TODO 先確認USER在PHP SERVER上是否登入
 		NetAgent nAgent=new NetAgent();
-		nAgent.getDataWithGet("");
+		Map postData=new HashMap();
+		postData=new HashMap();
+		postData.put("Action", "GetPrivilege");
+		postData.put("User_Id", userId);
+		nAgent.putAllPostDataMap(postData);
+		nAgent.postMaptoData();
+		nAgent.getDataWithPost("http://web.mogan.com.tw/adminv3/biditem/WonListAdministrate.php");
+		JSONObject privilegeObj=JSONObject.fromObject(nAgent.getResponseBody());
 		
-		// TODO 再確認USER在MODEL上的權限
-		nAgent.getDataWithGet("");
+//		res.getOutputStream().println(privilegeObj.toString());
+//		res.getOutputStream().println("<br />");
+		this.getSession().setAttribute("USER_PRIVILEGE", privilegeObj);
+		this.getSession().setAttribute("USER_ID", userId);
+		this.getSession().setAttribute("LOGIN_TIME", new Date());
+		if (privilegeObj.getJSONObject(modelId).getBoolean("view")){
+			rd = req.getRequestDispatcher((String)this.getModelServletContext().getAttribute("PHP_MODEL_ID_"+modelId));
+		}else{
+			rd = req.getRequestDispatcher("nonPrivilege.jsp");
+		}
 		
-		res.sendRedirect("");
-		return false;
+//		res.getOutputStream().println("PHP_MODEL_ID_"+(String)this.getModelServletContext().getAttribute("PHP_MODEL_ID_"+modelId));
+//		res.sendRedirect((String)this.getServletContext().getAttribute("PHP_MODEL_ID_"+modelId));
+		
+//		res.getOutputStream().print("doAuth finishs.");
+//		res.getOutputStream().flush();
+//		res.getOutputStream().close();
+		
+		
+		rd.forward(req, res);
+//		
+		return true;
 	}
 
 }

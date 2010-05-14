@@ -1,5 +1,7 @@
 package com.mogan.log;
 
+import java.io.UnsupportedEncodingException;
+import java.sql.SQLException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -10,10 +12,11 @@ import com.mogan.model.BidManagerV2;
 import com.mogan.sys.DBConn;
 import com.mogan.sys.log.SysLogger4j;
 
-abstract public class MoganLogger {	
+ public class MoganLogger {	
 	static public Logger logger  =  Logger.getLogger("MOGAN");
-
-	
+	final static private String CONN_ALIAS = "mogan-DB";
+	final static private String LOG_TABLE = "log_record";
+	private DBConn conn;
 	final static public String DELETE="DEL";
 	final static public String NEW="NEW";
 	final static public String UPDATE="UPD";
@@ -21,6 +24,9 @@ abstract public class MoganLogger {
 	
 	final static public String OBJECT_ITEM_TIDE="ITEM_TIDE";
 	
+	public MoganLogger (DBConn conn){
+		this.conn=conn;
+	}
 	
 	final static Map<String,Map<String,String>> objects=new HashMap();
 	{
@@ -32,6 +38,14 @@ abstract public class MoganLogger {
 		objects.put(OBJECT_ITEM_TIDE, actionCodeMap);
 	}
 	
+	public void preLog(Map logDataMap,Map logConditionMap) throws UnsupportedEncodingException, SQLException{
+		conn.newData(CONN_ALIAS, LOG_TABLE, logConditionMap, logDataMap);
+	}
+	
+	public void commitLog (Map logDataMap,Map logConditionMap) throws UnsupportedEncodingException, SQLException{
+		logDataMap.put("varchar1", "commit");
+		conn.newData(CONN_ALIAS, LOG_TABLE, logConditionMap, logDataMap);
+	}
 	
 	/**
 	 * 確認訂單金額
@@ -65,7 +79,7 @@ abstract public class MoganLogger {
 	static public Map getItemTideSaveMoney(String logId,String tideId,String userId,String ip){
 		Map logDataMap =new HashMap();
 		logDataMap.put("log_id", logId);
-		logDataMap.put("log_status", "LR-8001");
+		logDataMap.put("log_status", "LR-9627");
 		logDataMap.put("item_order_id", tideId);
 		logDataMap.put("time_at", new Date());
 		logDataMap.put("user_ip", ip);
@@ -82,7 +96,7 @@ abstract public class MoganLogger {
 	 */
 	static public Map getItemTideDelete(String tideId,String userId,String ip){
 		Map logDataMap =new HashMap();
-		logDataMap.put("log_status", "LR-8003");
+		logDataMap.put("log_status", "LR-9623");
 		logDataMap.put("item_order_id", tideId);
 		logDataMap.put("time_at", new Date());
 		logDataMap.put("user_ip", ip);
@@ -109,6 +123,7 @@ abstract public class MoganLogger {
 		logDataMap.put("varchar3", oldTideId);
 		return logDataMap;
 	}
+	
 	/**
 	 * 
 	 * @param itemOrderId
