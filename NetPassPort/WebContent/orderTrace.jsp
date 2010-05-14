@@ -1,5 +1,5 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
-    pageEncoding="UTF-8"%>
+	pageEncoding="UTF-8"%>
 <%@ page import="com.mogan.sys.DBConn"%>
 <%@ page import="com.mogan.io.FileIO"%>
 <%@ page import="java.util.ArrayList"%>
@@ -27,20 +27,85 @@
 <!-- 
 <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/ext-core/3.1.0/ext-core.js"></script>
   -->
-<script type="text/javascript" src="js/mogan/mogan.template.selectedCell.js"></script>
+<script type="text/javascript"
+	src="js/mogan/mogan.template.selectedCell.js"></script>
 
 <script type="text/javascript" src="js/ext-lang-zh_TW.js"></script>
 <script type="text/javascript" src="js/ext-mogan.js"></script>
 
-<script type="text/javascript" src="js/netAgent/mogan.orderTrace.function.js"></script>
-<script type="text/javascript" src="js/netAgent/mogan.orderTrace.form.js"></script>
-<script type="text/javascript" src="js/netAgent/mogan.orderTrace.init.js"></script>
+<script type="text/javascript"
+	src="js/netAgent/mogan.orderTrace.function.js"></script>
+<script type="text/javascript"
+	src="js/netAgent/mogan.orderTrace.form.js"></script>
+<script type="text/javascript"
+	src="js/netAgent/mogan.orderTrace.init.js"></script>
 
-<script type="text/javascript" >
+<script type="text/javascript">
 
 <%
-	
 	final String modelName="BidManager";
+
+	String [] pName={"add","up","del","view"}; //權限名稱
+	StringBuffer pKey=new StringBuffer("111111010000");	//權限字串
+	//*
+	//SF-201005-07 費用維護
+	//SF-201004-16 聯絡賣家
+	//SF-201004-17 訂單狀態管理
+	//SF-201005-08 訂單備忘維護
+	//SF-201005-09 賣家資料維護
+	pKey=new StringBuffer();
+	JSONObject pObj=(JSONObject)session.getAttribute("USER_PRIVILEGE");
+	JSONObject tempObj=	pObj.getJSONObject("SF-201004-03");//代標聯絡處理 主畫面
+	for (int i=0;i<pName.length;i++){
+		if (tempObj.getBoolean(pName[i])){
+			pKey.append("1");
+		}else{
+			pKey.append("0");
+		}
+	}
+	tempObj=	pObj.getJSONObject("SF-201004-16");//聯絡賣家 
+	for (int i=0;i<pName.length;i++){
+		if (tempObj.getBoolean(pName[i])){
+			pKey.append("1");
+		}else{
+			pKey.append("0");
+		}
+	}
+	tempObj=	pObj.getJSONObject("SF-201004-17");//訂單狀態管理 
+	for (int i=0;i<pName.length;i++){
+		if (tempObj.getBoolean(pName[i])){
+			pKey.append("1");
+		}else{
+			pKey.append("0");
+		}
+	}
+	tempObj=	pObj.getJSONObject("SF-201005-07");//費用維護 
+	for (int i=0;i<pName.length;i++){
+		if (tempObj.getBoolean(pName[i])){
+			pKey.append("1");
+		}else{
+			pKey.append("0");
+		}
+	}
+	tempObj=	pObj.getJSONObject("SF-201005-08");//訂單備忘維護 
+	for (int i=0;i<pName.length;i++){
+		if (tempObj.getBoolean(pName[i])){
+			pKey.append("1");
+		}else{
+			pKey.append("0");
+		}
+	}
+	tempObj=	pObj.getJSONObject("SF-201005-09");//賣家資料維護 
+	for (int i=0;i<pName.length;i++){
+		if (tempObj.getBoolean(pName[i])){
+			pKey.append("1");
+		}else{
+			pKey.append("0");
+		}
+	}
+	//*/
+
+	
 
 	DBConn conn = (DBConn)application.getAttribute("DBConn");// 呼叫 Bean 物件的 getConn() 方法，取得已建立完成的資料庫連結
 	JSONArray accountList=conn.queryJSONArray("mogan-DB","SELECT bid_id,CONCAT(account,CONCAT('-',website_name)) as diaplay_account,account FROM view_system_bid_id");
@@ -62,7 +127,7 @@
 	
 	//欄位清單
 	JSONArray tempTrnsColmList=new JSONArray();
-	JSONObject tempObj=new JSONObject();
+	tempObj=new JSONObject();
 	tempObj.put("columnName","item_id");
 	tempObj.put("columnDesc","日雅商品ID");
 	tempTrnsColmList.add(tempObj);
@@ -114,6 +179,7 @@
 	JSONObject alertTypeData=new JSONObject();
 	alertTypeData.put("root",conn.queryJSONArray("mogan-DB","SELECT list_key,list_name FROM system_list_value WHERE group_key='alert type' "));
 %>
+var pkey='<%=pKey %>';
 var itemOrderCol=<%=colList %>;
 var accountJSONData = <%=accountData %>;
 var trnsJSONData = <%=trnsData %>;
@@ -127,5 +193,7 @@ var alertTypeJSONData = <%=alertTypeData %>;
 </head>
 <body>
 <div id="iframe-window"></div>
+
+
 </body>
 </html>

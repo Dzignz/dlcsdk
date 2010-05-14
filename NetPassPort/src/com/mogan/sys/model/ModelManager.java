@@ -377,7 +377,7 @@ public class ModelManager extends HttpServlet {
 		AuthModelAdapter authModel = null;
 		URL url1;
 
-		List<org.dom4j.Element> nodes = getScheduleModels(modelName);
+		List<org.dom4j.Element> nodes = getAuthModels(modelName);
 		if (nodes.size() > 0) {
 			Element e = nodes.get(0);
 			try {

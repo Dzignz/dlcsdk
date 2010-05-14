@@ -102,12 +102,20 @@ Mogan.orderTrace.createCaseListGridPanel = function() {
 							renderer : Mogan.orderTrace.rendererFixWebsiteIcon,
 							width : 30
 						}, {
+							header : " ",
+							editor : new Ext.form.TextField({
+										readOnly : true
+									}),
+							dataIndex : 'o_varchar01',
+							renderer : Mogan.orderTrace.rendererFixMemberPayStatus,
+							width : 30
+						}, {
 							header : "訂單編號",
 							dataIndex : 'tide_id',
 							width : 100
 						}, {
 							header : "訂單狀態",
-							dataIndex : 'order_status',
+							dataIndex : 'tide_status',
 							editor : new Ext.form.TextField({
 										readOnly : true
 									}),
@@ -173,40 +181,15 @@ Mogan.orderTrace.createCaseListGridPanel = function() {
 							width : 100,
 							dataIndex : 'total_unship'
 						}, {
-							header : "賣家 e-mail",
-							editor : new Ext.form.TextField({
-										readOnly : true
-									}),
-							dataIndex : 'creator'
-						}, {
-							header : "連絡方式",
-							editor : new Ext.form.TextField({
-										readOnly : true
-									}),
-							dataIndex : 'contact_type',
-							renderer : Mogan.orderTrace.rendererContactType
-						}, {
 							header : "填寫交易form",
 							renderer : Mogan.orderTrace.rendererOrderFormIcon,
 							dataIndex : 'o_varchar02'
-						}, {
-							header : "消費稅",
-							editor : new Ext.form.TextField({
-										readOnly : true
-									}),
-							dataIndex : 'tax'
 						}, {
 							header : "落札価格",
 							editor : new Ext.form.TextField({
 										readOnly : true
 									}),
 							dataIndex : 'buy_price'
-						}, {
-							header : "匯款帳戶",
-							editor : new Ext.form.TextField({
-										readOnly : true
-									}),
-							dataIndex : 'creator'
 						}]
 			});
 
@@ -347,6 +330,7 @@ Mogan.orderTrace.createCaseListGridPanel = function() {
 
 	grid.on('rowclick', Mogan.orderTrace.clickItem);
 	grid.on('rowcontextmenu', Mogan.orderTrace.showItemListMenu);
+	
 	/**
 	 * 右鍵快速選單
 	 */
@@ -391,7 +375,6 @@ Mogan.orderTrace.createCaseListGridPanel = function() {
  * 案件詳細資訊
  */
 Mogan.orderTrace.createDetilPanel = function() {
-
 	var detilPanel = new Ext.TabPanel({
 				activeTab : 0,
 				id : 'DetilPanel',
@@ -402,38 +385,26 @@ Mogan.orderTrace.createDetilPanel = function() {
 				items : [{
 							title : '交易訂單',
 							layout : 'fit',
+							id : 'orderPanelTab',
 							items : Mogan.orderTrace.createOrderPanel()
 						}, {
 							title : '賣家資料',
 							layout : 'fit',
+							// id : 'msgSenderPanelTab',
 							items : Mogan.orderTrace.createSellerPanel()
 						}, {
 							title : '聯絡紀錄',
 							layout : 'fit',
+							id : 'msgRecordPanelTab',
 							items : Mogan.orderTrace.createMsgPanel()
 						}, {
 							title : '發送訊息',
 							layout : 'fit',
+							id : 'msgSenderPanelTab',
 							items : Mogan.orderTrace.createMsgSenderPanel()
-						}, {
-							title : 'order form',
-							id : 'tabItemOrderForm',
-							contentEl : 'tab-iframe-window-1',
-							layout : 'fit'
 						}]
 			});
-	var subPanel = new Ext.Panel({
-				id : 'subPanel',
-				layout : 'border',
-				// disabled : true,
-				items : [{
-					xtype : 'label',
-					text : '商品名稱',
-					region : 'north'
-						// ,height : 100
-					}, detilPanel]
-			});
-	return subPanel;
+	return detilPanel;
 };
 
 Mogan.orderTrace.createMsgPanel = function() {
@@ -571,7 +542,6 @@ Mogan.orderTrace.createMsgPanel = function() {
 }
 
 Mogan.orderTrace.createMsgSenderPanel = function() {
-	
 
 	var comboMsgTemplate = new Ext.form.ComboBox({
 				id : 'comboMsgTemplate',
@@ -606,7 +576,7 @@ Mogan.orderTrace.createMsgSenderPanel = function() {
 							triggerAction : 'all',
 							editable : false,
 							width : 450,
-							//minListWidth : 450,
+							// minListWidth : 450,
 							fieldLabel : '留言案件',
 							hiddenName : "ITEM_ORDER_ID",
 							xtype : 'combo'
@@ -695,11 +665,12 @@ Mogan.orderTrace.createMsgSenderPanel = function() {
 						}]
 			})
 
-	Ext.getCmp('comboMsgCategory').on('select',Mogan.orderTrace.fixComboMsgTitle);
+	Ext.getCmp('comboMsgCategory').on('select',
+			Mogan.orderTrace.fixComboMsgTitle);
 
-			
-//	Ext.getCmp('comboItemOrderList2').on('render', Mogan.orderTrace.resizeToFitContent ,Ext.getCmp('comboItemOrderList2'));
-			//comboMsgTemplate.on('select', Mogan.orderTrace.fixTextareaMsgContent);
+	// Ext.getCmp('comboItemOrderList2').on('render',
+	// Mogan.orderTrace.resizeToFitContent ,Ext.getCmp('comboItemOrderList2'));
+	// comboMsgTemplate.on('select', Mogan.orderTrace.fixTextareaMsgContent);
 	return simple;
 }
 
@@ -889,10 +860,14 @@ Mogan.orderTrace.createOrderPanel = function() {
 				handler : Mogan.orderTrace.submitOrderCostMoney,
 				text : '移入待匯款清單'
 			}, {
-				// id :'btnOrderEditNote',
+				id : 'btnOrderEditNote',
 				xtype : 'button',
 				text : '編輯備註',
 				handler : Mogan.orderTrace.showOrderAlertPanel
+			}, '->', {
+				id : 'btnDelOrder',
+				text : '刪除訂單',
+				menu : Mogan.orderTrace.getDelOrderMenu()
 			}];
 
 	var orderDataPanel = new Ext.FormPanel({
@@ -1116,6 +1091,12 @@ Mogan.orderTrace.createOrderPanel = function() {
 						}, {
 							xtype : 'hidden',
 							name : 'seller_attribute_1'
+						}, {
+							xtype : 'hidden',
+							name : 'seller_account'
+						}, {
+							xtype : 'hidden',
+							name : 'tide_status'
 						}]
 			});
 
@@ -1177,7 +1158,6 @@ Mogan.orderTrace.createOrderPanel = function() {
 				flex : 1,
 				title : '訂單內容(同捆清單)',
 				layout : 'fit',
-
 				items : new Ext.grid.GridPanel({
 							cm : cm,
 							frame : true,
@@ -1201,7 +1181,7 @@ Mogan.orderTrace.createOrderPanel = function() {
 					pack : 'start'
 				},
 				// defaults:{margins:'0 5 0 0'},
-				items : [orderDataPanel, orderListPanel]
+				items : [orderListPanel, orderDataPanel]
 			});
 
 	Ext.getCmp('comboOrderPayType').on('select',
@@ -1209,6 +1189,29 @@ Mogan.orderTrace.createOrderPanel = function() {
 
 	return panel;
 };
+
+/**
+ * 刪除訂單MENU
+ * @return {}
+ */
+Mogan.orderTrace.getDelOrderMenu = function() {
+	if (Ext.isEmpty(Mogan.orderTrace.delOrderMenu)) {
+		Mogan.orderTrace.delOrderMenu = new Ext.menu.Menu({
+					id: 'delOrderMenu',
+					items : [{
+								xtype : 'menuitem',
+								handler : function (){Mogan.orderTrace.delOrder(0)},
+								text : '刪除訂單'
+							}, {
+								xtype : 'menuitem',
+								handler : function (){Mogan.orderTrace.delOrder(1)},
+								text : '會員棄標'
+							}]
+				});
+	}
+	return Mogan.orderTrace.delOrderMenu;
+
+}
 
 /**
  * 建立備忘編輯畫面

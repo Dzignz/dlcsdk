@@ -15,6 +15,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import net.sf.json.JSONArray;
 
+import com.mogan.sys.log.SysLogger4j;
 import com.mogan.sys.model.AuthModelAdapter;
 import com.mogan.sys.model.ModelManager;
 import com.mogan.sys.model.ProtoModel;
@@ -83,14 +84,15 @@ public class OauthProtal extends HttpServlet {
 		String modelName = req.getParameter("MODEL_NAME");
 		ModelManager modelManager = new ModelManager();
 		ProtoModel authModel = modelManager.getAuthModel(modelName);
-		
 		if (authModel != null) {
 			try {
 				authModel.setProperties(modelManager.getModelProperties(modelName));
 				authModel.setSessionId(req.getSession().getId());
+				authModel.setSession(req.getSession());
 				authModel.setModelServletContext(this.getServletContext());
-				 ((AuthModelAdapter) authModel).doAuth(req,res);
-				 authModel.setSession(req.getSession());
+				((AuthModelAdapter) authModel).doAuth(req,res);
+				authModel.setSession(req.getSession());
+				
 			} catch (Exception e) {
 				e.printStackTrace();
 			}finally{

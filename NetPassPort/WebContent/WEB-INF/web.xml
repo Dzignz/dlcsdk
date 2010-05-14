@@ -206,4 +206,14 @@
     <servlet-name>OauthProtal</servlet-name>
     <url-pattern>/OauthProtal</url-pattern>
   </servlet-mapping>
+  <servlet>
+    <description></description>
+    <display-name>LoginUi</display-name>
+    <servlet-name>LoginUi</servlet-name>
+    <servlet-class>com.mogan.com.googleApp.netAgent.LoginUi</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>LoginUi</servlet-name>
+    <url-pattern>/LoginUi</url-pattern>
+  </servlet-mapping>
 </web-app>

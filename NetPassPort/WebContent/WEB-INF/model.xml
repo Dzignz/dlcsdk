@@ -203,7 +203,7 @@
 		<modelClass>com.mogan.model.BidManagerV2</modelClass>
 		<model-properties>
 		</model-properties>
-		<modelDiscription>新版資料庫專用</modelDiscription>
+		<modelDiscription>新版訂單專用</modelDiscription>
 	</model>	
 	<model>
 		<modelName>FileService</modelName>

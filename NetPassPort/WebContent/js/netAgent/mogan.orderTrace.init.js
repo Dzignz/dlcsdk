@@ -18,6 +18,9 @@ Mogan.orderTrace.filterStatus = new Array();
  * 狀態名稱對應表
  */
 Mogan.orderTrace.statusNameMap = new Object();
+Mogan.orderTrace.statusNameMap['1-01'] = '競標中';
+Mogan.orderTrace.statusNameMap['1-02'] = '競標結束';
+
 Mogan.orderTrace.statusNameMap['3-01'] = '連絡中';
 Mogan.orderTrace.statusNameMap['3-02'] = '取得連絡';
 Mogan.orderTrace.statusNameMap['3-03'] = '待匯款';
@@ -96,7 +99,7 @@ Ext.onReady(function() {
 					root : 'root'
 				},
 				['item_order_id', 'item_id', 'item_name', 'buy_price',
-						'buy_unit', 'time_at_03', 'bid_account', 'item_id_name','seller_attribute_1']),
+						'buy_unit', 'time_at_03', 'bid_account', 'item_id_name','seller_attribute_1','o_varchar01']),
 		proxy : new Ext.data.MemoryProxy(orderItemListJSONData)
 	});
 	Mogan.orderTrace.orderItemListStore.load();
@@ -214,6 +217,7 @@ Ext.onReady(function() {
 	var viewport = new Ext.Viewport({
 				layout : 'border',
 				items : [{
+							title : '待處理列表',
 							region : 'north',
 							items : Mogan.orderTrace.createCaseListGridPanel(),
 							split : true,
@@ -221,6 +225,7 @@ Ext.onReady(function() {
 							height : 300,
 							layout : 'fit'
 						}, {
+							title : '訂單資料',
 							region : 'center',
 							split : true,
 							collapsible : true,
@@ -228,7 +233,36 @@ Ext.onReady(function() {
 							items : Mogan.orderTrace.createDetilPanel()
 						}]
 			});
+			
+	/**
+	 * 修正權限
+	 */
+	//"add","up","del","view"
+	var pNum=parseInt(pkey,2);			
+	if ( (pNum & parseInt('000010000000000000000000',2)) < 1 ){ //聯絡賣家
+		Ext.getCmp('DetilPanel').remove(Ext.getCmp('msgSenderPanelTab'),true);
+	}
+	
+	if ( (pNum & parseInt('000000000100000000000000',2)) <1){ //訂單管理  更新 
+		Ext.destroy(Ext.getCmp('btnOrderSubmitCost'));	//訂單態狀
+	}
+	
+	if ( (pNum & parseInt('000000000010000000000000',2)) <1){ //訂單狀態管理  刪除
+		Ext.destroy(Ext.getCmp('itemListMenuTransOrder'));	//商品訂單移動
+		Ext.destroy(Ext.getCmp('itemListMenuNewOrder'));	//商品訂單移動
+		Ext.destroy(Ext.getCmp('btnDelOrder'));				//刪除訂單下方按鈕
+//		Ext.destroy(Ext.getCmp('itemListMenuDelOrder'));	//刪除訂單上方列表menu
+	}
+	
+	if ( (pNum & parseInt('000000000000000001000000',2)) <1){ //訂單備忘  維護
+		Ext.destroy(Ext.getCmp('btnOrderEditNote'));
+	}
+		
 
+	
+	
+			
+			
 	/**
 	 * 資料讀取
 	 */
@@ -251,12 +285,12 @@ Ext.onReady(function() {
 	Ext.QuickTips.init();
 
 	new Ext.ToolTip({
-				target : 'rb-ship_type_1',
+				target : 'rb_ship_type_0',
 				html : '商品費用已結清，收貨時不用付錢，請選我'
 			});
 
 	new Ext.ToolTip({
-				target : 'rb-ship_type_0',
+				target : 'rb_ship_type_1',
 				html : '收貨時需支付運費或商品費用時，請選我'
 			});
 
