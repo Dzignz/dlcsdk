@@ -28,9 +28,9 @@ import com.mogan.sys.log.SysLogger4j;
 		this.conn=conn;
 	}
 	
-	final static Map<String,Map<String,String>> objects=new HashMap();
+	final static Map<String,Object> objects=new HashMap<String,Object>();
 	{
-		Map actionCodeMap=new HashMap();
+		Map<String,Object> actionCodeMap=new HashMap<String,Object>();
 		actionCodeMap.put(DELETE, "");
 		actionCodeMap.put(NEW, "");
 		actionCodeMap.put(UPDATE, "");
@@ -38,25 +38,64 @@ import com.mogan.sys.log.SysLogger4j;
 		objects.put(OBJECT_ITEM_TIDE, actionCodeMap);
 	}
 	
-	public void preLog(Map logDataMap,Map logConditionMap) throws UnsupportedEncodingException, SQLException{
+	/**
+	 * 記錄LOG，varchar1不寫入COMMIT
+	 * @param logDataMap
+	 * @throws UnsupportedEncodingException
+	 * @throws SQLException
+	 */
+	public void preLog(Map<String,Object> logDataMap) throws UnsupportedEncodingException, SQLException{
+		Map<String,Object> logConditionMap=new HashMap<String,Object>();
+		logConditionMap.put("log_id", logDataMap.get("log_id"));
+		preLog(logDataMap,logConditionMap);
+	}
+	
+	/**
+	 * 記錄LOG，varchar1不寫入COMMIT
+	 * @param logDataMap
+	 * @param logConditionMap
+	 * @throws UnsupportedEncodingException
+	 * @throws SQLException
+	 */
+	public void preLog(Map<String,Object> logDataMap,Map<String,Object> logConditionMap) throws UnsupportedEncodingException, SQLException{
 		conn.newData(CONN_ALIAS, LOG_TABLE, logConditionMap, logDataMap);
 	}
 	
-	public void commitLog (Map logDataMap,Map logConditionMap) throws UnsupportedEncodingException, SQLException{
+	/**
+	 * 記錄LOG，varchar1寫入COMMIT，確認動作完成
+	 * @param logDataMap
+	 * @throws UnsupportedEncodingException
+	 * @throws SQLException
+	 */
+	public void commitLog(Map<String,Object> logDataMap) throws UnsupportedEncodingException, SQLException{
+		Map<String,Object> logConditionMap=new HashMap<String,Object>();
+		logConditionMap.put("log_id", logDataMap.get("log_id"));
+		commitLog(logDataMap,logConditionMap);
+	}
+	
+	/**
+	 * 記錄LOG，varchar1寫入COMMIT，確認動作完成
+	 * @param logDataMap
+	 * @param logConditionMap
+	 * @throws UnsupportedEncodingException
+	 * @throws SQLException
+	 */
+	public void commitLog (Map<String,Object> logDataMap,Map<String,Object> logConditionMap) throws UnsupportedEncodingException, SQLException{
 		logDataMap.put("varchar1", "commit");
 		conn.newData(CONN_ALIAS, LOG_TABLE, logConditionMap, logDataMap);
 	}
 	
 	/**
-	 * 確認訂單金額
+	 * 	確認訂單金額
+	 * 	log_status=LR-8002
 	 * @param tideId
 	 * @param moeny
 	 * @param userId
 	 * @param ip
 	 * @return
 	 */
-	static public Map getItemTideSubmitMoeny(String logId,String tideId,String money,String userId,String ip){
-		Map logDataMap =new HashMap();
+	static public Map<String,Object> getItemTideSubmitMoeny(String logId,String tideId,String money,String userId,String ip){
+		Map<String,Object> logDataMap =new HashMap<String,Object>();
 		logDataMap.put("log_id", logId);
 		logDataMap.put("log_status", "LR-8002");
 		logDataMap.put("money", money);
@@ -71,13 +110,14 @@ import com.mogan.sys.log.SysLogger4j;
 	
 	/**
 	 *	修改訂單資料 
+	 *	log_status=LR-9627
 	 * @param tideId
 	 * @param userId
 	 * @param ip
 	 * @return
 	 */
-	static public Map getItemTideSaveMoney(String logId,String tideId,String userId,String ip){
-		Map logDataMap =new HashMap();
+	static public Map<String,Object> getItemTideSaveMoney(String logId,String tideId,String userId,String ip){
+		Map<String,Object> logDataMap =new HashMap<String,Object>();
 		logDataMap.put("log_id", logId);
 		logDataMap.put("log_status", "LR-9627");
 		logDataMap.put("item_order_id", tideId);
@@ -88,14 +128,16 @@ import com.mogan.sys.log.SysLogger4j;
 	}
 	
 	/**
-	 * 刪除訂單
+	 * 	刪除訂單
+	 * 	log_status=LR-9623
 	 * @param tideId
 	 * @param userId
 	 * @param ip
 	 * @return
 	 */
-	static public Map getItemTideDelete(String tideId,String userId,String ip){
-		Map logDataMap =new HashMap();
+	static public Map<String,Object> getItemTideDelete(String logId,String tideId,String userId,String ip){
+		Map<String,Object> logDataMap =new HashMap<String,Object>();
+		logDataMap.put("log_id", logId);
 		logDataMap.put("log_status", "LR-9623");
 		logDataMap.put("item_order_id", tideId);
 		logDataMap.put("time_at", new Date());
@@ -105,14 +147,15 @@ import com.mogan.sys.log.SysLogger4j;
 	}
 	
 	/**
-	 * 移動訂單訊息
+	 * 	移動訂單訊息
+	 * 	log_status=LR-8004
 	 * @param itemOrderId
 	 * @param userId
 	 * @param ip
 	 * @return
 	 */
-	static public Map getItemOrderMoveTide(String logId,String itemOrderId,String newTideId,String oldTideId,String userId,String ip){
-		Map logDataMap =new HashMap();
+	static public Map<String,Object> getItemOrderMoveTide(String logId,String itemOrderId,String newTideId,String oldTideId,String userId,String ip){
+		Map<String,Object> logDataMap =new HashMap<String,Object>();
 		logDataMap.put("log_id", logId);
 		logDataMap.put("log_status", "LR-8004");
 		logDataMap.put("item_order_id", itemOrderId);
@@ -125,14 +168,15 @@ import com.mogan.sys.log.SysLogger4j;
 	}
 	
 	/**
-	 * 
+	 * 建立新訂單
+	 * log_status=LR-8005
 	 * @param itemOrderId
 	 * @param userId
 	 * @param ip
 	 * @return
 	 */
-	static public Map getItemTideNew(String logId,String newTideId,String userId,String ip){
-		Map logDataMap =new HashMap();
+	static public Map<String,Object> getItemTideNew(String logId,String newTideId,String userId,String ip){
+		Map<String,Object> logDataMap =new HashMap<String,Object>();
 		logDataMap.put("log_id", logId);
 		logDataMap.put("log_status", "LR-8005");
 		logDataMap.put("item_order_id", newTideId);
@@ -144,14 +188,15 @@ import com.mogan.sys.log.SysLogger4j;
 	
 	/**
 	 * 訂單移動記錄
+	 * log_status=LR-8004
 	 * @param logId
 	 * @param itemOrderId
 	 * @param userId
 	 * @param ip
 	 * @return
 	 */
-	static public Map getItemOrderMove(String logId,String itemOrderId,String userId,String ip){
-		Map logDataMap =new HashMap();
+	static public Map<String,Object> getItemOrderMove(String logId,String itemOrderId,String userId,String ip){
+		Map<String,Object> logDataMap =new HashMap<String,Object>();
 		logDataMap.put("log_id", logId);
 		logDataMap.put("log_status", "LR-8004");
 		logDataMap.put("item_order_id", itemOrderId);
@@ -163,13 +208,14 @@ import com.mogan.sys.log.SysLogger4j;
 	
 	/**
 	 *	修改訂單備忘資料 
+	 *	log_status=LR-8006
 	 * @param tideId
 	 * @param userId
 	 * @param ip
 	 * @return
 	 */
-	static public Map getItemTideSaveAlert(String logId,String tideId,String userId,String ip){
-		Map logDataMap =new HashMap();
+	static public Map<String,Object> getItemTideSaveAlert(String logId,String tideId,String userId,String ip){
+		Map<String,Object> logDataMap =new HashMap<String,Object>();
 		logDataMap.put("log_id", logId);
 		logDataMap.put("log_status", "LR-8006");
 		logDataMap.put("item_order_id", tideId);
@@ -179,4 +225,86 @@ import com.mogan.sys.log.SysLogger4j;
 		return logDataMap;
 	}
 	
+	/**
+	 * 	退商品費用 
+	 * log_status=LR-8007
+	 * @param logId
+	 * @param tideId 
+	 * @param money
+	 * @param userId
+	 * @param ip
+	 * @return
+	 */
+	static public Map<String,Object> getItemOrderMoneyBak(String logId,String tideId,String money,String userId,String ip){
+		Map<String,Object> logDataMap =new HashMap<String,Object>();
+		logDataMap.put("log_id", logId);
+		logDataMap.put("log_status", "LR-8007");
+		logDataMap.put("money", money);
+		logDataMap.put("item_order_id", tideId);
+		logDataMap.put("time_at", new Date());
+		logDataMap.put("user_ip", ip);
+		logDataMap.put("admin_name", userId);
+		return logDataMap;
+	}
+	
+	/**
+	 * 	退訂單費用
+	 * log_status=LR-8008
+	 * @param logId
+	 * @param tideId
+	 * @param money
+	 * @param userId
+	 * @param ip
+	 * @return
+	 */
+	static public Map<String,Object> getItemTideMoneyBak(String logId,String tideId,String money,String userId,String ip){
+		Map<String,Object> logDataMap =new HashMap<String,Object>();
+		logDataMap.put("log_id", logId);
+		logDataMap.put("log_status", "LR-8008");
+		logDataMap.put("money", money);
+		logDataMap.put("item_order_id", tideId);
+		logDataMap.put("time_at", new Date());
+		logDataMap.put("user_ip", ip);
+		logDataMap.put("admin_name", userId);
+		return logDataMap;
+	}
+	
+	/**
+	 * 	刪除ITEM ORDER資料
+	 * @param logId
+	 * @param tideId
+	 * @param money
+	 * @param userId
+	 * @param ip
+	 * @return
+	 */
+	static public Map<String,Object> getItemOrderDel(String logId,String tideId,String userId,String ip){
+		Map<String,Object> logDataMap =new HashMap<String,Object>();
+		logDataMap.put("log_id", logId);
+		logDataMap.put("log_status", "LR-8009");
+		logDataMap.put("item_order_id", tideId);
+		logDataMap.put("time_at", new Date());
+		logDataMap.put("user_ip", ip);
+		logDataMap.put("admin_name", userId);
+		return logDataMap;
+	}
+	
+	/**
+	 * 	改變訂單item tide資料
+	 * @param logId
+	 * @param tideId
+	 * @param userId
+	 * @param ip
+	 * @return
+	 */
+	static public Map<String,Object> getItemTideChange(String logId,String tideId,String userId,String ip){
+		Map<String,Object> logDataMap =new HashMap<String,Object>();
+		logDataMap.put("log_id", logId);
+		logDataMap.put("log_status", "LR-8010");
+		logDataMap.put("item_order_id", tideId);
+		logDataMap.put("time_at", new Date());
+		logDataMap.put("user_ip", ip);
+		logDataMap.put("admin_name", userId);
+		return logDataMap;
+	}
 }

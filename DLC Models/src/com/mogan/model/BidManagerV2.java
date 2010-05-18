@@ -1,7 +1,9 @@
 package com.mogan.model;
 
 import java.io.UnsupportedEncodingException;
+import java.math.BigDecimal;
 import java.sql.SQLException;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -11,14 +13,18 @@ import java.util.Map;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
+import com.mogan.entity.CurrencyEntity;
+import com.mogan.entity.MemberEntity;
 import com.mogan.exception.MoganException;
 import com.mogan.exception.NonPrivilegeException;
+import com.mogan.exception.entity.EntityNotExistException;
 import com.mogan.exception.netAgent.AccountNotExistException;
 import com.mogan.exception.privilege.PrivilegeException;
 import com.mogan.log.MoganLogger;
 import com.mogan.model.netAgent.NetAgentYJV2;
 import com.mogan.sys.DBConn;
 import com.mogan.sys.SysCalendar;
+import com.mogan.sys.SysMath;
 import com.mogan.sys.SysPrivilege;
 import com.mogan.sys.log.SysLogger4j;
 import com.mogan.sys.model.ProtoModel;
@@ -196,64 +202,129 @@ public class BidManagerV2 extends ProtoModel implements ServiceModelFace {
 	 * @throws PrivilegeException
 	 * @throws SQLException 
 	 * @throws UnsupportedEncodingException 
+	 * @throws EntityNotExistException 
 	 */
-	private JSONArray delTide(String tideId,String delType) throws PrivilegeException, UnsupportedEncodingException, SQLException{
+	private JSONArray delTide(String tideId,String delType) throws PrivilegeException, UnsupportedEncodingException, SQLException, EntityNotExistException{
 		if (!checkPrivilege(PRIVILEGE_UP,PRIVILEGE_MODEL_TIDE_STATE) || !checkPrivilege(PRIVILEGE_DEL,PRIVILEGE_MODEL_TIDE_STATE)){
 			throw new PrivilegeException("無調整訂單狀態權限 - ["+PRIVILEGE_UP+","+PRIVILEGE_DEL+"]");
 		}
-		Map currencyMap=new HashMap();
-		currencyMap.put("TWD", "sum_ntd");
-		//currencyMap.put("", arg1);
-		//currencyMap.put(arg0, arg1);
-		//currencyMap.put(arg0, arg1);
 		
 		JSONArray jArray = new JSONArray();
 		DBConn conn = (DBConn) this.getModelServletContext().getAttribute(
 		"DBConn");
 		
+		MoganLogger mLogger=new MoganLogger(conn);
+		MemberEntity mbEty=new MemberEntity(conn,tideId,MemberEntity.ITEM_TIDE_ID);
 		JSONArray datas =conn.queryJSONArray(CONN_ALIAS, "SELECT tide_status,income,member_id,currency FROM item_tide WHERE tide_id ='"+tideId+"' AND delete_flag =1 ");
+		JSONArray itemCostData=conn.queryJSONArray(CONN_ALIAS, "SELECT buy_price,buy_unit,exchange,item_order_id,sum(member_item_cost) AS sum_item_cost,pay_currency FROM view_bid_item_order_v3 WHERE tide_id ='"+tideId+"' AND delete_flag=1 AND o_varchar01='1' ");//已結商品費用
+		String io_SumItemCost=itemCostData.getJSONObject(0).getString("sum_item_cost");	//商品總支出金額
+		String io_PayCurrency=itemCostData.getJSONObject(0).getString("pay_currency");	//商品結帳貨幣
+		DecimalFormat df = new DecimalFormat(CurrencyEntity.getCurrencyFormat(io_PayCurrency));
+		
 		if (!datas.getJSONObject(0).getString("tide_status").matches("3-0[123]")){
 			throw new PrivilegeException("訂單已付款，無法刪單或棄標!!");
 		}
 		
 		if (delType.equals("0")){		//刪單
-			String income=datas.getJSONObject(0).getString("income");
-			String currency=datas.getJSONObject(0).getString("currency");
-			SysLogger4j.debug("退款 SQL:"+"UPDATE member_data SET "+currencyMap.get(currency)+"="+currencyMap.get(currency)+"+"+income+"  WHERE member_id='"+datas.getJSONObject(0).getString("member_id")+"'");
-			//TODO 商品費用退款
+			StringBuffer io_ids=new StringBuffer();
+			for (int i=0;i<itemCostData.size();i++){
+				JSONObject tempObj=itemCostData.getJSONObject(i);
+				io_ids.append(tempObj.getString("item_order_id")+"");
+				if (i+1<itemCostData.size()){
+					io_ids.append(",");	
+				}
+			}
 			
-			//TODO 訂單退款 log
-			conn.executSql(CONN_ALIAS, "UPDATE member_data SET sum_ntd=sum_ntd+"+income+"  WHERE member_id='MD-20100222-0032684'");
+			BigDecimal bd_value = new BigDecimal(io_SumItemCost);
+			
+			String log_Id = conn.getAutoNumber(CONN_ALIAS, "LR-ID-01");
+			Map<String,Object> log_DataMap=mLogger.getItemOrderMoneyBak(log_Id, tideId,df.format(bd_value.setScale(2, BigDecimal.ROUND_HALF_UP)), (String) this.getSession().getAttribute("USER_ID"),  (String)this.getSession().getAttribute("CLIENT_IP"));
+			log_DataMap.put("varchar2", io_ids );
+			mLogger.preLog(log_DataMap); 	//準備退商品費用給會員
+			
+			// 退商品費用
+			conn.executSql(CONN_ALIAS, "UPDATE member_data SET sum_ntd=sum_ntd+"+df.format(bd_value.setScale(2, BigDecimal.ROUND_HALF_UP))+"  WHERE member_id='"+datas.getJSONObject(0).getString("member_id")+"'");
+			
+			mbEty.refreashData();
+			log_DataMap.put("money", df.format(bd_value.setScale(2, BigDecimal.ROUND_HALF_UP)));//改變金額
+			log_DataMap.put("sum_money", mbEty.getMyMoney(io_PayCurrency));//帳戶餘額
+			log_DataMap.put("debts", mbEty.getMyDebts(io_PayCurrency));//帳戶欠款
+			mLogger.commitLog(log_DataMap);	//退費完成
+			
+			
+			log_Id = conn.getAutoNumber(CONN_ALIAS, "LR-ID-01");
+			log_DataMap=mLogger.getItemOrderDel(log_Id, tideId, (String) this.getSession().getAttribute("USER_ID"),  (String)this.getSession().getAttribute("CLIENT_IP"));
+			log_DataMap.put("varchar2", io_ids );
+			mLogger.preLog(log_DataMap);	//準備刪除item order
+			
+			// 更新商品付款狀態
 			Map conditionMap=new HashMap();
 			Map dataMap=new HashMap();
+			conditionMap.put("tide_id", tideId);
+			conditionMap.put("o_varchar01", "1");
+			dataMap.put("o_varchar01", "0");
+			dataMap.put("delete_flag", "0");
+			conn.update(CONN_ALIAS, "item_order", conditionMap, dataMap);
+			mLogger.commitLog(log_DataMap);	//刪除item order完成
+			
+			////////////////////////////////////////////////////////////////////////////////////
+			
+			String income=datas.getJSONObject(0).getString("income");
+			String itemTideCurrency=datas.getJSONObject(0).getString("currency");
+			
+			log_Id = conn.getAutoNumber(CONN_ALIAS, "LR-ID-01");
+			log_DataMap=MoganLogger.getItemTideMoneyBak(log_Id, tideId,income, (String) this.getSession().getAttribute("USER_ID"),  (String)this.getSession().getAttribute("CLIENT_IP"));
+			mLogger.preLog(log_DataMap);	//準備退訂單費用
+			
+			//退訂單費用
+			conn.executSql(CONN_ALIAS, "UPDATE member_data SET "+CurrencyEntity.getCurrencyAccountColName(itemTideCurrency)+"="+CurrencyEntity.getCurrencyAccountColName(itemTideCurrency)+"+"+income+"  WHERE member_id='"+datas.getJSONObject(0).getString("member_id")+"'");
+			mbEty.refreashData();
+			log_DataMap.put("money", income);//改變金額
+			log_DataMap.put("sum_money", mbEty.getMyMoney(io_PayCurrency));//帳戶餘額
+			log_DataMap.put("debts", mbEty.getMyDebts(io_PayCurrency));//帳戶欠款
+			mLogger.commitLog(log_DataMap);	//退訂單費用完成
+			
+			log_Id = conn.getAutoNumber(CONN_ALIAS, "LR-ID-01");
+			log_DataMap=MoganLogger.getItemTideChange(log_Id, tideId, (String) this.getSession().getAttribute("USER_ID"),  (String)this.getSession().getAttribute("CLIENT_IP"));
+			mLogger.preLog(log_DataMap);	//準備退訂單費用
+			
+			conditionMap=new HashMap();
+			dataMap=new HashMap();
 			conditionMap.put("tide_id", tideId);
 			dataMap.put("income", "0");
 			dataMap.put("member_pay_status", "1");
 			conn.update(CONN_ALIAS, "item_tide", conditionMap, dataMap);
-			//TODO 修正訂單收取金額
+			mLogger.commitLog(log_DataMap);
+			
 			deleteOrder(tideId);
-		}else if (delType.equals("1")){	//棄標
+		}else if (delType.equals("1")){	//棄標退還商品84.75%費用 訂單費用不退
+			/**
+			 * 退回商品費用84.75 %
+			 */
+			double bakMoney=SysMath.mul(io_SumItemCost,"84.75");	//計算應退多少錢
+			BigDecimal bd_value = new BigDecimal(Double.toHexString(bakMoney));
+			String log_Id = conn.getAutoNumber(CONN_ALIAS, "LR-ID-01");
+			Map<String,Object> log_DataMap=mLogger.getItemOrderMoneyBak(log_Id, tideId,df.format(bd_value.setScale(2, BigDecimal.ROUND_HALF_UP)), (String) this.getSession().getAttribute("USER_ID"),  (String)this.getSession().getAttribute("CLIENT_IP"));
+			mLogger.preLog(log_DataMap);
+			conn.executSql(CONN_ALIAS, "UPDATE member_data SET sum_ntd=sum_ntd+"+df.format(bd_value.setScale(2, BigDecimal.ROUND_HALF_UP))+"  WHERE member_id='"+datas.getJSONObject(0).getString("member_id")+"'");
+			mbEty.refreashData();
+			log_DataMap.put("money", df.format(bd_value.setScale(2, BigDecimal.ROUND_HALF_UP)));//改變金額
+			log_DataMap.put("sum_money", mbEty.getMyMoney(io_PayCurrency));//帳戶餘額
+			log_DataMap.put("debts", mbEty.getMyDebts(io_PayCurrency));//帳戶欠款
+			mLogger.commitLog(log_DataMap);	//退費完成
 			
+			log_DataMap=mLogger.getItemTideChange(log_Id, tideId, (String) this.getSession().getAttribute("USER_ID"),  (String)this.getSession().getAttribute("CLIENT_IP"));
+			mLogger.preLog(log_DataMap);
+			Map dataMap=new HashMap();
+			Map conditionMap=new HashMap();
+			dataMap.put("order_status", "3-12");
+			dataMap.put("time_14", new Date());
+			conditionMap.put("tide_id", tideId);
+			conn.update(CONN_ALIAS, "item_tide", conditionMap, dataMap);
+			mLogger.commitLog(log_DataMap);
+			
+			//TODO 棄標原因
 		}
-			
-			
-		/*
-		JSONArray costData=conn.queryJSONArray(CONN_ALIAS, "SELECT sum(member_item_cost) AS sum_item_cost FROM view_item_order_v3 WHERE tide_id ='"+tideId+"' AND delete_flag=1 AND o_varchar01='1' ");//已結商品費用
-		
-		costData=conn.queryJSONArray(CONN_ALIAS, "SELECT sum(member_item_cost) AS sum_item_cost FROM view_item_order_v3 WHERE tide_id ='"+tideId+"' AND delete_flag=1 AND o_varchar01='0' ");//未結商品費用
-		
-		Map conditionMap=new HashMap();
-		Map dataMap=new HashMap();
-		conditionMap.put("tide_id", tideId);
-		dataMap.put("delete_flag", 0);
-		
-		deleteOrder(tideId);
-		*/
-		//TODO 刪單
-		
-		//TODO 棄標
-		
-		
 		return jArray;
 	}
 	
@@ -295,9 +366,7 @@ public class BidManagerV2 extends ProtoModel implements ServiceModelFace {
 		String logId = conn.getAutoNumber(CONN_ALIAS, "LR-ID-01");
 		MoganLogger mLogger=new MoganLogger(conn);
 		Map logDataMap=mLogger.getItemTideSaveAlert(logId, tideId, (String) this.getSession().getAttribute("USER_ID"),  (String)this.getSession().getAttribute("CLIENT_IP"));
-		Map logConditionMap=new HashMap();
-		logConditionMap.put("log_id", logId);
-		mLogger.preLog(logDataMap, logConditionMap);
+		mLogger.preLog(logDataMap);
 		
 		Map conditionMap=new HashMap();
 		Map dataMap=new HashMap();
@@ -305,7 +374,7 @@ public class BidManagerV2 extends ProtoModel implements ServiceModelFace {
 		dataMap.put(alertData.getString("alert_type"), alertData.getString("alert_text"));
 		conn.update(BidManagerV2.CONN_ALIAS, "item_tide", conditionMap, dataMap);
 		
-		mLogger.commitLog(logDataMap, logConditionMap);
+		mLogger.commitLog(logDataMap);
 		
 
 		jArray.add(loadTideOder(tideId).getJSONObject(0).getJSONObject("Datas"));
@@ -399,7 +468,7 @@ public class BidManagerV2 extends ProtoModel implements ServiceModelFace {
 		tatolPrice+=orderData.getLong("cost_4");
 		
 		Map dataMap=new HashMap();
-		dataMap.put("remit_classify", "");//支出方式
+		dataMap.put("remit_classify", "RL-901");//支出方式
 		dataMap.put("money", tatolPrice);//支出金額
 		dataMap.put("remit_to", orderData.getString("remit_to"));//支出給
 
@@ -410,9 +479,7 @@ public class BidManagerV2 extends ProtoModel implements ServiceModelFace {
 		String logId = conn.getAutoNumber(this.CONN_ALIAS, "LR-ID-01");
 		MoganLogger mLogger=new MoganLogger(conn);
 		Map logDataMap=mLogger.getItemTideSubmitMoeny(logId,orderData.getString("tide_id"), String.valueOf(tatolPrice), (String) this.getSession().getAttribute("USER_ID"), (String)this.getSession().getAttribute("CLIENT_IP"));
-		Map logConditionMap=new HashMap();
-		logConditionMap.put("log_id", logId);
-		mLogger.preLog(logDataMap, logConditionMap);	//建立log資料 開始修改資料
+		mLogger.preLog(logDataMap);	//建立log資料 開始修改資料
 		
 		// 更新支出清單 
 		conn.update( BidManagerV2.CONN_ALIAS, "remit_list",conditionMap, dataMap);
@@ -433,7 +500,7 @@ public class BidManagerV2 extends ProtoModel implements ServiceModelFace {
 		conn.update(BidManagerV2.CONN_ALIAS, "item_order", conditionMap, dataMap);
 		MoganLogger.logger.info("修改下標商品狀態 ["+orderData.getString("tide_id")+"] dataMap:"+dataMap);
 		
-		mLogger.commitLog(logDataMap, logConditionMap); //建立log資料 資料修改完成
+		mLogger.commitLog(logDataMap); //建立log資料 資料修改完成
 				
 		return jArray;
 	}
@@ -461,17 +528,13 @@ public class BidManagerV2 extends ProtoModel implements ServiceModelFace {
 			dataMap.put("delete_flag", "0");
 			
 			String logId = conn.getAutoNumber(this.CONN_ALIAS, "LR-ID-01");
-			Map logDataMap=MoganLogger.getItemTideDelete(tideId, (String) this.getSession().getAttribute("USER_ID"), (String)this.getSession().getAttribute("CLIENT_IP"));
-			Map logConditionMap=new HashMap();
-			logConditionMap.put("log_id", logId);
-			logDataMap.put("log_id", logId);
+			MoganLogger mLogger =new MoganLogger(conn);
+			Map logDataMap=MoganLogger.getItemTideDelete(logId,tideId, (String) this.getSession().getAttribute("USER_ID"), (String)this.getSession().getAttribute("CLIENT_IP"));			
+			mLogger.preLog(logDataMap);
 			
-			
-			conn.newData(BidManagerV2.CONN_ALIAS, "log_record", logConditionMap, logDataMap);
 			conn.update(BidManagerV2.CONN_ALIAS, "item_tide", conditionMap,
 					dataMap);
-			logDataMap.put("varchar1", "OK");
-			conn.newData(BidManagerV2.CONN_ALIAS, "log_record", logConditionMap, logDataMap);
+			mLogger.commitLog(logDataMap);
 			MoganLogger.logger.info("刪除同捆訂單 ["+tideId+"]");
 		}
 	}
@@ -506,14 +569,12 @@ public class BidManagerV2 extends ProtoModel implements ServiceModelFace {
 		dataMap.put("date_1", new Date());
 		dataMap.put("item_alert", "由["+(String) this.getSession().getAttribute("USER_NAME")+"]建立新訂單，舊訂單為"+fromTideId+" -"+new SysCalendar().getFormatDate(SysCalendar.yyyy_MM_dd_HH_mm_ss_Mysql));
 		String logId = conn.getAutoNumber(this.CONN_ALIAS, "LR-ID-01");
-		
+		MoganLogger mLogger =new MoganLogger(conn);
 		Map logDataMap=MoganLogger.getItemOrderMoveTide(logId,itemOrderId,fromTideId,newTideId, (String) this.getSession().getAttribute("USER_ID"), (String)this.getSession().getAttribute("CLIENT_IP"));
-		Map logConditionMap=new HashMap();
-		logConditionMap.put("log_id", logId);
-		conn.newData(BidManagerV2.CONN_ALIAS, "log_record", logConditionMap, logDataMap);
+		mLogger.preLog(logDataMap);
+		
 		conn.newData(BidManagerV2.CONN_ALIAS, "item_tide", dataMap);
-		logDataMap.put("varchar1", "OK");
-		conn.newData(BidManagerV2.CONN_ALIAS, "log_record", logConditionMap, logDataMap);
+		mLogger.commitLog(logDataMap);
 		MoganLogger.logger.info("建立新同捆訂單["+newTideId+"]");
 		
 		conditionMap = new HashMap();
@@ -524,13 +585,11 @@ public class BidManagerV2 extends ProtoModel implements ServiceModelFace {
 
 		logId = conn.getAutoNumber(this.CONN_ALIAS, "LR-ID-01");
 		 logDataMap=MoganLogger.getItemOrderMove(logId,itemOrderId, (String) this.getSession().getAttribute("USER_ID"), (String)this.getSession().getAttribute("CLIENT_IP"));
-		 logConditionMap=new HashMap();
-		logConditionMap.put("log_id", logId);
-		conn.newData(BidManagerV2.CONN_ALIAS, "log_record", logConditionMap, logDataMap);
+		 mLogger.preLog(logDataMap);
 		conn.update(BidManagerV2.CONN_ALIAS, "item_order", conditionMap,
 				dataMap);
-		logDataMap.put("varchar1", "OK");
-		conn.newData(BidManagerV2.CONN_ALIAS, "log_record", logConditionMap, logDataMap);
+		mLogger.commitLog(logDataMap);
+		
 		MoganLogger.logger.info("將商品轉移到新訂單上 ["+itemOrderId+"] to ["+newTideId+"]");
 		deleteOrder(fromTideId);
 		return jArray;
@@ -562,17 +621,14 @@ public class BidManagerV2 extends ProtoModel implements ServiceModelFace {
 		dataMap.put("tide_id", tideId);
 		//TODO log記錄修改item order 對應tide id
 		
+		MoganLogger mLogger =new MoganLogger(conn);
 		String logId = conn.getAutoNumber(BidManagerV2.CONN_ALIAS, "LR-ID-01");
 		
 		Map logDataMap=MoganLogger.getItemOrderMoveTide(logId,itemOrderId,tideId,(String)tideList.get(0).get("tide_id"), (String) this.getSession().getAttribute("USER_ID"), (String)this.getSession().getAttribute("CLIENT_IP"));
-		Map logConditionMap=new HashMap();
-		logConditionMap.put("log_id", logId);
-		
-		conn.newData(BidManagerV2.CONN_ALIAS, "log_record", logConditionMap, logDataMap);
+		mLogger.preLog(logDataMap);
 		conn.update(BidManagerV2.CONN_ALIAS, "item_order", conditionMap,
 				dataMap);
-		logDataMap.put("varchar1", "OK");
-		conn.newData(BidManagerV2.CONN_ALIAS, "log_record", logConditionMap, logDataMap);
+		mLogger.commitLog(logDataMap);
 		
 		deleteOrder(fromTideId);
 
@@ -656,7 +712,13 @@ public class BidManagerV2 extends ProtoModel implements ServiceModelFace {
 		remitDataMap.put("remit_to", orderObj.getString("remit_to"));
 		remitDataMap.put("remit_id",remitId);
 		
-		// TODO log記錄
+		//TODO log記錄
+		MoganLogger mLogger =new MoganLogger(conn);
+		String logId = conn.getAutoNumber(this.CONN_ALIAS, "LR-ID-01");
+		logId = conn.getAutoNumber(this.CONN_ALIAS, "LR-ID-01");
+		Map logDataMap=MoganLogger.getItemTideSaveMoney(logId, orderObj.getString("tide_id"), (String) this.getSession().getAttribute("USER_ID"), (String)this.getSession().getAttribute("CLIENT_IP"));
+		mLogger.preLog(logDataMap);
+		
 		conn.newData(CONN_ALIAS, "remit_list",remitConditionMap, remitDataMap);
 		dataMap.put("remit_id", remitId);
 		
@@ -665,21 +727,11 @@ public class BidManagerV2 extends ProtoModel implements ServiceModelFace {
 			//dataMap.put("cost_9", dataMap.get("cost_5"));
 		}
 		
-		
-		String logId = conn.getAutoNumber(this.CONN_ALIAS, "LR-ID-01");
-		Map logDataMap=MoganLogger.getItemTideSaveMoney(logId, orderObj.getString("tide_id"), (String) this.getSession().getAttribute("USER_ID"), (String)this.getSession().getAttribute("CLIENT_IP"));
-		Map logConditionMap = new HashMap();
-		logConditionMap.put("log_id", logId); // log id 
-		SysLogger4j.info(logDataMap);
-		conn.newData(BidManagerV2.CONN_ALIAS, "log_record", logConditionMap,
-				logDataMap);
 		conn
 				.update(BidManagerV2.CONN_ALIAS, "item_tide", conditionMap,
 						dataMap);
 		
-		logDataMap.put("varchar1", "OK");
-		conn.newData(BidManagerV2.CONN_ALIAS, "log_record", logConditionMap,
-				logDataMap);// 執行完成
+		mLogger.commitLog(logDataMap);
 
 		jArray.add("1");
 		return jArray;
@@ -820,7 +872,7 @@ public class BidManagerV2 extends ProtoModel implements ServiceModelFace {
 					if (statusSql.length() > 0) {
 						statusSql.append(" OR ");
 					}
-					statusSql.append(" order_status LIKE '"
+					statusSql.append(" tide_status LIKE '"
 							+ statusJArray.getJSONObject(i).getString("key")
 							+ "' ");
 				}

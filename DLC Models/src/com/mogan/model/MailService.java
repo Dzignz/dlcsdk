@@ -16,6 +16,7 @@ import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import com.mogan.sys.DBConn;
 import com.mogan.sys.SysKernel;
+import com.mogan.sys.SysMath;
 import com.mogan.sys.mail.MailSenderInfo;
 import com.mogan.sys.mail.SimpleMailSender;
 import com.mogan.sys.model.ProtoModel;
@@ -228,10 +229,10 @@ public class MailService extends ProtoModel implements ServiceModelFace {
 		jObj.put("TOTAL", sms.getTargetList().size());
 		jObj.put("STATUS", sms.getStatus());
 		jObj.put("CURRENT_SEQ", sms.getSendSeq());
-		double d = com.mogan.sys.Math.div(sms.getSendSeq(), sms.getTargetList()
+		double d = SysMath.div(sms.getSendSeq(), sms.getTargetList()
 				.size(), 4);
 		d = d * 100;
-		d=com.mogan.sys.Math.div(d, 1, 4);
+		d=SysMath.div(d, 1, 4);
 		jObj.put("PERCENTAGE", d);
 		jObj.put("MSG", sms.getMessagesWithDel());
 		jArray.add(jObj);
