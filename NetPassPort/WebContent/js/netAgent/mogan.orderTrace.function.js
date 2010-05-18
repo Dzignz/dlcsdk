@@ -1590,36 +1590,51 @@ Mogan.orderTrace.FixRadiogroupOrderShipType = function() {
  */
 Mogan.orderTrace.delOrder = function(type) {
 	var regex = new RegExp('3-0[123]');
-	if (!regex.test(Ext.getCmp('orderDataPanel').getForm().getValues()['tide_status'])){
-		Ext.Msg.alert("錯誤","訂單已付款無法進行 刪單或棄標");
+	if (!regex
+			.test(Ext.getCmp('orderDataPanel').getForm().getValues()['tide_status'])) {
+		Ext.Msg.alert("錯誤", "訂單已付款無法進行 刪單或棄標");
 		return;
 	}
-
-	Ext.Ajax.request({
-		url : 'AjaxPortal',
-		callback : function() {
-		},
-		success : function(response) {
-			var json = parserJSON(response.responseText);
-			if (json['responseResult'] == "failure") {
-				Ext.Msg.alert("錯誤", json['responseMsg']);
-			} else {
-				Ext.Msg.alert("訊息", "訂單費用儲存成功.");
-				Mogan.orderTrace.showOrderData(response);
-			}
-		},
-		failure : function(response) {
-			Ext.Msg.alert("錯誤", "請向程式開發者詢問");
-		},
-		params : {
-			APP_ID : appId,
-			ACTION : "DEL_TIDE",
-			RETURN_TYPE : "JSON",
-			MODEL_NAME : "BM2",
-			DEL_TYPE : type,
-			TIDE_ID : Ext.getCmp('orderDataPanel').getForm().getValues()['tide_id']
-
+	var msg="";
+	switch (type){
+		case 0:
+			msg="刪單";
+			break;
+		case 1:
+			msg="棄標";
+			break;
+	}
+	
+	Ext.MessageBox.prompt("警告", "請確認是否["+msg+"]並請輸入訂單["+msg+"]原因", function(btn, text) {
+		if (btn != 'ok') {
+			return;
 		}
+		Ext.Ajax.request({
+			url : 'AjaxPortal',
+			callback : function() {
+			},
+			success : function(response) {
+				var json = parserJSON(response.responseText);
+				if (json['responseResult'] == "failure") {
+					Ext.Msg.alert("錯誤", json['responseMsg']);
+				} else {
+					Ext.Msg.alert("訊息", "訂單費用儲存成功.");
+					Mogan.orderTrace.showOrderData(response);
+				}
+			},
+			failure : function(response) {
+				Ext.Msg.alert("錯誤", "請向程式開發者詢問");
+			},
+			params : {
+				APP_ID : appId,
+				ACTION : "DEL_TIDE",
+				RETURN_TYPE : "JSON",
+				MODEL_NAME : "BM2",
+				DEL_TYPE : type,
+				TIDE_ID : Ext.getCmp('orderDataPanel').getForm().getValues()['tide_id']
+
+			}
+		});
 	});
 }
 
