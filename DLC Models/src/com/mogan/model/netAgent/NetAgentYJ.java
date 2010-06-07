@@ -33,6 +33,7 @@ import org.apache.commons.httpclient.HostConfiguration;
 import org.apache.commons.httpclient.NameValuePair;
 import org.apache.commons.httpclient.UsernamePasswordCredentials;
 import org.apache.commons.httpclient.auth.AuthScope;
+import org.apache.log4j.Logger;
 import org.htmlparser.Node;
 import org.htmlparser.beans.StringBean;
 import org.htmlparser.filters.AndFilter;
@@ -46,6 +47,7 @@ import org.htmlparser.util.ParserException;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
+import com.mogan.entity.ItemTideEntity;
 import com.mogan.exception.MoganException;
 import com.mogan.exception.netAgent.AccountNotExistException;
 import com.mogan.face.BidFace;
@@ -63,7 +65,8 @@ import com.mogan.sys.mail.SimpleMailSender;
  * @author Dian
  */
 public class NetAgentYJ extends NetAgentModel implements BidFace {
-
+	private Logger logger  =  Logger.getLogger(NetAgentYJ.class.getName());
+	
 	private final String loginURL = "https://login.yahoo.co.jp/config/login";
 	private final String bidURL = "https://login.yahoo.co.jp/config/login";
 
@@ -404,8 +407,6 @@ public class NetAgentYJ extends NetAgentModel implements BidFace {
 			throws AccountNotExistException {
 		JSONArray jArray = new JSONArray();
 		String returnStr = "0";
-		DBConn conn = (DBConn) this.getModelServletContext().getAttribute(
-				"DBConn");
 		Map sellItemDataMap = getSellItemData(itemOrderId);
 		NetAgent nAgent = new NetAgent();
 		String sellAccount = (String) sellItemDataMap.get("account");// 賣家帳號
@@ -948,13 +949,14 @@ public class NetAgentYJ extends NetAgentModel implements BidFace {
 				break;
 			case 1:// E-MAIL
 				SimpleMailSender sms = new SimpleMailSender();
-				System.out.println("[DEBUG] sendMail-1");
+				logger.info("[DEBUG] sendMail-1");
+				
 				msgContact = "<html><body>"
 						+ msgContact.replaceAll("(\r|\n|\r\n)", "<br />")
 						+ "</body></html>";
 				sms.setMailSubject(msgTitle);
 				sms.setMailContent(msgContact);
-				sms.setMailServerHost("adsx.mogan.com.tw");
+				sms.setMailServerHost("mail.mogan.com.tw");
 				sms.setMailServerPort("25");
 				sms.setAccount("");
 				sms.setPwd("");
@@ -963,14 +965,15 @@ public class NetAgentYJ extends NetAgentModel implements BidFace {
 				sms.setFromAddress(this.getMailSenderAddress());
 
 				ArrayList dataList = new ArrayList();
-				System.out.println("[DEBUG] sendMail-2");
+				logger.info("[DEBUG] sendMail-2. "+toAddress);
 				sms.setTargetList(dataList);
 
 				/* 寄送mail開始 */
 				MailSenderInfo mail = sms.getMailInfo("", toAddress, "", this
 						.getMailCC());
 				results = sms.sendHtmlMail(mail);
-				System.out.println("[DEBUG] sendMail-3" + jArray);
+				logger.info("[DEBUG] sendMail-3"+jArray);
+				
 				break;
 			case 2:// 揭示版
 				postDataMap.put("aID", itemId);
@@ -1513,6 +1516,7 @@ public class NetAgentYJ extends NetAgentModel implements BidFace {
 		String sellerId = orderMap.get("seller_id");
 		String memberAccount = orderMap.get("member_account");
 		System.out.println("###[DEBUG]getItemContactMsgxx::"+bidAccount+" "+itemId+" "+itemOrderId);
+		//System.out.println("###[DEBUG]getItemContactMsgxx::"+bidAccount+" "+itemId+" "+itemOrderId);
 		autoLogin(bidAccount);
 		Cookie[] cookies = getLoginSessionCookie(this.getAppId(), bidAccount);
 		nAgent.getState().addCookies(cookies);
@@ -1559,7 +1563,7 @@ public class NetAgentYJ extends NetAgentModel implements BidFace {
 						String msgFrom = discussionNodes.elementAt(i)
 								.toPlainTextString().split("\\n")[2]
 								.split("(\\(|\\（)")[0];
-						System.out.println("[DEBUG] 有揭示版."+msgId);
+						logger.info("商品 ["+itemId+"] 有揭示版 ("+msgId);
 						for (int d = 3; d < discussionNodes.elementAt(i)
 								.toPlainTextString().split("\\n").length; d++) {
 							if (discussionNodes.elementAt(i)
@@ -1736,6 +1740,7 @@ public class NetAgentYJ extends NetAgentModel implements BidFace {
 		return jDataArray;
 	}
 
+	
 	/**
 	 * @param webSiteName
 	 *            - 固定傳入"Yahoo JP"
@@ -1752,51 +1757,32 @@ public class NetAgentYJ extends NetAgentModel implements BidFace {
 	 * @return 下標結果，以數字表示 <br /> 0 - 無法判斷<br /> 1 - 下標成功，非最高出價<br /> 2 - 下標成功，已得標<br/> 3 - 下標成功，最高出價<br /> 4 - 無法下標<br /> - 下標失敗，錯誤出價(未完成)<br /> -
 	 *         下標失敗，已結標(未完成)<br /> - 下標失敗，無下標連結(未完成)<br /> - 下標失敗，評價不足(未完成)<br /> - 下標失敗，密碼錯誤(未完成)<br /> - 下標失敗，下標價過低(未完成)<br /> - 下標失敗，數量錯誤(未完成)<br
 	 *         /> - 下標失敗，無法下標(未完成)<br />
+	 * @throws AccountNotExistException 
 	 * @throws Exception
 	 */
 	@Override
 	public JSONArray bidItem(String uId, String pwd, String itemURL,
-			String price, String qty) throws Exception {
-		long l0 = System.currentTimeMillis();
+			String price, String qty) throws AccountNotExistException {
 		JSONArray jArray = new JSONArray();
+		long l0=System.currentTimeMillis();
 		autoLogin(uId);
-		long l1 = System.currentTimeMillis();
+		
 		String bidItemMsg = "0";
 		NetAgent nAgent = new NetAgent();
 		Cookie[] cookies = getLoginSessionCookie(this.getAppId(), uId);
 		nAgent.getState().addCookies(cookies);
-		long l11 = System.currentTimeMillis();
-		// nAgent.getDataWithPost(itemURL);
+		
 		String itemId = itemURL.split("\\/")[itemURL.split("\\/").length - 1];
-		// nAgent.getDataWithPost(itemURL);
-		nAgent.getDataWithPost("http://127.0.0.1/NetPassPort/index.html");
-
-		// System.out.println("[DEBUG] getHostUrl::"+nAgent.getDataWithPost("http://page.auctions.yahoo.co.jp/jp/show/countdown?aID="+itemId));
-		// System.out.println("[DEBUG] getHostUrl::"+"http://page.auctions.yahoo.co.jp/jp/show/countdown?aID="+itemId);
-		// System.out.println("[DEBUG] getHostUrl::"+nAgent.getHostUrl());
-		// this.printHeaders(nAgent.getResponseHeader());
-		// this.outputTofile(nAgent.getResponseBody());
-		long l2 = System.currentTimeMillis();
-		/*
-		 * if (nAgent.getStatusCode() != 200 && nAgent.getStatusCode() != 302) { throw new Exception("HTTP Status Code Error(" +
-		 * nAgent.getStatusCode() + ")"); }
-		 */
-		long l3 = System.currentTimeMillis();
 		NodeList nodes;
-
-		Map dataMap = new HashMap();
+		
 		try {
 
-			// nodes = nAgent.filterBid0FormItem();
-			long l4 = System.currentTimeMillis();
-			// nAgent.setParserNodesToPostDataMap(nodes);
 
 			Map tempMap = new HashMap();
 
-			tempMap.put(nAgent.YAHOO_JP_BID, price);// 價格
+			tempMap.put(NetAgent.YAHOO_JP_BID, price);// 價格
 			tempMap.put("ItemID", itemId);// ItemID
-			// tempMap.put(this.YAHOO_JP_PWD, nPwd);// 密碼(MD5編碼後)
-			tempMap.put(nAgent.YAHOO_JP_QUANTITY, qty);// 數量
+			tempMap.put(NetAgent.YAHOO_JP_QUANTITY, qty);// 數量
 			tempMap.put("bidType", "1000");// bidtype
 
 			tempMap.put("cc", "jp");// cc
@@ -1805,76 +1791,40 @@ public class NetAgentYJ extends NetAgentModel implements BidFace {
 			tempMap.put("setPrice", price);// cc
 
 			nAgent.putDataInPostDataMap(tempMap);
-			System.out.println("[DEBUG] getPostDataMap::"
-					+ nAgent.getPostDataMap());
-
+			
 			/** 取得回傳網址 */
 			nodes = nAgent.filterItem(new HTMLNodeFilter("id=\"frmbb1\""));
 			String bidPreviewUrl = "http://$PAGE.auctions.yahoo.co.jp/jp/show/bid_preview";
-			System.out.println("[DEBUG] bidPreviewUrl::" + bidPreviewUrl);
+			
 
 			bidPreviewUrl = bidPreviewUrl.replaceAll("\\$PAGE", "page"
 					+ itemURL.split("page")[1].split("\\.")[0]);
-			System.out.println("[DEBUG] bidPreviewUrl::" + bidPreviewUrl);
-
-			if (nodes.size() > 0) {
-				// bidPreviewUrl=nAgent.getUrl(nodes.elementAt(0).toHtml());
-			}
-			System.out.println("[DEBUG] bidPreviewUrl::" + bidPreviewUrl);
+			logger.debug("bidPreviewUrl:"+bidPreviewUrl);
+			
 			nAgent.postMaptoData();
-			nAgent.getDataWithPost(bidPreviewUrl);
-
-			long l5 = System.currentTimeMillis();
+			nAgent.getDataWithPostIPhone(bidPreviewUrl);
 			nodes = nAgent.filterInputItem();
 			nAgent.setParserNodesToPostDataMap(nodes);
 			nAgent.postMaptoData();
-			// nodes = nAgent.filterFormHttpHref();
+
 			String bidUrl = "http://$BID.auctions.yahoo.co.jp/jp/config/placebid";
-			// http://bid10.auctions.yahoo.co.jp/jp/config/placebid
+
 			bidUrl = bidUrl.replaceAll("\\$BID", "bid"
 					+ itemURL.split("page")[1].split("\\.")[0]);
-			// if (nodes.size() > 0) {
-			// bidUrl = nAgent.getUrl(nodes.elementAt(0).getText());
-			// }
-			System.out.println("[DEBUG] bidUrl::" + bidUrl);
-			// outputTofile(nAgent.getResponseBody());
-			nAgent.getDataWithPost(bidUrl);
-			long l6 = System.currentTimeMillis();
-			// outputTofile(nAgent.getResponseBody());
-			bidItemMsg = this.checkBidResult(nAgent.getResponseBody());
-			long l7 = System.currentTimeMillis();
-
-			System.out.println("[DEBUG] BID ITEM(" + l0 + ")7-0:" + (l7 - l0));
-			System.out.println("[DEBUG] BID ITEM(" + l0 + ")7-6:" + (l7 - l6));
-			System.out.println("[DEBUG] BID ITEM(" + l0 + ")6-5:" + (l6 - l5));
-			System.out.println("[DEBUG] BID ITEM(" + l0 + ")5-4:" + (l5 - l4));
-			System.out.println("[DEBUG] BID ITEM(" + l0 + ")4-3:" + (l4 - l3));
-			System.out.println("[DEBUG] BID ITEM(" + l0 + ")3-2:" + (l3 - l2));
-			System.out.println("[DEBUG] BID ITEM(" + l0 + ")2-1:" + (l2 - l1));
-			System.out
-					.println("[DEBUG] BID ITEM(" + l0 + ")2-11:" + (l2 - l11));
-			System.out
-					.println("[DEBUG] BID ITEM(" + l0 + ")11-1:" + (l11 - l1));
-			System.out.println("[DEBUG] BID ITEM(" + l0 + ")1-0:" + (l1 - l0));
-
+			
+			logger.debug("bidUrl:"+bidUrl);
+			nAgent.getDataWithPostIPhone(bidUrl);
+			
+			bidItemMsg = this.checkBidResult(nAgent.getResponseBody(),1);
 		} catch (ParserException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			this.outputTofile(nAgent.getResponseBody());
+			logger.info(e.getMessage(),e);
 			bidItemMsg = "0";
 		} catch (IllegalArgumentException e) {
-			e.printStackTrace();
-			// this.outputTofile(nAgent.getResponseBody());
+			logger.info(e.getMessage(),e);
 			bidItemMsg = "4";
 		}
-		System.out.println("[DEBUG]bidItem\t" + itemURL + "::" + uId + "::"
-				+ price);
-		if (bidItemMsg.equals("0") || bidItemMsg.equals("4")) {
-			System.out.println("======================");
-			this.outputTofile(nAgent.getResponseBody(), l0 + "_" + itemId);
-			System.out.println("======================");
-		}
-
+		long l1=System.currentTimeMillis();
+		logger.info("bidItem:"+itemURL+":"+uId+":"+price+":"+bidItemMsg+":"+(l1-l0));
 		jArray.add(bidItemMsg);
 		return jArray;
 	}
@@ -1941,38 +1891,64 @@ public class NetAgentYJ extends NetAgentModel implements BidFace {
 		// TODO Auto-generated method stub
 		return null;
 	}
-
+	
 	/**
-	 * <p>
-	 * 開啟商品頁面判斷狀態
-	 * </p>
-	 * 
-	 * @param webSiteURL
-	 * @param uId
-	 * @param pwd
-	 * @param itemURL
-	 * @param bidPrice
-	 *            下標價
-	 * @return 回傳數字<br /> 0 - 未得標<br /> 1 - 最高出價者<br /> 2 - 已得標<br /> 3 - 出價被取消，未結標(未完成)<br /> 4 - 出價被取消，已結標(未完成)<br /> 5 - 出價被超過(未完成)<br /> 6 -
-	 *         流標(未完成)<br />
-	 * @throws Exception
+	 * 090923<br /> 判斷網頁中是否有id=modTradeStep的div標籤，有代表已得標
+	 * 100527修改
+	 * @return 回傳數字<br /> 0 - 未得標<br /> 1 - 最高出價者<br /> 2 - 已得標<br /> 3 - 出價被取消，未結標(未完成)<br /> 4 - 出價被取消，已結標(未完成)<br /> 5 - 出價被超過，未結標(未完成)<br/> 6 -
+	 *         出價被超過，已結標(流標)(未完成)<br />
+	 * @throws AccountNotExistException 
 	 */
 	@Override
-	public JSONArray isMyBid(String uId, String itemURL, String price)
-			throws Exception {
+	public JSONArray isMyBid(String uId, String itemURL) throws AccountNotExistException {
 		JSONArray jArray = new JSONArray();
-		String bidItemMsg = "0";
 		autoLogin(uId);
 		NetAgent nAgent = new NetAgent();
 		Cookie[] cookies = getLoginSessionCookie(this.getAppId(), uId);
 		nAgent.getState().addCookies(cookies);
 		nAgent.getDataWithPost(itemURL);
-		// this.printHeaders(nAgent.getResponseHeader());
-		this.outputTofile(nAgent.getResponseBody(), "isMyBid");
-		bidItemMsg = nAgent.isMyBid(price);
-		
-		// outputTofile(nAgent.getResponseBody());
-		jArray.add(bidItemMsg);
+		//String resultMsg=this.checkBidResult(nAgent.getResponseBody(), 1);
+		String resultMsg = "0";
+		try {
+			
+			HTMLNodeFilter divNf = new HTMLNodeFilter("div");
+			NodeList nodes;
+			boolean flag = false;
+			for (int i = 1; i <= 3; i++) {
+				if (flag) {
+					break;
+				}
+				switch (i) {
+				case 1:// 最高出價者
+					nodes=nAgent.filterItem(new HTMLNodeFilter("id=\"modMsgBox\""));
+					if (nodes.size() > 0) {
+						resultMsg = "1";
+						flag = true;
+						break;
+					}
+					continue;
+				case 2:// 已得標
+					HTMLNodeFilter tradeNf = new HTMLNodeFilter(
+							"id=\"modTradeStep\"");// 已得標
+					nodes=nAgent.filterItem( new AndFilter(divNf, new HTMLNodeFilter("id=\"modTradeStep\"")));
+					if (nodes.size() > 0) {
+						resultMsg = "2";
+						flag = true;
+						break;
+					}
+					continue;
+				case 3:
+					resultMsg = "3";
+					flag = true;
+					break;
+				}
+			}
+			logger.info("isMyBid");
+		} catch (ParserException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		jArray.add(resultMsg);
 		return jArray;
 	}
 
@@ -1999,7 +1975,7 @@ public class NetAgentYJ extends NetAgentModel implements BidFace {
 		String loginMsg = "0";// 未登入
 		NodeList nodes;
 		try {
-			nAgent.getDataWithGet(this.getLoginURL());// 開啟登入畫面
+			nAgent.getDataWithGetiPhone(this.getLoginURL());// 開啟登入畫面
 			nodes = nAgent.filterInputItem();// 取得input項目
 			nAgent.setParserNodesToPostDataMap(nodes);// 將nodes設入要post項目
 			Map tempMap = new HashMap();// 設定帳號及密碼
@@ -2014,7 +1990,7 @@ public class NetAgentYJ extends NetAgentModel implements BidFace {
 			 
 			setWebSiteURL(nodes.elementAt(0).getText());
 			setWebSiteURL(nAgent.getUrl(getWebSiteURL()));
-			nAgent.getDataWithPost(getWebSiteURL());
+			nAgent.getDataWithPostIPhone(getWebSiteURL());
 			if (nAgent.getResponseCookies().length == 0) {
 				loginMsg = "2";// 登入失敗
 			} else {
@@ -2026,7 +2002,7 @@ public class NetAgentYJ extends NetAgentModel implements BidFace {
 			e.printStackTrace();
 			loginMsg = "2";// 登入失敗
 		}
-		System.out.println("[INFO] YAHOO JP LOGIN loginMsg::" + loginMsg
+		logger.info("YAHOO JP LOGIN loginMsg::"+ loginMsg
 				+ " account:" + uId + ":" + pwd);
 		jArray.add(loginMsg);
 		return jArray;
@@ -2035,14 +2011,13 @@ public class NetAgentYJ extends NetAgentModel implements BidFace {
 	@Override
 	public boolean autoLogin(String uId, String pwd) {
 		// TODO Auto-generated method stub
-		if (this.getLoginSessionCookie(this.getAppId(), uId).length > 0) {
-			System.out.println("[DEBUG] CHECK COOKIE:"+ this.getLoginSessionCookie(this.getAppId(), uId).length);
-			
+		if (this.getLoginSessionCookie(this.getAppId(), uId).length > 1) {
+			logger.info("[DEBUG] CHECK COOKIE:"+ this.getLoginSessionCookie(this.getAppId(), uId).length);
 			NetAgent nAgent = new NetAgent();
 			Cookie[] cookies = getLoginSessionCookie(this.getAppId(), uId);
+			this.printCookies(cookies);
 			nAgent.getState().addCookies(cookies);
 			nAgent.getDataWithGet("https://lh.login.yahoo.co.jp/");
-			this.outputTofile(nAgent.getResponseBody());
 			try {
 				if (nAgent.filterItem(new HTMLNodeFilter("履歴 - Yahoo! JAPAN")).size()>0){
 					return true;
@@ -2078,7 +2053,7 @@ public class NetAgentYJ extends NetAgentModel implements BidFace {
 		DBConn conn = (DBConn) this.getModelServletContext().getAttribute(
 				"DBConn");
 		JSONArray jArray = conn.queryJSONArray("mogan-DB",
-				"SELECT * FROM system_bid_id WHERE DELETE_FLAG='1' and account='"
+				"SELECT * FROM system_bid_id WHERE delete_flag='1' and account='"
 						+ uId + "'");
 		if (jArray.size() > 0) {
 			return autoLogin(jArray.getJSONObject(0).getString("account"),
@@ -2110,18 +2085,51 @@ public class NetAgentYJ extends NetAgentModel implements BidFace {
 	}
 
 	/**
+	 * 判斷下標結果
+	 * 
+	 * @param html	html內容
+	 * @param type	網頁類型
+	 * @return 回傳數字<br /> 0 - 無法判斷<br /> 1 - 下標成功，非最高出價<br /> 2 - 下標成功，已得標<br />3 - 下標成功，最高出價<br /> 4 - 無法下標<br />
+	 */
+	private String checkBidResult(String html,int type){
+		String resultMsg = "0";
+		NetAgent nAgent = new NetAgent();
+		nAgent.setResponseBody(html);
+		HTMLNodeFilter untnf = new HTMLNodeFilter("div class=\"untLeadBox\""); 	//被超標結果訊息
+		HTMLNodeFilter decRednf = new HTMLNodeFilter("p class=\"decRedBold\""); //最高出價者或得標結果訊息
+		
+		boolean flag = true;
+		NodeList nodes;
+		try {
+			if (nAgent.filterItem(untnf).size()==1){
+				resultMsg="1";
+			}else if (nAgent.filterItem(new AndFilter(new HasParentFilter(decRednf),new HTMLNodeFilter("おめでとうございます!!") )).size()==1){
+				resultMsg="2";
+			}else if (nAgent.filterItem(new AndFilter(new HasParentFilter(decRednf),new HTMLNodeFilter("あなたが現在の最高額入札者です。") )).size()==1){
+				resultMsg="3";
+			}else if (nAgent.filterItem(new HTMLNodeFilter("li class=\"modErrorIcon\"")).size()==1){
+				resultMsg="4";
+			}
+		} catch (ParserException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return resultMsg;
+	}
+	
+	/**
 	 * 判斷下標結果，判斷是否DIV的ID，yaucBidRcd為非最高出價，yaucBidAct為最高出價，modWlBtnArea結標追縱代表未結標
 	 * 
 	 * @return 回傳數字<br /> 0 - 無法判斷<br /> 1 - 下標成功，非最高出價<br /> 2 - 下標成功，已得標<br />3 - 下標成功，最高出價<br /> 4 - 無法下標<br />
 	 * @throws ParserException
 	 */
+	@Deprecated
 	private String checkBidResult(String html) throws ParserException {
 		try {
 
 			String resultMsg = "0";
 			NetAgent nAgent = new NetAgent();
 			nAgent.setResponseBody(html);
-			// parser.setInputHTML(html);
 			HTMLNodeFilter divNf = new HTMLNodeFilter("div");
 
 			boolean flag = true;
@@ -2130,7 +2138,6 @@ public class NetAgentYJ extends NetAgentModel implements BidFace {
 					break;
 				}
 				nAgent.resetParser();
-				// parser.reset();
 				switch (i) {
 				case 4:
 					HTMLNodeFilter cancelNf = new HTMLNodeFilter(

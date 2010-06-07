@@ -32,14 +32,16 @@ import javax.mail.internet.MimeUtility;
 import javax.mail.search.FlagTerm;
 import net.sf.json.JSONArray;
 import org.apache.commons.httpclient.Cookie;
+import org.apache.log4j.Logger;
 import org.htmlparser.filters.HasChildFilter;
 import org.htmlparser.util.NodeList;
 import org.htmlparser.util.ParserException;
+
+import com.mogan.entity.ItemTideEntity;
 import com.mogan.exception.netAgent.AccountNotExistException;
 import com.mogan.face.NetAgentModel;
 import com.mogan.model.BidManager;
 import com.mogan.sys.DBConn;
-import com.mogan.sys.log.SysLogger4j;
 import com.mogan.sys.mail.MyAuthenticator;
 
 /**
@@ -47,6 +49,8 @@ import com.mogan.sys.mail.MyAuthenticator;
  * @author Dian
  */
 public class NetAgentGoogle extends NetAgentModel implements Runnable {
+	private Logger logger = Logger.getLogger(NetAgentGoogle.class.getName());
+	
 	// 信件分類
 
 	/**** [買家通知] ****/
@@ -121,14 +125,15 @@ public class NetAgentGoogle extends NetAgentModel implements Runnable {
 		urln = new URLName("imap", "imap.googlemail.com", 993, null, account, pwd);
 		try {
 			store = session.getStore(urln);
-			SysLogger4j.warn("連接成功!!!!!");
+			logger.warn("連接成功!!!!!");
 		} catch (NoSuchProviderException e) {
 			// TODO Auto-generated catch block
+			logger.error(e.getMessage(),e);
 			e.printStackTrace();
 			throw e;
 		} catch (MessagingException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.error(e.getMessage(),e);
 		}
 	}
 
@@ -174,6 +179,7 @@ public class NetAgentGoogle extends NetAgentModel implements Runnable {
 		}
 	}
 	
+	
 	/**
 	 * 開啟指定floder，不存在會自動新增
 	 * 
@@ -186,10 +192,10 @@ public class NetAgentGoogle extends NetAgentModel implements Runnable {
 		Folder inbox = null;
 		try {
 			// Store用來收信,Store類實現特定郵件協議上的讀、寫、監視、查找等操作。
-			SysLogger4j.warn("getMailFolder:"+store.isConnected());
+			logger.info("getMailFolder:"+store.isConnected());
 			if (!store.isConnected()) {
 				store.connect();
-				SysLogger4j.warn("getMailFolder:"+folderName+" "+store.isConnected());
+				logger.info("getMailFolder:"+folderName+" "+store.isConnected());
 			}
 			inbox = store.getFolder(folderName);// 收件箱
 			if (!inbox.exists()) {
@@ -218,7 +224,7 @@ public class NetAgentGoogle extends NetAgentModel implements Runnable {
 	public ArrayList getMail(String mailType) {
 		Folder inbox = null;
 		ArrayList msgList = new ArrayList();
-		SysLogger4j.warn("getMail:"+mailType);
+		logger.info("getMail:"+mailType);
 		inbox = getMailFolder(mailType, Folder.READ_WRITE);
 		// Message[] messages = inbox.getMessages();
 		Message[] messages;
@@ -573,9 +579,9 @@ public class NetAgentGoogle extends NetAgentModel implements Runnable {
 				try {
 					conn.newData("mogan-DB", "system_alert", dataMap);
 				} catch (UnsupportedEncodingException e) {
-					SysLogger4j.error("NetAgent Gamil",e);
+					logger.info("NetAgent Gamil",e);
 				} catch (SQLException e) {
-					SysLogger4j.error("NetAgent Gamil",e);
+					logger.info("NetAgent Gamil",e);
 				}
 			}
 		}
@@ -645,9 +651,9 @@ public class NetAgentGoogle extends NetAgentModel implements Runnable {
 						"update web_bidding set w_ykj=w_ykj+1 where item_id='"
 								+ itemId + "'");
 			} catch (UnsupportedEncodingException e) {
-				SysLogger4j.error("NetAgent Gamil",e);
+				logger.info("NetAgent Gamil",e);
 			} catch (SQLException e) {
-				SysLogger4j.error("NetAgent Gamil",e);
+				logger.info("NetAgent Gamil",e);
 			}
 		}
 	}
@@ -741,9 +747,9 @@ public class NetAgentGoogle extends NetAgentModel implements Runnable {
 					conn.newData("mogan-DB", "member_message", conditionMap,
 							dataMap);
 				} catch (UnsupportedEncodingException e) {
-					SysLogger4j.error("NetAgent Gamil",e);
+					logger.info("NetAgent Gamil",e);
 				} catch (SQLException e) {
-					SysLogger4j.error("NetAgent Gamil",e);
+					logger.info("NetAgent Gamil",e);
 				}
 			}
 		}
@@ -803,9 +809,9 @@ public class NetAgentGoogle extends NetAgentModel implements Runnable {
 				try {
 					conn.executSql("mogan-DB", insertSQL);
 				} catch (UnsupportedEncodingException e) {
-					SysLogger4j.error("NetAgent Gamil",e);
+					logger.info("NetAgent Gamil",e);
 				} catch (SQLException e) {
-					SysLogger4j.error("NetAgent Gamil",e);
+					logger.info("NetAgent Gamil",e);
 				}
 			}
 		}

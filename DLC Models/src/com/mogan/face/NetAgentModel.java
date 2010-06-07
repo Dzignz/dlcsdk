@@ -11,11 +11,11 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import net.sf.json.JSONArray;
 import org.apache.commons.httpclient.Cookie;
 import org.apache.commons.httpclient.Header;
+import org.apache.log4j.Logger;
+
 import com.mogan.model.netAgent.NetAgent;
-import com.mogan.sys.log.SysLogger4j;
 import com.mogan.sys.model.ProtoModel;
 
 /**
@@ -24,7 +24,7 @@ import com.mogan.sys.model.ProtoModel;
  * @author user
  */
 public abstract class NetAgentModel extends ProtoModel {
-
+	static private Logger logger  =  Logger.getLogger(NetAgentModel.class.getName());
 	private String webSiteName;
 	private String webSiteURL;
 	private String version;
@@ -61,7 +61,7 @@ public abstract class NetAgentModel extends ProtoModel {
 			}
 			long nowTime = System.currentTimeMillis();
 			int loginDay = (int) ((nowTime - loginTime) / (1000 * 60 * 60 * 24));
-			SysLogger4j.info("LOGIN DATA::" +uId+" "+loginCookieMap.get("PWD")+" "+ loginDay);
+			logger.info("LOGIN DATA::" +uId+" "+loginCookieMap.get("PWD")+" "+ loginDay);
 			if (loginDay > 6) {
 				return new NetAgent().getState().getCookies();
 			}
@@ -83,9 +83,9 @@ public abstract class NetAgentModel extends ProtoModel {
 	 * @param headers
 	 */
 	public void printHeaders(Header[] headers) {
-		SysLogger4j.fatal("[訊息] printHeaders#########");
+		logger.info("[訊息] printHeaders#########");
 		for (int i = 0; i < headers.length; i++) {
-			SysLogger4j.fatal("[訊息] #" + i + " " + headers[i].getName() + "::"
+			logger.info("[訊息] #" + i + " " + headers[i].getName() + "::"
 					+ headers[i].getValue());
 		}
 	}
@@ -96,10 +96,10 @@ public abstract class NetAgentModel extends ProtoModel {
 	 * @param cookies
 	 */
 	public void printCookies(Cookie[] cookies) {
-		SysLogger4j.fatal("[訊息] printCookies#########");
+		logger.info("[訊息] printCookies#########");
 		for (int i = 0; i < cookies.length; i++) {
 			Cookie cookie = cookies[i];
-			SysLogger4j.fatal("Cookie: " + cookie.getName() + ", Value: "
+			logger.info("Cookie: " + cookie.getName() + ", Value: "
 					+ cookie.getValue() + ", IsPersistent?: "
 					+ cookie.isPersistent() + ", Expiry Date: "
 					+ cookie.getExpiryDate() + ", Comment: "
@@ -213,8 +213,8 @@ public abstract class NetAgentModel extends ProtoModel {
 			f = null;
 			fw = null;
 		} catch (IOException e) {
-			SysLogger4j.fatal("[錯誤] 寫檔錯誤============");
-			e.printStackTrace();
+			logger.error("[錯誤] 寫檔錯誤============");
+			logger.error(e.getMessage(),e);
 		}
 	}
 

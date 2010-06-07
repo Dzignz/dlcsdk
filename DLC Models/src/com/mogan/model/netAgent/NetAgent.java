@@ -789,10 +789,11 @@ public class NetAgent extends HttpClient {
 
 	/**
 	 * 090923<br /> 判斷網頁中是否有id=modTradeStep的div標籤，有代表已得標
-	 * 
+	 * 100527 切換到NetAgentYJ
 	 * @return 回傳數字<br /> 0 - 未得標<br /> 1 - 最高出價者<br /> 2 - 已得標<br /> 3 - 出價被取消，未結標(未完成)<br /> 4 - 出價被取消，已結標(未完成)<br /> 5 - 出價被超過，未結標(未完成)<br/> 6 -
 	 *         出價被超過，已結標(流標)(未完成)<br />
 	 */
+	@Deprecated
 	public String isMyBid(String bidPrice) {
 		String resultMsg = "0";
 		try {

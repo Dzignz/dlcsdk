@@ -46,7 +46,7 @@ public class NetAgentRu implements BidFace {
 	}
 
 	@Override
-	public JSONArray isMyBid(String id, String itemURL, String price)
+	public JSONArray isMyBid(String id, String itemURL)
 			throws Exception {
 		// TODO Auto-generated method stub
 		return null;

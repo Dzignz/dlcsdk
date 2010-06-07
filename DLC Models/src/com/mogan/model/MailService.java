@@ -74,11 +74,13 @@ public class MailService extends ProtoModel implements ServiceModelFace {
 	 */
 	public JSONArray sendMail(String toName, String toAddress,String ccAddress,String bccAddress,
 			String mailSubject, String mailContent) {
+		long l0=System.currentTimeMillis();
 		System.out.println("[DEBUG] sendMail-0");
 		JSONArray jArray = new JSONArray();
 
 		SimpleMailSender sms = new SimpleMailSender();
 		System.out.println("[DEBUG] sendMail-1");
+		long l1=System.currentTimeMillis();
 		sms.setMailSubject(mailSubject);
 		sms.setMailContent(mailContent);
 		sms.setMailServerHost(this.getProperties()
@@ -89,16 +91,18 @@ public class MailService extends ProtoModel implements ServiceModelFace {
 		sms.setPwd(this.getProperties().getProperty(this.PWD));
 		sms.setFromName(this.getProperties().getProperty(this.FROM_NAME));
 		sms.setFromAddress(this.getProperties().getProperty(this.FROM_ADDRESS));
-
+		long l2=System.currentTimeMillis();
 		ArrayList dataList = new ArrayList();
 		System.out.println("[DEBUG] sendMail-2");
 		sms.setTargetList(dataList);
 		/* 寄送mail開始 */
-		
+		long l3=System.currentTimeMillis();
 		System.out.println(") addToAddress(String toAddress)::"+toAddress);	
 		MailSenderInfo mail = sms.getMailInfo(toName,toAddress,ccAddress,bccAddress);
 		jArray.add(sms.sendHtmlMail(mail));
 		System.out.println("[DEBUG] sendMail-3");
+		long l4=System.currentTimeMillis();
+		System.out.println("[DEBUG] sendMail time="+(l4-l3)+". "+(l3-l2)+". "+(l2-l1)+". "+(l1-l0));
 		sms = null;
 		return jArray;
 	}
@@ -165,7 +169,7 @@ public class MailService extends ProtoModel implements ServiceModelFace {
 	 */
 	private JSONArray setMailThreadAction(String sessionId) {
 		JSONArray jArray = new JSONArray();
-
+		long l0=System.currentTimeMillis();
 		Map threadsMap;
 		if (this.getModelServletContext().getAttribute("THEARDS") == null) {
 			threadsMap = new HashMap();
@@ -173,14 +177,11 @@ public class MailService extends ProtoModel implements ServiceModelFace {
 			threadsMap = (Map) this.getModelServletContext().getAttribute(
 					"THEARDS");
 		}
-		// sms=(SimpleMailSender) threadsMap.get(this.MAIL_SENDER_THREAD + "_" + sessionId);
-		System.out.println("sms::"
-				+ threadsMap.get(this.MAIL_SENDER_THREAD + "_" + sessionId)
-						.toString());
-		// threadsMap.get(this.MAIL_SENDER_THREAD + "_" + sessionId).toString();
+		long l1=System.currentTimeMillis();
+
 		SimpleMailSender sms = (SimpleMailSender) threadsMap
 				.get(this.MAIL_SENDER_THREAD + "_" + sessionId);
-		
+		long l2=System.currentTimeMillis();
 		System.out.println("sms::"+sms.getMailServerHost()+" "+sms.getMailServerPort()+" "+sms.getAccount()+" "+sms.getPwd());
 		// sms = (SimpleMailSender) threadsMap.get(this.MAIL_SENDER_THREAD + "_" + sessionId);
 
@@ -205,6 +206,12 @@ public class MailService extends ProtoModel implements ServiceModelFace {
 			sms = null;
 			threadsMap.remove(this.MAIL_SENDER_THREAD + "_" + sessionId);
 		}
+		long l3=System.currentTimeMillis();
+		
+		System.out.println("setMailThreadAction 3-2="+(l3-l2));
+		System.out.println("setMailThreadAction 2-1="+(l2-l1));
+		System.out.println("setMailThreadAction 1-0="+(l1-l0));
+		
 		return jArray;
 	}
 

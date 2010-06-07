@@ -10,17 +10,20 @@ import java.util.Properties;
 
 import javax.mail.NoSuchProviderException;
 
+import org.apache.log4j.Logger;
+
+import com.mogan.entity.ItemOrderEntity;
 import com.mogan.exception.netAgent.AccountNotExistException;
 import com.mogan.model.SMSModel;
 import com.mogan.model.netAgent.NetAgent;
 import com.mogan.model.netAgent.NetAgentGoogle;
 import com.mogan.model.netAgent.NetAgentYJ;
 import com.mogan.sys.DBConn;
-import com.mogan.sys.log.SysLogger4j;
 import com.mogan.sys.model.ScheduleModelAdapter;
 
 public class GmailTask extends ScheduleModelAdapter {
-
+	private Logger logger  =  Logger.getLogger(GmailTask.class.getName());
+	
 	final static private String GMAIL_ACCOUNT = "GMAIL_ACCOUNT";
 	final static private String GMAIL_PWD = "GMAIL_PWD";
 
@@ -133,14 +136,15 @@ public class GmailTask extends ScheduleModelAdapter {
 			updateGmailStatus("OK");
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
+			logger.info(e.getMessage(),e);
 			try {
 				updateGmailStatus("NOT_OK");
 			} catch (UnsupportedEncodingException e1) {
 				// TODO Auto-generated catch block
-				e1.printStackTrace();
+				logger.info(e1.getMessage(),e1);
 			} catch (SQLException e1) {
 				// TODO Auto-generated catch block
-				e1.printStackTrace();
+				logger.info(e1.getMessage(),e1);
 			}
 			e.printStackTrace();
 			SMSModel sms = new SMSModel();
@@ -153,7 +157,7 @@ public class GmailTask extends ScheduleModelAdapter {
 			p.setProperty("PWD", "24266676");
 			sms.setProperties(p);
 
-			// sms.sendText("0910054930", "吳宗翰","ERR_GmailTask","GmailTask 當掉了!!!_"+e.getMessage());
+			 sms.sendText("0910054930", "吳宗翰","ERR_GmailTask","GmailTask 當掉了!!!_"+e.getMessage());
 			sms = null;
 		}
 	}
@@ -233,6 +237,7 @@ public class GmailTask extends ScheduleModelAdapter {
 				} catch (AccountNotExistException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
+					logger.error(e.getMessage(),e);
 				}
 			}
 		}
@@ -293,9 +298,9 @@ public class GmailTask extends ScheduleModelAdapter {
 					+ action + "&seq_no=" + autoNum);
 
 		} catch (UnsupportedEncodingException e) {
-			SysLogger4j.error("Gamil Err",e);
+			logger.error(e.getMessage(),e);
 		} catch (SQLException e) {
-			SysLogger4j.error("Gamil Err",e);
+			logger.error(e.getMessage(),e);
 		}
 	}
 
@@ -315,6 +320,7 @@ public class GmailTask extends ScheduleModelAdapter {
 				"SELECT item_order_id FROM view_bid_item_order WHERE website_id='"
 						+ webSiteId + "' AND account='" + account
 						+ "' AND item_id='" + itemId + "'");
+		
 		System.out
 				.println("[DEBUG] getItemOrderIds::"
 						+ "SELECT item_order_id FROM view_bid_item_order WHERE website_id='"

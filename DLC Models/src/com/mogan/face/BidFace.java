@@ -7,7 +7,7 @@ public interface BidFace {
 	public boolean autoLogin(
 			String uId, String pwd)throws Exception;
 	
-	public  JSONArray isMyBid( String uId, String itemURL, String price)throws Exception;
+	public  JSONArray isMyBid( String uId, String itemURL)throws Exception;
 	
 	public  JSONArray checkBidHistory(String webSiteURL,
 			String uId, String itemURL) throws Exception;

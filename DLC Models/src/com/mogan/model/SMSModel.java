@@ -61,6 +61,8 @@ public class SMSModel extends ProtoModel implements ServiceModelFace {
 	 * <p>
 	 * <font size=7 color=red>發送簡訊，ACTION = SEND_TEXT</font>
 	 * </p>
+	 * NUMBER_JARRAY
+	 * MSG
 	 * numberJarray必須為JSON的格式<BR /> 範例 :
 	 * [{"NUMBER":"0988123654","NAME":"dian","CHECK_KEY":"0001"},{"NUMBER":"0999147852","NAME":"mary","CHECK_KEY":"0002"}]<BR /> 三項必須屬性<li>NUMBER-號碼</li>
 	 * <li>NAME-接收者名稱</li><li>CHECK_KEY-交易代號</li> <BR /><BR /> 收訊電話號碼 - 國際簡訊規格 : (+或是00)(國碼 )(去0之手機號碼).<BR /> 例 : +8613913560366 or 008613913560366<BR

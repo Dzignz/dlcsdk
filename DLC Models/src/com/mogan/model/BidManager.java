@@ -10,12 +10,15 @@ import java.util.Map;
 import java.util.Properties;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import org.apache.log4j.Logger;
 import org.htmlparser.util.NodeList;
 import org.htmlparser.util.ParserException;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import net.sf.json.JsonConfig;
 import com.mogan.dataBean.BidItemOrderBean;
+import com.mogan.entity.ItemOrderEntity;
 import com.mogan.exception.netAgent.AccountNotExistException;
 import com.mogan.io.FileIO;
 import com.mogan.model.netAgent.NetAgentYJ;
@@ -30,7 +33,7 @@ import com.mogan.sys.model.ServiceModelFace;
  */
 public class BidManager extends ProtoModel implements ServiceModelFace {
 	static final String YAHOO_JP_WEBSITE_ID = "SWD-2009-0001";
-
+	static private Logger logger  =  Logger.getLogger(BidManager.class.getName());
 	/**
 	 * <p>
 	 * <font size=7 color=red>取得出價履歷，ACTION = GET_BID_LIST</font>
@@ -563,6 +566,7 @@ public class BidManager extends ProtoModel implements ServiceModelFace {
 			
 			jArray = agentYJ.getItemContactMsgFromDB("","",itemOrderId);
 		}
+		long l1=System.currentTimeMillis();
 		return jArray;
 	}
 
@@ -677,15 +681,15 @@ public class BidManager extends ProtoModel implements ServiceModelFace {
 					subject = "no";
 				}
 			}
-			
+			logger.info("sendWonMsg::"+sendMethod);
 			agentYJ.setMailSenderName(this.getProperty("mailSenderName"));
 			agentYJ.setMailSenderAddress(this.getProperty("mailSenderAddress"));
 			agentYJ.setMailCC(this.getProperty("mailCC"));
-			
+			logger.info("sendWonMsg start.");
 			jObj.put("CONTACT_TYPE", sendMethod);
 			jObj.put("CONTACT_RESULTS", agentYJ.sendMsg(bidAccount, itemId,
 					sendMethod, subject, msg, contactType).getString(0));
-					
+			logger.info("sendWonMsg end.");		
 		}
 		// 讀取商品頁面
 		jArray.add(jObj);
@@ -889,7 +893,7 @@ public class BidManager extends ProtoModel implements ServiceModelFace {
 		if (webSiteId.equals(YAHOO_JP_WEBSITE_ID)) {
 			NetAgentYJ agentYJ = new NetAgentYJ(this.getModelServletContext(),
 					this.getAppId());
-			jArray = agentYJ.isMyBid(uId, itemURL, price);
+			jArray = agentYJ.isMyBid(uId, itemURL);
 		}
 		return jArray;
 	}

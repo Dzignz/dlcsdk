@@ -11,6 +11,7 @@ import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
 import com.mogan.model.netAgent.NetAgent;
+import com.mogan.sys.DBConn;
 import com.mogan.sys.log.SysLogger4j;
 import com.mogan.sys.model.AuthModelAdapter;
 
@@ -29,7 +30,8 @@ public class PHPAuthorization extends AuthModelAdapter {
 
 	@Override
 	public boolean doAuth(HttpServletRequest req, HttpServletResponse res) throws Exception {
-
+		DBConn conn=(DBConn) req.getSession().getServletContext().getAttribute("DBConn");
+		
 		RequestDispatcher rd; //
 		String userId=req.getParameter("USER_ID");
 		String modelId=req.getParameter("MODEL_ID");
@@ -43,26 +45,17 @@ public class PHPAuthorization extends AuthModelAdapter {
 		nAgent.postMaptoData();
 		nAgent.getDataWithPost("http://web.mogan.com.tw/adminv3/biditem/WonListAdministrate.php");
 		JSONObject privilegeObj=JSONObject.fromObject(nAgent.getResponseBody());
-		
-//		res.getOutputStream().println(privilegeObj.toString());
-//		res.getOutputStream().println("<br />");
+		JSONArray users=conn.queryJSONArray("mogan-DB", "SELECT system_name FROM system_member WHERE system_member_id='"+userId+"'");
 		this.getSession().setAttribute("USER_PRIVILEGE", privilegeObj);
 		this.getSession().setAttribute("USER_ID", userId);
+		this.getSession().setAttribute("USER_NAME", users.getJSONObject(0).getString("system_name"));
 		this.getSession().setAttribute("LOGIN_TIME", new Date());
+		
 		if (privilegeObj.getJSONObject(modelId).getBoolean("view")){
 			rd = req.getRequestDispatcher((String)this.getModelServletContext().getAttribute("PHP_MODEL_ID_"+modelId));
 		}else{
 			rd = req.getRequestDispatcher("nonPrivilege.jsp");
-		}
-		
-//		res.getOutputStream().println("PHP_MODEL_ID_"+(String)this.getModelServletContext().getAttribute("PHP_MODEL_ID_"+modelId));
-//		res.sendRedirect((String)this.getServletContext().getAttribute("PHP_MODEL_ID_"+modelId));
-		
-//		res.getOutputStream().print("doAuth finishs.");
-//		res.getOutputStream().flush();
-//		res.getOutputStream().close();
-		
-		
+		}		
 		rd.forward(req, res);
 //		
 		return true;
