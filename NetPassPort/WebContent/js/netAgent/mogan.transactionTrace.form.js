@@ -539,13 +539,13 @@ Mogan.transactionTrace.createMsgSenderPanel = function() {
 				triggerAction : 'all',
 				valueField : 'value',
 				hiddenName : "SUBJECT_A",
-				lazyRender : true,
+//				lazyRender : true,
 				displayField : 'text',
 				value : '1',
 				readOnly : true,
 				editable : false
 			});
-
+			
 	var comboMsgTemplate = new Ext.form.ComboBox({
 				id : 'comboMsgTemplate',
 				fieldLabel : '訊息範本',

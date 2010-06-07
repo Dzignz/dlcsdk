@@ -3,6 +3,8 @@
  * responseResult-���\�Υ���, responseMsg-��~�T��, responseData-�^�ǭ�,
  * responseTime-����ɶ�
  */
+ 
+ 
 var xr = new Ext.data.XmlReader({
 			totalRecords : 'responseRecords',
 			id : 'id',

@@ -2,9 +2,21 @@ package com.mogan.sys;
 
 import java.math.BigDecimal;
 
+import org.apache.log4j.Logger;
+
 public class SysMath {
 	private static final int DEF_DIV_SCALE = 10;
-
+	static public Logger logger  =  Logger.getLogger(SysMath.class.getName());
+	
+	
+	/**
+	 * 判斷傳入字串是否是NaN
+	 * @param value
+	 * @return	true-是Nan，false-不是NaN代表是數字
+	 */
+	public static boolean isNaN (String value){
+		return true;
+	}
 	/**
 	 * 提供精確的小數位四捨五入處理。
 	 * 
@@ -24,7 +36,7 @@ public class SysMath {
 		BigDecimal one = new BigDecimal("1");
 		return b.divide(one, scale, BigDecimal.ROUND_HALF_UP).doubleValue();
 	}
-
+	
 	/**
 	 * 提供除法計算。當發生除不盡的情況，由scale參數指定精度，以後的數字四捨五入。
 	 * 
@@ -181,7 +193,7 @@ public class SysMath {
 	 * @return 兩個參數的積
 	 */
 	public static double mul(String v1, String v2) {
-		BigDecimal b1 = new BigDecimal(1);
+		BigDecimal b1 = new BigDecimal(v1);
 		BigDecimal b2 = new BigDecimal(v2);
 		return b1.multiply(b2).doubleValue();
 

@@ -14,6 +14,32 @@ var loadBidItemsParams = {
 	DIR : 'DESC'
 };
 
+loginGmail = function (){
+			Ext.Ajax.request({
+				url : 'AjaxPortal',
+				callback : function() {
+					Ext.Msg.alert("訊息", "儲存完成");
+				},
+				success : function(response) {
+					var json = parserJSON(response.responseText);
+					if (json['responseResult'] == "failure") {
+						Ext.Msg.alert("錯誤", json['responseMsg']);
+					} else {
+						Ext.Msg.alert("成功", json['responseData']);
+					}
+				},
+				failure : function(response) {
+					addMsg("[錯誤]\tajax failure");
+				},
+				params : {
+					APP_ID : appId,
+					ACTION : "LOGIN_TEST",
+					RETURN_TYPE : "JSON",
+					MODEL_NAME : "GMAIL_WATCHER"
+				}
+			});
+}
+
 /**
  * 登入日本yahoo
  */

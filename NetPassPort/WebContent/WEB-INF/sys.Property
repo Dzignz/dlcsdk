@@ -4,6 +4,15 @@ MODEL_PATH=WEB-INF/models/
 DB_Server_mogan-tw=MYSQL_5
 DB_Server_mogan-DB=MYSQL_5
 
+MOGAN_BID_MAIL_SENDER_NAME=moganshopping@gmail.com
+MOGAN_BID_MAIL_SENDER_ADDRESS=moganshopping
+MOGAN_BID_MAIL_BCC=moganshopping@gmail.com
+
+#主要DB
+MAIN_DB=mogan-DB
+#DB是否提供system_table_id_index來記錄自動編號
+DB_HAS_AUTO_NUM_TABLE=true
+
 MAIL_SERVER_PORT=25
 MAIL_SERVER_HOST=mail.mogan.com.tw
 
@@ -11,7 +20,9 @@ MAIL_SERVER_HOST=mail.mogan.com.tw
 #TYPE UI = 畫面，FUNCTION = 功能
 #URL 畫面連結
 
+
+
 PHP_MODEL_ID_TYPE_SF-201004-03	=	UI
-PHP_MODEL_ID_URL_SF-201004-03	=	orderTrace.jsp
+PHP_MODEL_ID_SF-201004-03	=	orderTrace.jsp
 PHP_MODEL_ID_TYPE_SF-201004-16	=	FUNCTION
 PHP_MODEL_ID_TYPE_SF-201004-17	=	FUNCTION

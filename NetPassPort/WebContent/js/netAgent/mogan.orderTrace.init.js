@@ -34,7 +34,8 @@ Mogan.orderTrace.statusNameMap['3-10'] = '會員已收貨';
 
 /**
  * 發送訊息相關設定
- * @type 
+ * 
+ * @type
  */
 Mogan.orderTrace.msgCategoryData = [
 		[
@@ -45,7 +46,7 @@ Mogan.orderTrace.msgCategoryData = [
 		['1', 'e-mail', []], ['2', '揭示版', [['no', '公開しない'], ['yes', '公開する']]]];
 
 Ext.onReady(function() {
-	
+
 	/**
 	 * 留言版類型，留言版，e-mail，揭示版
 	 */
@@ -53,7 +54,7 @@ Ext.onReady(function() {
 		fields : ['value', 'text', 'data'],
 		data : Mogan.orderTrace.msgCategoryData
 	});
-	
+
 	/**
 	 * 留言版標題
 	 */
@@ -61,8 +62,7 @@ Ext.onReady(function() {
 		fields : ['value', 'text'],
 		data : Mogan.orderTrace.msgCategoryStore.getAt(0).get('data')
 	});
-	
-	
+
 	// 備忘類型清單
 	Mogan.orderTrace.alertTypeStore = new Ext.data.Store({
 				reader : new Ext.data.JsonReader({
@@ -94,15 +94,38 @@ Ext.onReady(function() {
 	 * 同捆得標清單，同賣家得標清單
 	 */
 	Mogan.orderTrace.orderItemListStore = new Ext.data.Store({
-		reader : new Ext.data.JsonReader(
-				{
-					root : 'root'
-				},
-				['item_order_id', 'item_id', 'item_name', 'buy_price',
-						'buy_unit', 'time_at_03', 'bid_account', 'item_id_name','seller_attribute_1','o_varchar01']),
-		proxy : new Ext.data.MemoryProxy(orderItemListJSONData)
-	});
+				reader : new Ext.data.JsonReader({
+							root : 'root'
+						}, ['item_order_id', 'item_id', 'item_name',
+								'buy_price', 'buy_unit', 'time_at_03',
+								'bid_account', 'item_id_name',
+								'seller_attribute_1', 'o_varchar01']),
+				proxy : new Ext.data.MemoryProxy(orderItemListJSONData)
+			});
 	Mogan.orderTrace.orderItemListStore.load();
+
+	/**
+	 * 賣家收款方式列表
+	 */
+	Mogan.orderTrace.sellerAccountListStore = new Ext.data.Store({
+				id : 'sellerAccountListStore',
+				reader : new Ext.data.JsonReader({
+							root : 'root'
+						}, ['account_id', 'edited', 'remit_type', 'bank_name',
+								'branch_name', 'account_no', 'account_name',
+								'note', 'remit_value', 'is_active']),
+				proxy : new Ext.data.MemoryProxy(sellerAccountData)
+			});
+
+	Mogan.orderTrace.sellerPayType = new Ext.data.Store({
+				id : 'sellerAccountListStore',
+				reader : new Ext.data.JsonReader({
+							root : 'root'
+						}, ['account_id', 'edited', 'remit_type', 'bank_name',
+								'branch_name', 'account_no', 'account_name',
+								'note', 'remit_value', 'is_active']),
+				proxy : new Ext.data.MemoryProxy(sellerPayTypeJSONData)
+			});
 
 	// 完整得標清單
 	Mogan.orderTrace.itemListStore = new Ext.data.JsonStore({
@@ -117,7 +140,6 @@ Ext.onReady(function() {
 							url : 'AjaxPortal',
 							method : 'POST'
 						}),
-
 				paramNames : {
 					start : 'START_INDEX',
 					limit : 'PAGE_SIZE',
@@ -233,36 +255,57 @@ Ext.onReady(function() {
 							items : Mogan.orderTrace.createDetilPanel()
 						}]
 			});
-			
+
 	/**
 	 * 修正權限
 	 */
-	//"add","up","del","view"
-	var pNum=parseInt(pkey,2);			
-	if ( (pNum & parseInt('000010000000000000000000',2)) < 1 ){ //聯絡賣家
-		Ext.getCmp('DetilPanel').remove(Ext.getCmp('msgSenderPanelTab'),true);
+	// "add","up","del","view"
+	var pNum = parseInt(pkey, 2);
+	if ((pNum & parseInt('000010000000000000000000', 2)) < 1) { // 聯絡賣家
+		Ext.getCmp('DetilPanel').remove(Ext.getCmp('msgSenderPanelTab'), true);
 	}
-	
-	if ( (pNum & parseInt('000000000100000000000000',2)) <1){ //訂單管理  更新 
-		Ext.destroy(Ext.getCmp('btnOrderSubmitCost'));	//訂單態狀
+
+	if ((pNum & parseInt('000000000100000000000000', 2)) < 1) { // 訂單管理
+		// 更新
+		Ext.destroy(Ext.getCmp('btnOrderSubmitCost')); // 訂單態狀
 	}
-	
-	if ( (pNum & parseInt('000000000010000000000000',2)) <1){ //訂單狀態管理  刪除
-		Ext.destroy(Ext.getCmp('itemListMenuTransOrder'));	//商品訂單移動
-		Ext.destroy(Ext.getCmp('itemListMenuNewOrder'));	//商品訂單移動
-		Ext.destroy(Ext.getCmp('btnDelOrder'));				//刪除訂單下方按鈕
-//		Ext.destroy(Ext.getCmp('itemListMenuDelOrder'));	//刪除訂單上方列表menu
+
+	if ((pNum & parseInt('000000000010000000000000', 2)) < 1) { // 訂單狀態管理
+		// 刪除
+		Ext.destroy(Ext.getCmp('itemListMenuTransOrder')); // 商品訂單移動
+		Ext.destroy(Ext.getCmp('itemListMenuNewOrder')); // 商品訂單移動
+		Ext.destroy(Ext.getCmp('btnDelOrder')); // 刪除訂單下方按鈕
+		// Ext.destroy(Ext.getCmp('itemListMenuDelOrder'));
+		// //刪除訂單上方列表menu
 	}
-	
-	if ( (pNum & parseInt('000000000000000001000000',2)) <1){ //訂單備忘  維護
+
+	if ((pNum & parseInt('000000000000000001000000', 2)) < 1) { // 訂單備忘
+		// 維護
 		Ext.destroy(Ext.getCmp('btnOrderEditNote'));
 	}
-		
 
+	/**
+	 * 事件設定
+	 */
+	//付款方式修正
+	Ext.getCmp('comboOrderPayType').on('select',Mogan.orderTrace.comboOrderPayTypeSelect);
+	//禁止/開放賣家戶頭
+	Ext.getCmp('sellerAccountGrid').on('cellclick',Mogan.orderTrace.saGridCellClick);
+	//下標清單左鍵
+	Ext.getCmp('editorGridItemList').on('rowclick', Mogan.orderTrace.clickItem);
+	//下標清單右鍵選單
+	Ext.getCmp('editorGridItemList').on('rowcontextmenu',Mogan.orderTrace.showItemListMenu);
+	//顯示可移動訂單
+	Ext.getCmp('itemListMenu').on('show', Mogan.orderTrace.getMoveableTideList);
+	//聯絡紀錄下拉式選單
+	Ext.getCmp('comboItemOrderList').on('select',Mogan.orderTrace.filterItemOrderMsg);
+	//訊息範本下拉式選單
+	Ext.getCmp('comboMsgTemplate').on('select', Mogan.orderTrace.fixTextareaMsgContent);
+	//訊息類型下拉式選單
+	Ext.getCmp('comboMsgCategory').on('select',Mogan.orderTrace.fixComboMsgTitle);
+	//金額變動
+	Ext.getCmp('comboMsgCategory').on('change',Mogan.orderTrace.fixComboMsgTitle);
 	
-	
-			
-			
 	/**
 	 * 資料讀取
 	 */

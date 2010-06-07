@@ -204,7 +204,15 @@
 		<model-properties>
 		</model-properties>
 		<modelDiscription>新版訂單專用</modelDiscription>
-	</model>	
+	</model>
+	<model>
+		<modelName>BidAgentV2</modelName>
+		<modelJar>DLC Models.jar</modelJar>
+		<modelClass>com.mogan.model.BidAgentV2</modelClass>
+		<model-properties>
+		</model-properties>
+		<modelDiscription>代理競標程式</modelDiscription>
+	</model>
 	<model>
 		<modelName>FileService</modelName>
 		<modelJar>DLC Models.jar</modelJar>
@@ -240,6 +248,12 @@
 		<modelClass>com.mogan.model.NetAgentManager</modelClass>
 		<modelDiscription></modelDiscription>
 	</model>
+	<model>
+		<modelName>GMAIL_WATCHER</modelName>
+		<modelJar>DLC Models.jar</modelJar>
+		<modelClass>com.mogan.model.GmailWatcher</modelClass>
+		<modelDiscription>測試Gmail 專用</modelDiscription>
+	</model>	
 	<model>
 		<modelName>YAMATO_MODEL</modelName>
 		<modelJar>DLC Models.jar</modelJar>

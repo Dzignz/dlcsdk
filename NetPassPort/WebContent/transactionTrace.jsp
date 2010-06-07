@@ -16,8 +16,8 @@
 <link rel="stylesheet" type="text/css" href="resources/css/ext-all.css" />
 <link rel="stylesheet" type="text/css" href="resources/mogan/mogan.css" />
 
-<script type="text/javascript" src="js/ext-base.js"></script>
-<script type="text/javascript" src="js/ext-all.js"></script>
+<script type="text/javascript" src="js/ext-base-old.js"></script>
+<script type="text/javascript" src="js/ext-all-old.js"></script>
 
 <script type="text/javascript" src="js/mogan/mogan.template.selectedCell.js"></script>
 

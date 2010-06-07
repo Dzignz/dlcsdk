@@ -5,8 +5,10 @@ import java.util.*;
 import java.io.*;
 import java.net.*;
 
-class SinoDetect extends Encoding {
+import org.apache.log4j.Logger;
 
+class SinoDetect extends Encoding {
+	static private Logger logger  =  Logger.getLogger(SinoDetect.class.getName());
     // Frequency tables to hold the GB, Big5, and EUC-TW character
     // frequencies
     int	GBFreq[][];
@@ -60,7 +62,7 @@ class SinoDetect extends Encoding {
 	    } else {
 		result = sinodetector.detectEncoding(new File(argc[i]));
 	    }
-	    System.out.println(nicename[result]);
+	    logger.info(nicename[result]);
 	}
     }
 

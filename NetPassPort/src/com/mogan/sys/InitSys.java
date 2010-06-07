@@ -83,9 +83,11 @@ public final class InitSys extends HttpServlet {
 			br = new BufferedReader(new InputStreamReader(fis, "utf-8"));
 			Properties p = new Properties();
 			p.load(br);
+			//System.setProperties(p);
 			Iterator it = p.keySet().iterator();
 			for (; it.hasNext();) {
 				String key = (String) it.next();
+				System.setProperty(key, (String) p.get(key));
 				this.getServletContext().setAttribute(key, p.get(key));
 			}
 		} catch (FileNotFoundException e) {

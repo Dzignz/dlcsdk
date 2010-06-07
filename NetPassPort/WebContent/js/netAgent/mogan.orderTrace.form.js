@@ -328,9 +328,6 @@ Mogan.orderTrace.createCaseListGridPanel = function() {
 						}]
 			});
 
-	grid.on('rowclick', Mogan.orderTrace.clickItem);
-	grid.on('rowcontextmenu', Mogan.orderTrace.showItemListMenu);
-	
 	/**
 	 * 右鍵快速選單
 	 */
@@ -365,8 +362,6 @@ Mogan.orderTrace.createCaseListGridPanel = function() {
 					handler : Mogan.orderTrace.moveItem2NewOrder
 				}]
 	});
-
-	Ext.getCmp('itemListMenu').on('show', Mogan.orderTrace.getMoveableTideList);
 
 	return grid;
 };
@@ -536,8 +531,7 @@ Mogan.orderTrace.createMsgPanel = function() {
 					text : '1999 - 10 - 10 '
 				}]
 	});
-	Ext.getCmp('comboItemOrderList').on('select',
-			Mogan.orderTrace.filterItemOrderMsg);
+
 	return grid;
 }
 
@@ -558,8 +552,6 @@ Mogan.orderTrace.createMsgSenderPanel = function() {
 				// readOnly : true,
 				editable : true
 			});
-
-	comboMsgTemplate.on('select', Mogan.orderTrace.fixTextareaMsgContent);
 
 	var simple = new Ext.FormPanel({
 				id : 'msgSenderPanel',
@@ -664,9 +656,6 @@ Mogan.orderTrace.createMsgSenderPanel = function() {
 							}
 						}]
 			})
-
-	Ext.getCmp('comboMsgCategory').on('select',
-			Mogan.orderTrace.fixComboMsgTitle);
 
 	// Ext.getCmp('comboItemOrderList2').on('render',
 	// Mogan.orderTrace.resizeToFitContent ,Ext.getCmp('comboItemOrderList2'));
@@ -785,10 +774,66 @@ Mogan.orderTrace.createTrnsListGird = function() {
  * @return {}
  */
 Mogan.orderTrace.createSellerPanel = function() {
+	var cm = new Ext.grid.ColumnModel({
+				// specify any defaults for each column
+				defaults : {
+					sortable : true
+					// columns are not sortable by default
+				},
+				columns : [new Ext.grid.RowNumberer(), {
+							header : " ",
+							dataIndex : 'is_active',
+							width : 25,
+							renderer : Mogan.orderTrace.rendererRemitStatus
+						}, {
+							header : "付款方式",
+							dataIndex : 'remit_type',
+							renderer : Mogan.orderTrace.rendererRemitType,
+							width : 100
+						}, {
+							header : "郵局/銀行名稱",
+							dataIndex : 'bank_name',
+							editor : new Ext.form.TextField(),
+							width : 100
+						}, {
+							header : "分行名稱",
+							dataIndex : 'branch_name',
+							editor : new Ext.form.TextField()
+						}, {
+							header : "帳號",
+							editor : new Ext.form.TextField(),
+							dataIndex : 'account_no'
+						}, {
+							header : "帳戶名稱",
+							editor : new Ext.form.TextField(),
+							dataIndex : 'account_name'
+						}, {
+							header : "備註",
+							dataIndex : 'note',
+							editor : new Ext.form.TextField()
+						}]
+			});
+
+	var toolBar = [{
+				id : 'btnAddSellerAccount',
+				xtype : 'button',
+				handler : function() {
+					Mogan.orderTrace.getSellerAccountPanel();
+					Mogan.orderTrace.sellerAccountPanel.show();
+				},
+				text : '新增付款方式'
+			}, {
+				id : 'btnDelSellerAccount',
+				xtype : 'button',
+				handler : Mogan.orderTrace.delSellerAccount,
+				text : '刪除付款方式'
+			}];
+
 	var orderDataPanel = new Ext.FormPanel({
 				labelWidth : 75,
 				width : 450,
 				frame : true,
+				id : 'sellerDataPanel',
 				defaultType : 'textfield',
 				items : [{
 							xtype : 'label',
@@ -797,39 +842,34 @@ Mogan.orderTrace.createSellerPanel = function() {
 							},
 							text : '-',
 							width : 'auto',
+							id : 'labelSellerId',
 							fieldLabel : '賣家帳號'
 						}, {
-							xtype : 'label',
-							style : {
-								clear : 'none'
-							},
+							xtype : 'textfield',
 							text : '-',
-							width : 'auto',
+							anchor : '90%',
+							id : 'txtfldSellerName',
+							name : 'seller_name',
 							fieldLabel : '賣家名稱'
 						}, {
-							xtype : 'label',
-							style : {
-								clear : 'none'
-							},
-							text : '-',
-							width : 'auto',
+							xtype : 'textfield',
+							anchor : '90%',
+							id : 'txtfldSellerEmail',
+							name : 'email',
 							fieldLabel : 'E-mail'
 						}, {
-							xtype : 'label',
-							style : {
-								clear : 'none'
-							},
+							xtype : 'textfield',
 							text : '-',
-							width : 'auto',
+							anchor : '90%',
+							name : 'phone',
+							id : 'txtfldSellerPhone',
 							fieldLabel : '電話'
 						}, {
-							xtype : 'label',
-							style : {
-								clear : 'none'
-							},
-							text : '-',
-							width : 'auto',
-							fieldLabel : '成交件數'
+							xtype : 'textfield',
+							anchor : '90%',
+							id : 'txtfldSellerAddress',
+							name : 'address',
+							fieldLabel : '地址'
 						}, {
 							xtype : 'label',
 							style : {
@@ -837,9 +877,40 @@ Mogan.orderTrace.createSellerPanel = function() {
 							},
 							text : '-',
 							width : 'auto',
+							id : 'labelSellerTransCount',
+							fieldLabel : '成交件數'
+						}, {
+							xtype : 'textarea',
+							value : '-',
+							anchor : '90%',
+							id : 'txtAraSellerNote',
+							name : 'note',
 							fieldLabel : '備註'
+						}, {
+							xtype : 'editorgrid',
+							cm : cm,
+							store : Mogan.orderTrace.sellerAccountListStore,
+							trackMouseOver : true,
+							id : 'sellerAccountGrid',
+							// layout : 'fit',
+							tbar : toolBar,
+							frame : true,
+							height : 200,
+							stripeRows : true,
+							stateful : true,
+							loadMask : true
+						}, {
+							xtype : 'button',
+							text : '儲存',
+							width : 'auto',
+							handler : Mogan.orderTrace.saveSellerData,
+							id : 'btnSaveSellerData'
+						}, {
+							xtype : 'hidden',
+							name : 'seller_id'
 						}]
 			});
+
 	return orderDataPanel;
 }
 
@@ -870,8 +941,18 @@ Mogan.orderTrace.createOrderPanel = function() {
 				menu : Mogan.orderTrace.getDelOrderMenu()
 			}];
 
+	var cNumberfield = Ext.extend(Ext.form.NumberField, {
+				setValue : function(v) {
+					cNumberfield.superclass.setValue.apply(this, arguments);
+					Mogan.orderTrace.fixTotalPrice();
+				}
+			});
+
 	var orderDataPanel = new Ext.FormPanel({
 				id : 'orderDataPanel',
+				region : 'east',
+				// collapsible : true,
+				split : true,
 				labelWidth : 75,
 				width : 450,
 				// frame : true,
@@ -879,10 +960,6 @@ Mogan.orderTrace.createOrderPanel = function() {
 				labelPad : 10,
 				autoScroll : true,
 				tbarStyle : 'border-bottom: 1px solid #99BBE8;',
-				/*
-				 * tbar : new Ext.Toolbar({ items : [{ xtype : 'button', text :
-				 * '儲存訂單費用' }, { xtype : 'button', text : '確認訂單費用' }] }),
-				 */
 				padding : 5,
 				tbar : toolBar,
 				// fbar : toolBar,
@@ -972,28 +1049,22 @@ Mogan.orderTrace.createOrderPanel = function() {
 							text : '-',
 							name : 'cost_2',
 							fieldLabel : '匯款費'
-						},/*
-							 * { id : 'textfieldOrderIShipCost', text : '-',
-							 * name : 'cost_5', fieldLabel : '國際運費' },
-							 */{
-							xtype : 'numberfield',
-							minValue : '0',
-							id : 'textfieldOrderOtherCost',
+						}, new cNumberfield({
+							id : 'textfieldOrderShipCost',
 							text : '-',
-							name : 'cost_6',
-							fieldLabel : '其他費用'
-						}, {
-
+							name : 'cost_4',
+							fieldLabel : '當地運費'
+						}), {
 							xtype : 'compositefield',
 							fieldLabel : '稅金',
-							items : [{
-										xtype : 'numberfield',
+							items : [new cNumberfield({
+//										xtype : 'numberfield',
 										minValue : '0',
 										id : 'textfieldOrderTaxCost',
 										text : '-',
 										name : 'cost_3'
 
-									}, {
+									}), {
 										xtype : 'button',
 										iconCls : 'calculator',
 										tooltipType : 'title',
@@ -1002,29 +1073,53 @@ Mogan.orderTrace.createOrderPanel = function() {
 									}]
 						}, {
 							xtype : 'numberfield',
-							id : 'textfieldOrderShipCost',
+							minValue : '0',
+							id : 'textfieldOrderOtherCost',
 							text : '-',
-							name : 'cost_4',
-							fieldLabel : '當地運費'
+							name : 'cost_6',
+							fieldLabel : '其他費用'
 						}, {
-							id : 'comboOrderPayType',
-							store : Mogan.orderTrace.payTypeStore,
-							model : 'local',
-							valueField : 'list_key',
-							displayField : 'list_name',
-							triggerAction : 'all',
-							emptyText : '請設定',
-							editable : false,
-							allowBlank : false,
-							xtype : 'combo',
-							hiddenName : 'remit_to',
-							fieldLabel : '付款方式'
+							xtype : 'compositefield',
+							fieldLabel : '付款方式',
+							items : [{
+								id : 'comboOrderPayType',
+								store : Mogan.orderTrace.sellerPayType,
+								model : 'local',
+								valueField : 'account_id',
+								displayField : 'remit_value',// remit_value
+								// bank_name
+								triggerAction : 'all',
+								emptyText : '請設定',
+								valueNotFoundText : '請設定',
+								editable : false,
+								allowBlank : false,
+								lastQuery : '',
+								xtype : 'combo',
+								hiddenName : 'remit_to',
+								fieldLabel : '付款方式',
+								setValue : function(v) {
+									this.constructor.prototype.setValue.apply(
+											this, arguments);
+									var record = this.store.getAt(this.store
+											.find('account_id', v));
+									this.fireEvent('select', this, record, 0);
+								}
+							}, {
+								xtype : 'button',
+								text : '新增',
+								handler : function() {
+									Mogan.orderTrace.getSellerAccountPanel();
+									Mogan.orderTrace.sellerAccountPanel.show();
+								}
+							}]
 						}, {
-							id : 'textfieldOrderMoneyAlert',
-							text : '-',
+							id : 'labelOrderMoneyAlert',
 							width : 250,
-							name : 'money_alert',
-							fieldLabel : '賣家帳戶'
+							xtype : 'label',
+							style : {
+								clear : 'none'
+							},
+							fieldLabel : '付款方式資訊'
 						}, {
 							id : 'textfieldOrderRemitOut',
 							xtype : 'label',
@@ -1096,7 +1191,13 @@ Mogan.orderTrace.createOrderPanel = function() {
 							name : 'seller_account'
 						}, {
 							xtype : 'hidden',
+							name : 'seller_id'
+						}, {
+							xtype : 'hidden',
 							name : 'tide_status'
+						}, {
+							xtype : 'hidden',
+							name : 'website_id'
 						}]
 			});
 
@@ -1158,6 +1259,7 @@ Mogan.orderTrace.createOrderPanel = function() {
 				flex : 1,
 				title : '訂單內容(同捆清單)',
 				layout : 'fit',
+				region : 'center',
 				items : new Ext.grid.GridPanel({
 							cm : cm,
 							frame : true,
@@ -1175,7 +1277,7 @@ Mogan.orderTrace.createOrderPanel = function() {
 	var panel = new Ext.Panel({
 				id : 'orderPanel',
 				frame : true,
-				layout : 'hbox',
+				layout : 'border',
 				layoutConfig : {
 					align : 'stretch',
 					pack : 'start'
@@ -1184,27 +1286,29 @@ Mogan.orderTrace.createOrderPanel = function() {
 				items : [orderListPanel, orderDataPanel]
 			});
 
-	Ext.getCmp('comboOrderPayType').on('select',
-			Mogan.orderTrace.comboOrderPayTypeSelect);
-
 	return panel;
 };
 
 /**
  * 刪除訂單MENU
+ * 
  * @return {}
  */
 Mogan.orderTrace.getDelOrderMenu = function() {
 	if (Ext.isEmpty(Mogan.orderTrace.delOrderMenu)) {
 		Mogan.orderTrace.delOrderMenu = new Ext.menu.Menu({
-					id: 'delOrderMenu',
+					id : 'delOrderMenu',
 					items : [{
 								xtype : 'menuitem',
-								handler : function (){Mogan.orderTrace.delOrder(0)},
+								handler : function() {
+									Mogan.orderTrace.delOrder(0)
+								},
 								text : '刪除訂單'
 							}, {
 								xtype : 'menuitem',
-								handler : function (){Mogan.orderTrace.delOrder(1)},
+								handler : function() {
+									Mogan.orderTrace.delOrder(1)
+								},
 								text : '會員棄標'
 							}]
 				});
@@ -1281,4 +1385,101 @@ Mogan.orderTrace.getOrderAlertPanel = function() {
 	}
 
 	return Mogan.orderTrace.orderAlertPanel;
+}
+
+Mogan.orderTrace.getSellerAccountPanel = function() {
+	if (Ext.isEmpty(Mogan.orderTrace.sellerAccountPanel)) {
+		Ext.DomHelper.append('iframe-window', {
+					tag : 'div',
+					id : 'sellerAccountPanel_div'
+				});
+		Mogan.orderTrace.sellerAccountPanel = new Ext.Window({
+					el : 'sellerAccountPanel_div',
+					closeAction : 'hide',
+					autoScroll : true,
+					modal : true,
+					title : '賣家收款方式資料',
+					width : 640,
+					height : 460,
+					layout : 'fit',
+					id : 'sellerAccountPanel',
+
+					items : {
+						xtype : 'form',
+						id : 'orderAlertPanelForm',
+						bodyStyle : 'padding:5px',
+						labelAlign : 'top',
+						tbar : [{
+									xtype : 'button',
+									handler : Mogan.orderTrace.addSellerAccount,
+									text : '新增'
+								}, {
+									xtype : 'button',
+									hidden : true,
+									handler : Mogan.orderTrace.saveAlertData,
+									text : '修改'
+								}, {
+									xtype : 'button',
+									handler : function() {
+										Mogan.orderTrace.sellerAccountPanel
+												.hide();
+									},
+									text : '關閉'
+								}],
+						items : [{
+									xtype : 'label',
+									id : 'labelSellerAccount',
+									style : {
+										clear : 'none'
+									},
+									text : '-',
+									width : 'auto',
+									fieldLabel : '賣家名稱'
+								}, {
+									store : Mogan.orderTrace.payTypeStore,
+									model : 'local',
+									valueField : 'list_key',
+									displayField : 'list_name',
+									triggerAction : 'all',
+									editable : false,
+									allowBlank : false,
+									xtype : 'combo',
+									hiddenName : 'remit_type',
+									fieldLabel : '收款方式'
+								}, {
+									xtype : 'textfield',
+									anchor : '90% ',
+									name : 'bank_name',
+									fieldLabel : '銀行名稱'
+								}, {
+									xtype : 'textfield',
+									anchor : '90% ',
+									name : 'branch_name',
+									fieldLabel : '分行名稱'
+								}, {
+									xtype : 'textfield',
+									anchor : '90% ',
+									name : 'account_no',
+									fieldLabel : '戶號'
+								}, {
+									xtype : 'textfield',
+									anchor : '90% ',
+									name : 'account_name',
+									fieldLabel : '戶名'
+								}, {
+									xtype : 'textarea',
+									anchor : '90% ',
+									growMax : 150,
+									grow : true,
+									name : 'note',
+									fieldLabel : '備註'
+								}]
+					}
+				});
+
+		Mogan.orderTrace.sellerAccountPanel.on('beforeShow',
+				Mogan.orderTrace.fixSellerAccountPanel);
+	}
+
+	return Mogan.orderTrace.sellerAccountPanel;
 }

@@ -1,6 +1,7 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
 	pageEncoding="UTF-8"%>
 <%@ page import="com.mogan.sys.DBConn"%>
+<%@ page import="com.mogan.sys.SysTool"%>
 <%@ page import="com.mogan.io.FileIO"%>
 <%@ page import="java.util.ArrayList"%>
 <%@ page import="java.util.Map"%>
@@ -8,7 +9,7 @@
 <%@ page import="java.io.File"%>
 <%@ page import="net.sf.json.JSONArray"%>
 <%@ page import="net.sf.json.JSONObject"%>
-<%@page import="java.util.Properties"%>
+<%@ page import="java.util.Properties"%>
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
@@ -138,7 +139,7 @@
 	tempObj.put("columnDesc","摩根訂單編號");
 	tempTrnsColmList.add(tempObj);
 	p.put("TRNS_COLM_LIST",tempTrnsColmList);
-	System.out.println("[DEBUG] ot-3");
+
 	JSONArray trnsColmList=JSONArray.fromObject(p.get("TRNS_COLM_LIST"));	
 	JSONObject trnsColmData=new JSONObject();
 	trnsColmData.put("root",trnsColmList);
@@ -178,6 +179,7 @@
 	
 	JSONObject alertTypeData=new JSONObject();
 	alertTypeData.put("root",conn.queryJSONArray("mogan-DB","SELECT list_key,list_name FROM system_list_value WHERE group_key='alert type' "));
+	
 %>
 var pkey='<%=pKey %>';
 var itemOrderCol=<%=colList %>;
@@ -186,8 +188,11 @@ var trnsJSONData = <%=trnsData %>;
 var trnsColmJSONData = <%=trnsColmData %>;
 var templateJSONData = <%=templateData %>;
 var orderItemListJSONData = <%=orderItemListData %>;
+var payTypeMap = <%=SysTool.JSONArray2JSONObject(typeList,"list_key","list_name") %>;
 var payTypeJSONData = <%=payTypeData %>;
+var sellerAccountData ={"root":""};
 var alertTypeJSONData = <%=alertTypeData %>;
+var sellerPayTypeJSONData = {"root":""};
 
 </script>
 </head>

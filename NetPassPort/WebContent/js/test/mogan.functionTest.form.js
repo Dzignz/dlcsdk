@@ -108,6 +108,13 @@ createHeadPanel = function() {
 				handler : function() {
 					getItemOrderForm();
 				}
+			}),	new Ext.Button({
+				scale : 'medium',
+				text : '登入Gmail測試',
+				id : 'btnloginGmail',
+				handler : function() {
+					loginGmail();
+				}
 			})]);
 	return btns;
 }

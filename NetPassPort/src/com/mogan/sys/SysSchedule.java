@@ -1,12 +1,11 @@
 package com.mogan.sys;
 
 import java.util.Timer;
-
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
-
+import org.apache.log4j.Logger;
 import com.mogan.serviceProtal.ScheduleProtal;
 
 /**
@@ -15,7 +14,8 @@ import com.mogan.serviceProtal.ScheduleProtal;
 public class SysSchedule extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	private static ServletContext servletContext = null;
-
+	static private Logger logger  =  Logger.getLogger(SysSchedule.class.getName());
+	
 	/**
 	 * @see HttpServlet#HttpServlet()
 	 */
@@ -39,10 +39,9 @@ public class SysSchedule extends HttpServlet {
 	 */
 	private void runSchedule(){
 		Timer timer = new Timer();
-		System.out.println("[DEBUG] init Schedule start.");
+		logger.info("init Schedule start.");
         //timer.schedule(new SysAlert(), 0,1000*60*15);
-       timer.schedule(new SysAlert(), 0,1000*60*15);
-        
+       timer.schedule(new SysAlert(),5000, 1000*60*15);
 	}
 	
 	/**

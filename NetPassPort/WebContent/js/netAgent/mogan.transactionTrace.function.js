@@ -254,7 +254,7 @@ Mogan.transactionTrace.updateBidItemData = function(grid, rowIndex, e) {
 			}
 		},
 		failure : function(response) {
-			Ext.Msg.alert("錯誤", "更新聯絡資料錯誤，請向程式開發者詢問");
+			//Ext.Msg.alert("錯誤", "更新聯絡資料錯誤，請向程式開發者詢問");
 		},
 		params : {
 			APP_ID : appId,

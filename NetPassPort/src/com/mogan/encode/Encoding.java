@@ -133,14 +133,5 @@ class Encoding {
 
 
     }
-
-
-    /*		System.out.println("Usage:  java zhcode -[gbc8ui2nk][gbc8uts2nk] in_file out_file");
- 		System.out.println("  g = GB2312, b = Big5, c = CNS11643, 8 = UTF-8, u = Unicode,");
-	 	System.out.println("  t = Unicode (traditional characters),");
-		System.out.println("  s = Unicode (simplified characters),");
- 		System.out.println("  i = ISO-2022-CN, 2 = ISO-2022-CN-GB, n = ISO-2022-CN-CNS,");
- 		System.out.println("  k = GBK");
-    */
     
 }

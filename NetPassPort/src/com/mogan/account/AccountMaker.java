@@ -1,4 +1,5 @@
 package com.mogan.account;
+
 public class AccountMaker {
 
 	/**
@@ -6,8 +7,32 @@ public class AccountMaker {
 	 */
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
-		System.out.println("account::"+getCode(8));
-		System.out.println("pwd::"+getCode(8));
+		System.out.println("account::" + getCode(8));
+		System.out.println("pwd::" + getCode(8));
+		System.out.println("account::" + getCode(8));
+		System.out.println("pwd::" + getCode(8));
+		System.out.println("account::" + getCode(8));
+		System.out.println("pwd::" + getCode(8));
+		System.out.println("account::" + getCode(8));
+		System.out.println("pwd::" + getCode(8));
+		System.out.println("account::" + getCode(8));
+		System.out.println("pwd::" + getCode(8));
+		System.out.println("account::" + getCode(8));
+		System.out.println("pwd::" + getCode(8));
+		System.out.println("account::" + getCode(8));
+		System.out.println("pwd::" + getCode(8));
+		System.out.println("account::" + getCode(8));
+		System.out.println("pwd::" + getCode(8));
+		System.out.println("account::" + getCode(8));
+		System.out.println("pwd::" + getCode(8));
+		System.out.println("account::" + getCode(8));
+		System.out.println("pwd::" + getCode(8));
+		System.out.println("account::" + getCode(8));
+		System.out.println("pwd::" + getCode(8));
+		System.out.println("account::" + getCode(8));
+		System.out.println("pwd::" + getCode(8));
+		System.out.println("account::" + getCode(8));
+		System.out.println("pwd::" + getCode(8));
 	}
 
 	public static String getCode(int codeCount) {

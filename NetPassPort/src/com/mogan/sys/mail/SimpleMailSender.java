@@ -1,6 +1,8 @@
 package com.mogan.sys.mail;
 
 import java.io.*;
+import java.security.Provider;
+import java.security.Security;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Map;
@@ -20,7 +22,7 @@ import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 import javax.mail.internet.MimeUtility;
-
+import org.apache.log4j.Logger;
 import com.mogan.sys.log.SysLogger4j;
 
 
@@ -30,6 +32,7 @@ import com.mogan.sys.log.SysLogger4j;
  */
 public class SimpleMailSender implements Runnable {
 	// private ArrayList<MailSenderInfo> mailList;
+	static private Logger logger  =  Logger.getLogger(SimpleMailSender.class.getName());
 	private int sendSeq;
 
 	// 辨識暫停狀態 0=未發送，1=發送中，2=暫停，3=中斷 ，4=結束
@@ -48,7 +51,7 @@ public class SimpleMailSender implements Runnable {
 	private String fromAddress;
 	private StringBuffer messages;
 
-	private final String BCC_ADDRESS="mogan@ads.mogan.com.tw";
+	private final String BCC_ADDRESS="mogan@mogan.com.tw";
 	
 	public SimpleMailSender() {
 		// mailList = new ArrayList<MailSenderInfo>();
@@ -286,9 +289,14 @@ public class SimpleMailSender implements Runnable {
 					mailInfo.getPassword());
 		//}
 		try {
+			Provider [] p=Security.getProviders();
+			for (int i=0;i<p.length;i++){
+				logger.info("Security OK!!"+p[i].getName());
+				
+			}
 		// 根據郵件會話屬性和密碼驗證器構造一個發送郵件的session
 		Session sendMailSession = Session
-				.getInstance(pro, authenticator);
+				.getInstance(pro);
 		transport=sendMailSession.getTransport("smtp");
 			// 根據session創建一個郵件消息
 			Message mailMessage = new MimeMessage(sendMailSession);
@@ -323,13 +331,14 @@ public class SimpleMailSender implements Runnable {
 			mainPart.addBodyPart(html);
 			// 將MiniMultipart物件設置郵件內容
 			mailMessage.setContent(mainPart);
-
+			logger.info("[DEBUG] 收件人:1:"+mailInfo.getToName()+" ADDRESS:"+mailInfo.getToAddress());
 			// 發送郵件
 			transport.connect();
+			logger.info("[DEBUG] 收件人:2:"+mailInfo.getToName()+" ADDRESS:"+mailInfo.getToAddress());
 			transport.send(mailMessage, mailMessage.getAllRecipients());
+			logger.info("[DEBUG] 收件人:3:"+mailInfo.getToName()+" ADDRESS:"+mailInfo.getToAddress());
 			transport.close();
-			
-			System.out.println("[DEBUG] 收件人::"+mailInfo.getToName()+" ADDRESS:"+mailInfo.getToAddress());
+			logger.info("[DEBUG] 收件人:4:"+mailInfo.getToName()+" ADDRESS:"+mailInfo.getToAddress());
 			mailMessage=null;
 			transport=null;
 			sendMailSession=null;
