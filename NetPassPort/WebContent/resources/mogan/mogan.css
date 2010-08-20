@@ -1,3 +1,23 @@
+/**
+* help
+*/
+.help {
+    background-image:url(../../resources/mogan/images/1276581395_Help_Circle_Blue.png) !important
+}
+
+/**
+* save
+*/
+.save {
+    background-image:url(../../resources/mogan/images/1277192544_Save.png) !important
+}
+/**
+* 垃圾桶
+*/
+.trashCan {
+    background-image:url(../../resources/mogan/images/1273740478_trash_16x16.gif) !important
+}
+
 .video {
 	background-image:
 		url(../../resources/mogan/images/1255403311_mix_video.png) !important;
@@ -44,6 +64,14 @@
 .falg {
 	background-image:
 		url(../../resources/mogan/images/1271665608_mail-flag-kmail.png)
+		!important;
+	height: 32px;
+	width: 32px;
+}
+
+.flag {
+	background-image:
+		url(../../resources/mogan/images/622.png)
 		!important;
 	height: 32px;
 	width: 32px;

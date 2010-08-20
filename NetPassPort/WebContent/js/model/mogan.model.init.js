@@ -25,6 +25,10 @@ Ext.onReady(function() {
 														scale : 'large',
 														text : 'Reload',
 														handler:Mogan.model.reloadModels
+													}), new Ext.Button({
+														scale : 'large',
+														text : 'ReloadSysParameter',
+														handler:Mogan.model.reloadSysParameter
 													})]
 								}, {
 									region : 'center',

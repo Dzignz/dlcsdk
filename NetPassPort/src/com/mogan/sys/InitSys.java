@@ -20,6 +20,9 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.log4j.Logger;
+
+
 import com.mogan.sys.log.SysLogger4j;
 
 
@@ -29,13 +32,13 @@ import com.mogan.sys.log.SysLogger4j;
  */
 public final class InitSys extends HttpServlet {
 	private static final long serialVersionUID = 1L;
-
+	private static Logger logger= Logger.getLogger(InitSys.class.getName());
+	
 	/**
 	 * @see HttpServlet#HttpServlet()
 	 */
 	public InitSys() {
 		super();
-		// TODO Auto-generated constructor stub
 	}
 
 	public void init(ServletConfig config) throws ServletException {
@@ -46,7 +49,7 @@ public final class InitSys extends HttpServlet {
 		Properties props = new Properties();
 		try {
 			if (inputStream==null){
-				SysLogger4j.warn("appid.properties not exists.");
+				logger.warn("appid.properties not exists.");
 			}else if (inputStream.available()==0){
 			
 			}else{
@@ -56,14 +59,14 @@ public final class InitSys extends HttpServlet {
 				this.getServletContext().setAttribute("APP_ID", tempMap);
 			}
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
+			logger.error(e.getMessage(),e);
 		} 
 		Properties p=System.getProperties();
 		Iterator it=p.keySet().iterator();
 		for (;it.hasNext();){
 			String key=it.next().toString();
-			SysLogger4j.info("System.Properties "+key+" : "+p.getProperty(key));
+			logger.info("System.Properties "+key+" : "+p.getProperty(key));
 		}
 	}
 
@@ -91,17 +94,15 @@ public final class InitSys extends HttpServlet {
 				this.getServletContext().setAttribute(key, p.get(key));
 			}
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
+			logger.error(e.getMessage(),e);
 			e.printStackTrace();
 		} catch (UnsupportedEncodingException e) {
-			// TODO Auto-generated catch block
+			logger.error(e.getMessage(),e);
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
+			logger.error(e.getMessage(),e);
 			e.printStackTrace();
 		}
-
-
 	}
 
 	/**
@@ -109,7 +110,8 @@ public final class InitSys extends HttpServlet {
 	 */
 	protected void doGet(HttpServletRequest request,
 			HttpServletResponse response) throws ServletException, IOException {
-		System.out.println("[INFO] InitSys called....");
+		logger.info("[INFO] InitSys called....");
+		initSystemParameter();
 	}
 
 	/**
@@ -117,7 +119,8 @@ public final class InitSys extends HttpServlet {
 	 */
 	protected void doPost(HttpServletRequest request,
 			HttpServletResponse response) throws ServletException, IOException {
-		System.out.println("[INFO] InitSys called....");
+		logger.info("[INFO] InitSys called....");
+		initSystemParameter();
 	}
 
 }

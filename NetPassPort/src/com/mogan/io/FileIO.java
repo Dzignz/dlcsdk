@@ -14,10 +14,13 @@ import java.io.UnsupportedEncodingException;
 import java.util.Date;
 import java.util.Properties;
 
+import org.apache.log4j.Logger;
+
 import com.mogan.sys.SysCalendar;
 import com.mogan.sys.log.SysLogger4j;
 
 public class FileIO {
+	private static Logger logger = Logger.getLogger( FileIO.class.getName());
 	public FileIO() {
 
 	}
@@ -105,6 +108,13 @@ public class FileIO {
 		return p;
 	}
 
+	/**
+	 * 標準的刪除檔案 User ID=Null 存檔位置為$類型/default/檔名 User ID!=Null存檔位置為$類型/UserId/檔名
+	 * @param userId
+	 * @param serviceCate
+	 * @param fileName
+	 * @return
+	 */
 	public boolean delTxtFile(String userId, String serviceCate,
 			String fileName) {
 		File f;
@@ -150,14 +160,14 @@ public class FileIO {
 				f.getParentFile().mkdirs();
 			}
 			FileWriter fw = new FileWriter(f);
-			System.out.println("[DEBUG] saveTxtFile::"+fileData);
+			logger.info("saveTxtFile::"+f.getAbsolutePath());
 			fw.write(fileData, 0, fileData.length()); // 直接將String寫入檔案
 			fw.close(); // 關閉檔案
 			f = null;
 			fw = null;
 		} catch (IOException e) {
-			System.out.println("[錯誤] 寫檔錯誤============");
 			e.printStackTrace();
+			logger.error(e.getMessage(),e);
 			return false;
 		}
 		return true;

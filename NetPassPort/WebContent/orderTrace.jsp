@@ -15,11 +15,23 @@
 <head>
 
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<title>聯絡追蹤 V2</title>
+<title>聯絡追蹤 V2-<%=session.getAttribute("USER_NAME") %></title>
 
 <link rel="stylesheet" type="text/css" href="resources/css/ext-all.css" />
 <link rel="stylesheet" type="text/css" href="resources/mogan/mogan.css" />
 <link rel="stylesheet" type="text/css" href="resources/mogan/grid.css" />
+
+<style>
+.powerSearch {	
+	border-width: 1px;
+	padding: 1px;
+	border-style: solid;
+	border-color: red;
+	background-color: gold;
+	-moz-border-radius: ;
+
+}
+</style>
 
 <script type="text/javascript" src="js/ext-base.js"></script>
 
@@ -44,7 +56,7 @@
 <script type="text/javascript">
 
 <%
-	final String modelName="BidManager";
+	final String modelName="BM2";
 
 	String [] pName={"add","up","del","view"}; //權限名稱
 	StringBuffer pKey=new StringBuffer("111111010000");	//權限字串
@@ -57,6 +69,7 @@
 	pKey=new StringBuffer();
 	JSONObject pObj=(JSONObject)session.getAttribute("USER_PRIVILEGE");
 	JSONObject tempObj=	pObj.getJSONObject("SF-201004-03");//代標聯絡處理 主畫面
+	JSONArray pArray=new JSONArray();
 	for (int i=0;i<pName.length;i++){
 		if (tempObj.getBoolean(pName[i])){
 			pKey.append("1");
@@ -64,7 +77,10 @@
 			pKey.append("0");
 		}
 	}
-	tempObj=	pObj.getJSONObject("SF-201004-16");//聯絡賣家 
+	pArray.add(Integer.valueOf(pKey.toString(),2));
+	pKey.delete(0,pKey.length());
+	
+	tempObj=	pObj.getJSONObject("SF-201004-16");//聯絡賣家 #1
 	for (int i=0;i<pName.length;i++){
 		if (tempObj.getBoolean(pName[i])){
 			pKey.append("1");
@@ -72,7 +88,10 @@
 			pKey.append("0");
 		}
 	}
-	tempObj=	pObj.getJSONObject("SF-201004-17");//訂單狀態管理 
+	pArray.add(Integer.valueOf(pKey.toString(),2));
+	pKey.delete(0,pKey.length());
+	
+	tempObj=	pObj.getJSONObject("SF-201004-17");//訂單狀態管理 #2 
 	for (int i=0;i<pName.length;i++){
 		if (tempObj.getBoolean(pName[i])){
 			pKey.append("1");
@@ -80,7 +99,10 @@
 			pKey.append("0");
 		}
 	}
-	tempObj=	pObj.getJSONObject("SF-201005-07");//費用維護 
+	pArray.add(Integer.valueOf(pKey.toString(),2));
+	pKey.delete(0,pKey.length());
+	
+	tempObj=	pObj.getJSONObject("SF-201005-07");//費用維護 #3
 	for (int i=0;i<pName.length;i++){
 		if (tempObj.getBoolean(pName[i])){
 			pKey.append("1");
@@ -88,7 +110,10 @@
 			pKey.append("0");
 		}
 	}
-	tempObj=	pObj.getJSONObject("SF-201005-08");//訂單備忘維護 
+	pArray.add(Integer.valueOf(pKey.toString(),2));
+	pKey.delete(0,pKey.length());
+	
+	tempObj=	pObj.getJSONObject("SF-201005-08");//訂單備忘維護 #4
 	for (int i=0;i<pName.length;i++){
 		if (tempObj.getBoolean(pName[i])){
 			pKey.append("1");
@@ -96,7 +121,10 @@
 			pKey.append("0");
 		}
 	}
-	tempObj=	pObj.getJSONObject("SF-201005-09");//賣家資料維護 
+	pArray.add(Integer.valueOf(pKey.toString(),2));
+	pKey.delete(0,pKey.length());
+	
+	tempObj=	pObj.getJSONObject("SF-201005-09");//賣家資料維護 #5
 	for (int i=0;i<pName.length;i++){
 		if (tempObj.getBoolean(pName[i])){
 			pKey.append("1");
@@ -104,6 +132,20 @@
 			pKey.append("0");
 		}
 	}
+	pArray.add(Integer.valueOf(pKey.toString(),2));
+	pKey.delete(0,pKey.length());
+	
+	tempObj=	pObj.getJSONObject("SF-201006-04");//賣家收款方式管理 #6
+	for (int i=0;i<pName.length;i++){
+		if (tempObj.getBoolean(pName[i])){
+			pKey.append("1");
+		}else{
+			pKey.append("0");
+		}
+	}
+	pArray.add(Integer.valueOf(pKey.toString(),2));
+	pKey.delete(0,pKey.length());
+	
 	//*/
 
 	
@@ -181,7 +223,8 @@
 	alertTypeData.put("root",conn.queryJSONArray("mogan-DB","SELECT list_key,list_name FROM system_list_value WHERE group_key='alert type' "));
 	
 %>
-var pkey='<%=pKey %>';
+var pkey=<%=pArray %>;
+
 var itemOrderCol=<%=colList %>;
 var accountJSONData = <%=accountData %>;
 var trnsJSONData = <%=trnsData %>;
@@ -191,6 +234,7 @@ var orderItemListJSONData = <%=orderItemListData %>;
 var payTypeMap = <%=SysTool.JSONArray2JSONObject(typeList,"list_key","list_name") %>;
 var payTypeJSONData = <%=payTypeData %>;
 var sellerAccountData ={"root":""};
+var logJSONData ={"root":""};
 var alertTypeJSONData = <%=alertTypeData %>;
 var sellerPayTypeJSONData = {"root":""};
 

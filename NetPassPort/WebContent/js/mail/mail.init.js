@@ -55,12 +55,6 @@ Ext.onReady(function() {
 										}
 									}), new Ext.Button({
 										scale : 'large',
-										text : '讀取範本',
-										handler : function() {
-											Mogan.mail.openTempletLoader();
-										}
-									}), new Ext.Button({
-										scale : 'large',
 										text : '寄送信件',
 										handler : function() {
 											Mogan.mail.setMail();

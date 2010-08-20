@@ -22,12 +22,12 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.httpclient.Cookie;
+import org.apache.log4j.Logger;
 import org.dom4j.Document;
 import org.dom4j.Element;
 
 import com.mogan.sys.SysAlert;
 import com.mogan.sys.SysKernel;
-import com.mogan.sys.log.SysLogger4j;
 import com.mogan.sys.model.ModelFace;
 import com.mogan.sys.model.ModelManager;
 import com.mogan.sys.model.ProtoModel;
@@ -44,6 +44,7 @@ import net.sf.json.xml.XMLSerializer;
  * Servlet implementation class AjaxPortal
  */
 public class AjaxPortal extends HttpServlet {
+	private static Logger logger = Logger.getLogger(AjaxPortal.class.getName() );
 	private static final long serialVersionUID = 1L;
 	private String responseResult = "";
 	private String responseMsg = "";
@@ -65,7 +66,6 @@ public class AjaxPortal extends HttpServlet {
 	 */
 	protected void doGet(HttpServletRequest request,
 			HttpServletResponse response) throws ServletException, IOException {
-		// TODO Auto-generated method stub
 		this.doPost(request, response);
 	}
 
@@ -74,8 +74,6 @@ public class AjaxPortal extends HttpServlet {
 	 */
 	protected void doPost(HttpServletRequest req, HttpServletResponse res)
 			throws ServletException, IOException {
-		// TODO Auto-generated method stub
-
 		time0 = System.currentTimeMillis();
 		req.setCharacterEncoding("UTF-8");
 		res.setContentType("text/xml; charset=UTF-8");
@@ -87,12 +85,12 @@ public class AjaxPortal extends HttpServlet {
 		responseRecord = "";
 		Map tempMap = req.getParameterMap();
 
-		SysLogger4j.error("ParameterMap::" + tempMap.size());
+		logger.info("ParameterMap::" + tempMap.size());
 		Iterator it = tempMap.keySet().iterator();
 		int i = 0;
 		for (; it.hasNext();) {
 			String key = (String) it.next();
-			SysLogger4j.error("params#::" + i + " " + key);
+			logger.info("params#::" + i + " " + key);
 			i++;
 		}
 		String act = "";
@@ -104,7 +102,7 @@ public class AjaxPortal extends HttpServlet {
 
 		if (!SysKernel.checkAppId(req, res)) {
 			// 非正確 APP ID，無法進行動作
-			SysLogger4j.fatal("[INFO] APP ID 未通過驗證.(AjaxPortal 發出)");
+			logger.warn("[INFO] APP ID 未通過驗證.(AjaxPortal 發出)");
 			responseData = "";
 			responseRecord = "0";
 			responseMsg = "Wrong APP ID not Verified.";
@@ -137,7 +135,7 @@ public class AjaxPortal extends HttpServlet {
 		out.println(stringBuffer);
 		out.flush();
 		out.close();
-		SysLogger4j.info("[INFO] ajax return ::" + stringBuffer);
+		logger.info("[INFO] ajax return ::" + stringBuffer);
 	}
 
 	/**
@@ -190,6 +188,6 @@ public class AjaxPortal extends HttpServlet {
 			responseMsg = "Model Name (" + modelName + ") not found.";
 			responseRecord = "0";
 		}
-		System.out.println("[INFO] AjaxPortal loadModel End.");
+		logger.info("[INFO] AjaxPortal loadModel End.");
 	}
 }

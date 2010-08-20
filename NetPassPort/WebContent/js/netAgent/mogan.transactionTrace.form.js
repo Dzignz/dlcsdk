@@ -9,7 +9,7 @@ var itemListStore = new Ext.data.JsonStore({
 	idProperty : 'threadid',
 	id : 'itemListStore',
 	remoteSort : true,
-	fields : ['id', 'user_name', 'realname', 'item', 'item_id',
+	fields : ['id','cancel_flag', 'user_name', 'realname', 'item', 'item_id',
 			'item_order_id', 'end_date', 'sell_name', 'tax', 'costed',
 			'locally', 'remittance', 'status', 'agent_account', 'contact_type',
 			'title', 'renote', 'total_item', 'total_unpay', 'total_unship',

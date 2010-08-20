@@ -25,6 +25,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import net.sf.json.JSONArray;
+import net.sf.json.JSONNull;
 import net.sf.json.JSONObject;
 import net.sf.json.JsonConfig;
 import net.sf.json.processors.JsonValueProcessor;
@@ -41,24 +42,7 @@ public class DBConn extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	private static ServletContext servletContext = null;
 	private static int connCount = 0;
-/*
-	static class JsonValueProcessorImpl implements JsonValueProcessor {
 
-		@Override
-		public Object processArrayValue(Object arg0, JsonConfig jsonConfig) {
-			// TODO Auto-generated method stub
-			return null;
-		}
-
-		@Override
-		public Object processObjectValue(String key, Object arg1,
-				JsonConfig jsonConfig) {
-			// TODO Auto-generated method stub
-			return null;
-		}
-		
-	}
-	*/
 	/**
 	 * @see HttpServlet#HttpServlet()
 	 */
@@ -87,9 +71,7 @@ public class DBConn extends HttpServlet {
 			}
 			conn.close();
 		} catch (SQLException e) {
-			logger.error(e.getMessage(),e);
-			// TODO Auto-generated catch block
-			// e.printStackTrace();
+			logger.error(e.getMessage(), e);
 		}
 
 		conn = null;
@@ -175,10 +157,10 @@ public class DBConn extends HttpServlet {
 	public JSONArray queryJSONArray(String connAlias, String sql) {
 		JSONArray jArray = new JSONArray();
 		ArrayList dataList = query(connAlias, sql);
-		//JsonConfig cfg=new JsonConfig();
-		//cfg.registerDefaultValueProcessor(Object, defaultValueProcessor);
+		// JsonConfig cfg=new JsonConfig();
+		// cfg.registerDefaultValueProcessor(Object, defaultValueProcessor);
 		jArray.addAll(dataList);
-		
+
 		/*
 		 * for (int i = 0; i < dataList.size(); i++) { // Map tempMap=(Map) dataList.get(i); jArray.add(JSONObject.fromObject(dataList.get(i))); }
 		 */
@@ -261,6 +243,35 @@ public class DBConn extends HttpServlet {
 		return jArray;
 	}
 
+	public JSONArray newData(String connAlias, String table, JSONObject jConditionMap,
+			JSONObject jDataMap) throws UnsupportedEncodingException, SQLException {
+		JSONArray jArray = new JSONArray();
+		Map conditionMap=(Map)JSONObject.toBean(jConditionMap, java.util.HashMap.class);
+		Map dataMap=(Map)JSONObject.toBean(jDataMap, java.util.HashMap.class);
+		if (conditionMap != null && conditionMap.size() > 0
+				&& querySizeWithMap(connAlias, table, conditionMap) > 0) {
+			update(connAlias, table, conditionMap, dataMap);
+		} else {
+			newData(connAlias, table, dataMap);
+		}
+
+		return jArray;
+	}
+	
+	/**
+	 * @param connAlias
+	 * @param table
+	 * @param dataMap
+	 * @return
+	 * @throws SQLException
+	 * @throws UnsupportedEncodingException
+	 */
+	public JSONArray newData(String connAlias, String table, JSONObject obj)
+			throws UnsupportedEncodingException, SQLException {
+		 Map dataMap = (Map)JSONObject.toBean(obj, java.util.HashMap.class);
+		return newData(connAlias,table,dataMap);
+	}
+
 	/**
 	 * @param connAlias
 	 * @param table
@@ -270,14 +281,14 @@ public class DBConn extends HttpServlet {
 	 * @throws UnsupportedEncodingException
 	 */
 	public JSONArray newData(String connAlias, String table,
-			Map<String, String> dataMap) throws UnsupportedEncodingException,
+			Map<String, Object> dataMap) throws UnsupportedEncodingException,
 			SQLException {
 		JSONArray jArray = new JSONArray();
 
 		Map colStrctMap = queryTabelStructure(connAlias, table, dataMap);
 		StringBuffer columnStr = new StringBuffer();
 		StringBuffer valueStr = new StringBuffer();
-		Map<String, String> copyMap = (Map) ((HashMap) dataMap).clone();
+		Map<String, Object> copyMap = (Map) ((HashMap) dataMap).clone();
 		if (Boolean.getBoolean("DB_HAS_AUTO_NUM_TABLE")) {
 			// 找出table使用的自動編碼，如果自動編碼欄位未給值則使用自動編碼
 			String indexStr = "SELECT id_name,table_name,column_name FROM system_table_id_index WHERE table_name='"
@@ -298,7 +309,7 @@ public class DBConn extends HttpServlet {
 				}
 				if (copyMap.containsKey(columnName)) {
 					// 傳入的資料有指定值
-					value = copyMap.get(columnName);
+					value = (String) copyMap.get(columnName);
 					copyMap.remove(columnName);
 					valueStr.append(" '" + value + "'");
 				} else {
@@ -311,9 +322,19 @@ public class DBConn extends HttpServlet {
 		Iterator it = copyMap.keySet().iterator();
 		for (; it.hasNext();) {
 			String columnName = (String) it.next();
+
+			if (!colStrctMap.containsKey(columnName)) {
+				continue;
+			}
+
 			if (copyMap.get(columnName) == null) {
 				continue;
 			}
+
+			if (copyMap.get(columnName) instanceof JSONNull) {
+				continue;
+			}
+			
 			if (columnStr.length() > 0) {
 				columnStr.append(",");
 			}
@@ -738,7 +759,7 @@ public class DBConn extends HttpServlet {
 						rowMap.put(columnName, SysCalendar.getFormatDate(rst.getTimestamp(columnName), SysCalendar.yyyy_MM_dd_HH_mm_ss_Mysql));
 						break;
 					default:
-						if (rst.getObject(columnName)!=null){
+						if (rst.getObject(columnName) != null) {
 							rowMap.put(columnName, rst.getString(columnName));
 						}
 					}
@@ -772,8 +793,8 @@ public class DBConn extends HttpServlet {
 	 */
 	private String fixPageSql(String connAlias, String sql, int startIndex,
 			int pageSize) {
+		
 		String pageSql = "";
-
 		if (((String) this.servletContext.getAttribute("DB_Server_" + connAlias)).startsWith("MYSQL")) {
 			pageSql = sql + " LIMIT " + startIndex + "," + (pageSize);
 		} else if (((String) this.servletContext.getAttribute("DB_Server_"
@@ -809,7 +830,7 @@ public class DBConn extends HttpServlet {
 			}
 		} catch (SQLException e) {
 			logger.error("[錯誤] 關閉數據庫連接發生異常！");
-			logger.error(e.getMessage(),e);
+			logger.error(e.getMessage(), e);
 		}
 	}
 
@@ -823,7 +844,7 @@ public class DBConn extends HttpServlet {
 			}
 		} catch (SQLException e) {
 			logger.error("[錯誤] 關閉Statement發生異常！");
-			logger.error(e.getMessage(),e);
+			logger.error(e.getMessage(), e);
 		}
 	}
 
@@ -837,7 +858,7 @@ public class DBConn extends HttpServlet {
 			}
 		} catch (Exception e) {
 			logger.error("[錯誤] 關閉ResultSet發生異常！");
-			logger.error(e.getMessage(),e);
+			logger.error(e.getMessage(), e);
 		}
 	}
 

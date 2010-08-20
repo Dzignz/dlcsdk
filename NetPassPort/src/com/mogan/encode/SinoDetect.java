@@ -270,7 +270,6 @@ class SinoDetect extends Encoding {
 			row = rawtext[i] + 256 - 0xA1;
 			column = rawtext[i+1] + 256 - 0xA1;
 
-			//System.out.println("original row " + row + " column " + column);
 			if (GBFreq[row][column] != 0) {
 			    gbfreq += GBFreq[row][column];
 			} else if (15 <= row && row < 55) {

@@ -32,6 +32,7 @@
 		<interval>60</interval>
 		<schedule-properties>
 			<property name="PHP_NON_BID_ALERT_URL" value="http://192.168.1.66/class/common/BiddingAutoActionTaiwanAPI.php?action=YAHOO_JP_NOT_WON_MAIL&amp;appId=051b3fe6d815681c0bd487b55b7f4e7f"/>
+			<property name="PHP_NON_BID_ALERT_URL" value="http://192.168.1.66/class/common/GmailServerAPI.php?action=YAHOO_JP_NOT_WON_MAIL&amp;appId=051b3fe6d815681c0bd487b55b7f4e7f"/>
 		</schedule-properties>
 	</schedule>
 	<schedule>
@@ -61,8 +62,8 @@
 		<loop>true</loop>
 		<interval>3</interval>
 		<schedule-properties>
-			<property name="GMAIL_ACCOUNT" value="elgoogdian@gmail.com"/>
-			<property name="GMAIL_PWD" value="vfbyfnfvygo"/>
+			<property name="GMAIL_ACCOUNT" value="mogansweet@gmail.com"/>
+			<property name="GMAIL_PWD" value="MOGANS4725333"/>
 			<property name="YAHOO_JP_WON_BID_MAIL" value="日雅-已得標"/>
 			<property name="YAHOO_JP_NEW_PRICE_MAIL" value="日雅-被超標"/>
 			<property name="YAHOO_JP_CANCEL_BID_MAIL" value="日雅-出價被取消"/>
@@ -83,6 +84,36 @@
 			<property name="PHP_APP_ID" value="051b3fe6d815681c0bd487b55b7f4e7f"/>
 		</schedule-properties>
 	</schedule>
+	<schedule>
+		<scheduleName>GmailTaskV2</scheduleName>
+		<scheduleJar>DLC Models.jar</scheduleJar>
+		<scheduleClass>com.mogan.schedule.GmailTaskV2</scheduleClass>
+		<scheduleDiscription>Gmail 讀取排程 新版DB</scheduleDiscription>
+		<load-on-startup>false</load-on-startup>
+		<loop>true</loop>
+		<interval>3</interval>
+		<schedule-properties>
+			<property name="GMAIL_ACCOUNT" value="mogansweet@gmail.com"/>
+			<property name="GMAIL_PWD" value="MOGANS4725333"/>
+			<property name="YAHOO_JP_WON_BID_MAIL" value="日雅-已得標"/>
+			<property name="YAHOO_JP_NEW_PRICE_MAIL" value="日雅-被超標"/>
+			<property name="YAHOO_JP_CANCEL_BID_MAIL" value="日雅-出價被取消"/>
+			<property name="YAHOO_JP_SELLER_ANS_MAIL" value="日雅-賣家回答"/>
+			<property name="YAHOO_JP_SELLER_CONTACT_MAIL" value="日雅-賣家聯絡"/>
+			<property name="YAHOO_JP_HIGHEST_BIDDER_MAIL" value="日雅-最高出價者"/>
+			<property name="YAHOO_JP_BUYER_DISCUSS_MAIL" value="日雅-買家揭示版"/>
+			<property name="YAHOO_JP_POST_ITEM_MAIL" value="日雅-手動上架"/>
+			<property name="YAHOO_JP_SOLD_MAIL" value="日雅-已賣出"/>
+			<property name="YAHOO_JP_AUTO_POST_ITEM_MAIL" value="日雅-自動上架"/>
+			<property name="YAHOO_JP_BUYER_ASK_MAIL" value="日雅-買家質問"/>
+			<property name="YAHOO_JP_BUYER_CONTACT_MAIL" value="日雅-買家聯絡"/>
+			<property name="YAHOO_JP_SELLER_DISCUSS_MAIL" value="日雅-賣家揭示版"/>
+			<property name="YAHOO_JP_WEBSITE_ID" value="SWD-2009-0001"/>
+			<property name="PHP_SOLD_ALERT_URL" value="http://192.168.1.66/class/common/SellAPI.php?appId=051b3fe6d815681c0bd487b55b7f4e7f&amp;action=BID_SUCCESS&amp;io_id=$MOGAN_ITEM_ORDER_ID&amp;args=$ARGS"/>
+			<property name="PHP_COMMON_ALERT_URL" value="http://192.168.1.66/class/common/GmailServerAPI.php"/>
+			<property name="PHP_APP_ID" value="051b3fe6d815681c0bd487b55b7f4e7f"/>
+		</schedule-properties>
+	</schedule>	
 	<schedule>
 		<scheduleName>PhpTask</scheduleName>
 		<scheduleJar>DLC Models.jar</scheduleJar>
@@ -266,6 +297,46 @@
 		<denyId>
 		</denyId>
 	</model>
+	<model>
+		<modelName>TEMPLET_MANAGER</modelName>
+		<modelJar>DLC Models.jar</modelJar>
+		<modelClass>com.mogan.model.TempletManager</modelClass>
+		<modelDiscription>範本管理</modelDiscription>
+		<acceptId>
+		</acceptId>
+		<denyId>
+		</denyId>
+	</model>
+	<model>
+		<modelName>STATISTICS</modelName>
+		<modelJar>DLC Models.jar</modelJar>
+		<modelClass>com.mogan.bean.Statistics</modelClass>
+		<modelDiscription>統計BEAN</modelDiscription>
+		<acceptId>
+		</acceptId>
+		<denyId>
+		</denyId>
+	</model>
+	<model>
+		<modelName>DATA_FINDER</modelName>
+		<modelJar>DLC Models.jar</modelJar>
+		<modelClass>com.mogan.model.DataFinder</modelClass>
+		<modelDiscription>資訊查詢用</modelDiscription>
+		<acceptId>
+		</acceptId>
+		<denyId>
+		</denyId>
+	</model>
+		<model>
+		<modelName>ACCOUNT_MANAGE</modelName>
+		<modelJar>DLC Models.jar</modelJar>
+		<modelClass>com.mogan.model.AccountManage</modelClass>
+		<modelDiscription>帳號資料查詢</modelDiscription>
+		<acceptId>
+		</acceptId>
+		<denyId>
+		</denyId>
+	</model>	
 	<auth>
 		<authName>PHP_AUTH</authName>
 		<authJar>DLC Models.jar</authJar>

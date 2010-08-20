@@ -7,6 +7,8 @@
 <title>Insert title here</title>
 </head>
 <body>
-	Non Privilege.
+	Non Privilege.<br />
+	你的權限不足.<br />
+	権限を持つ方だけで利用可能です。<br />
 </body>
 </html>

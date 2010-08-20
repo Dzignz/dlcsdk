@@ -20,6 +20,7 @@ import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import net.sf.json.xml.XMLSerializer;
 
+import org.apache.log4j.Logger;
 import org.apache.tomcat.util.http.fileupload.DiskFileUpload;
 import org.apache.tomcat.util.http.fileupload.FileItem;
 import org.apache.tomcat.util.http.fileupload.FileUploadException;
@@ -37,6 +38,7 @@ import com.thoughtworks.xstream.io.xml.DomDriver;
  * Servlet implementation class FilePortal
  */
 public class FilePortal extends HttpServlet {
+	private static Logger logger = Logger.getLogger(FilePortal.class.getName() );
 	private static final long serialVersionUID = 1L;
 	private String responseResult = "";
 	private String responseMsg = "";
@@ -49,17 +51,7 @@ public class FilePortal extends HttpServlet {
 	 */
 	public FilePortal() {
 		super();
-		System.out.println("[DEBUG]FilePortal start.");
 		// TODO Auto-generated constructor stub
-	}
-
-	/**
-	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
-	 */
-	protected void doGet(HttpServletRequest request,
-			HttpServletResponse response) throws ServletException, IOException {
-		response.getWriter().println("[DEBUG]FilePortal start.");
-		// TODO Auto-generated method stub
 	}
 
 	/**
@@ -68,11 +60,12 @@ public class FilePortal extends HttpServlet {
 	protected void doPost(HttpServletRequest req, HttpServletResponse res)
 			throws ServletException, IOException {
 		// TODO Auto-generated method stub
+		
 		req.setCharacterEncoding("UTF-8");
 		res.setContentType("text/html; charset=UTF-8");
 		res.setHeader("Cache-Control", "no-cache");
 
-		System.out.println("[DEBUG]FilePortal start.");
+		logger.info("FilePortal start.");
 		long time0 = System.currentTimeMillis();
 		DiskFileUpload fu = new DiskFileUpload();
 		List fileItems = null;
@@ -86,7 +79,7 @@ public class FilePortal extends HttpServlet {
 		String appId=null;
 		String modelName = null;
 		boolean isUploadFile = true;
-			System.out.println("[DEBUG]FilePortal ."+req.getContentType());
+		logger.info("[DEBUG]FilePortal ."+req.getContentType());
 		try {
 			/* 上傳檔案 */
 			if (req.getContentType().indexOf("multipart/form-data") > -1) {
@@ -98,7 +91,7 @@ public class FilePortal extends HttpServlet {
 				modelName = null;
 				while (i.hasNext()) {
 					FileItem fi = (FileItem) i.next();
-					//System.out.println("[DEBUG] fi.getFieldName()"+fi.getFieldName()+" fi.getName()"+fi.getName()+" fi.getString()"+fi.getString());
+					
 					if (fi.getFieldName().equals("ACTION")) {
 						act = fi.getString();
 					} else if (fi.getFieldName().equals("APP_ID")) {
@@ -135,7 +128,7 @@ public class FilePortal extends HttpServlet {
 		responseTime=String.valueOf(time1-time0);
 		StringBuffer stringBuffer = new StringBuffer();
 		String jsonString = "{success:true}";
-		JSONObject jsonResponse = new JSONObject().fromObject(jsonString);
+		JSONObject jsonResponse = JSONObject.fromObject(jsonString);
 		jsonResponse.put("responseData", responseData);
 		jsonResponse.put("responseRecords", responseRecord);
 		jsonResponse.put("responseTime", responseTime);
@@ -147,12 +140,13 @@ public class FilePortal extends HttpServlet {
 			stringBuffer.append(jsonResponse.toString());
 		} else {
 			XMLSerializer xs = new XMLSerializer();
-			XStream xStream = new XStream(new DomDriver());
 			stringBuffer.append(xs.write(jsonResponse));
 		}
 		PrintWriter out = res.getWriter();
 		String s = stringBuffer.toString();
-		s = s.replaceAll("\\/", "/");
+		//s = s.replaceAll("\\/", "/");
+		//s="{errors:["+s+"]}";
+		logger.info(s);
 		out.println(s);
 		out.flush();
 		out.close();
@@ -211,6 +205,6 @@ public class FilePortal extends HttpServlet {
 			responseRecord = "0";
 		}
 
-		System.out.println("[DEBUG]FilePortal loadModel finish.");
+		logger.info("FilePortal loadModel finish.");
 	}
 }

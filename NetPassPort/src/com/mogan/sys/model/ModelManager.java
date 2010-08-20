@@ -23,6 +23,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import net.sf.json.JSONObject;
 
+import org.apache.log4j.Logger;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.DocumentHelper;
@@ -38,6 +39,7 @@ import com.mogan.sys.log.SysLogger4j;
  * Servlet implementation class ModelLoader
  */
 public class ModelManager extends HttpServlet {
+	private static Logger logger = Logger.getLogger(ModelManager.class.getName());
 	private static final long serialVersionUID = 1L;
 	private static String modelFilePath;
 	private static ServletContext servletContext;
@@ -52,13 +54,14 @@ public class ModelManager extends HttpServlet {
 
 	public void init(ServletConfig config) throws ServletException {
 		super.init(config);
-		System.out.println("[INFO] ModelManager init start.");
+
+		logger.info("[INFO] ModelManager init start.");
 		servletContext = this.getServletContext();
 		modelFilePath = this.getServletContext().getRealPath("/")
 				+ "/WEB-INF/model.xml";
 		loadModels();
 		servletContext.setAttribute("ModelManager", this);
-		System.out.println("[INFO] ModelManager init finish.");
+		logger.info("[INFO] ModelManager init finish.");
 	}
 
 	public ServletContext getModelServletContext() {
@@ -147,10 +150,10 @@ public class ModelManager extends HttpServlet {
 			writer = new XMLWriter(new FileWriter(modelXMLFile));
 			writer.write(document);
 			writer.close();
-			System.out.println(document.asXML());
+			logger.debug(document.asXML());
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
+			logger.error(e.getMessage(),e);
 		}
 	}
 
@@ -179,6 +182,21 @@ public class ModelManager extends HttpServlet {
 		List<Element> nodes = document.selectNodes("/models/model[modelName='"
 				+ modelName + "']");
 		SysLogger4j.debug( "getModels:"+modelName);
+		return nodes;
+	}
+	
+	/**
+	 * 傳入baenName 回傳baenName相關資料
+	 * 
+	 * @param baenName
+	 * @return
+	 */
+	public List<Element> getBeans(String baenName) {
+		Document document = (Document) this.servletContext
+				.getAttribute("MODEL_XML");
+		List<Element> nodes = document.selectNodes("/models/bean[beanName='"
+				+ baenName + "']");
+		SysLogger4j.debug( "getModels:"+baenName);
 		return nodes;
 	}
 	
@@ -258,6 +276,42 @@ public class ModelManager extends HttpServlet {
 		return fileModel;
 	}
 
+	
+	/**
+	 * Bean model開發
+	 * 
+	 * @param beanName
+	 * @return
+	 */
+	public Object getBeanModel(String beanName) {
+		URL url1;
+		List<org.dom4j.Element> nodes = getBeans(beanName);
+		Object bean = null;
+		if (nodes.size() > 0) {
+			Element e = nodes.get(0);
+			try {
+				url1 = new URL("file:" + this.servletContext.getRealPath("/")
+						+ this.servletContext.getAttribute("MODEL_PATH")
+						+ e.elementText("beanJar"));
+				URLClassLoader cl = new URLClassLoader(new URL[] { url1 },
+						Thread.currentThread().getContextClassLoader());
+				Class model = cl.loadClass(e.elementText("beanClass"));
+				SysLogger4j.info(e.elementText("beanClass"));
+				bean = model.newInstance();
+			} catch (MalformedURLException e1) {
+				logger.error(e1.getMessage(),e1);
+			} catch (ClassNotFoundException e1) {
+				logger.error(e1.getMessage(),e1);
+			} catch (InstantiationException e1) {
+				logger.error(e1.getMessage(),e1);
+			} catch (IllegalAccessException e1) {
+				logger.error(e1.getMessage(),e1);
+			}
+		}
+		return bean;
+	}
+	
+	
 	/**
 	 * 取得標準的資料處理Model
 	 * 
@@ -265,7 +319,7 @@ public class ModelManager extends HttpServlet {
 	 * @return
 	 */
 	public ProtoModel getServiceModel(String modelName) {
-		URL url1;
+		URL url1,url2,url3,url4,url5;
 		List<org.dom4j.Element> nodes = getModels(modelName);
 		ProtoModel serviceModel = null;
 		if (nodes.size() > 0) {
@@ -274,10 +328,17 @@ public class ModelManager extends HttpServlet {
 				url1 = new URL("file:" + this.servletContext.getRealPath("/")
 						+ this.servletContext.getAttribute("MODEL_PATH")
 						+ e.elementText("modelJar"));
-				URLClassLoader cl = new URLClassLoader(new URL[] { url1 },
-						Thread.currentThread().getContextClassLoader());
-				// Class model = cl.loadClass("com.mogan.model.ModelService");
+				url2 = new URL("file:" + this.servletContext.getRealPath("/")+"WEB-INF/classes/");
+				url3 = new URL("file:" + this.servletContext.getRealPath("/")+"WEB-INF/lib/");
+				url4 = new URL("file:D:/Projects/NetPassPort/build/classes/");
+				url5 = new URL("file:D:/Server/tomcat-6.0.14/lib/");
+				URLClassLoader cl = (URLClassLoader) this.getClass().getClassLoader();
+//				URLClassLoader cl = new URLClassLoader(new URL[] { url1,url2,url3,url4,url5 },
+//						Thread.currentThread().getContextClassLoader());
+//				Class model = cl.loadClass("javax.servlet.http.HttpServlet");
 				Class model = cl.loadClass(e.elementText("modelClass"));
+				
+				
 				SysLogger4j.info(e.elementText("modelClass"));
 				serviceModel = (ProtoModel) model.newInstance();
 				serviceModel.setModelClass(e.elementText("modelClass"));
@@ -425,14 +486,12 @@ public class ModelManager extends HttpServlet {
 		Document document;
 		try {
 			document = reader.read(modelXMLFile);
-			// System.out.println("-------------------"+document.asXML());
 			this.servletContext.setAttribute("MODEL_XML", document);
-			// getModel("ModelService");
 		} catch (DocumentException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
+			logger.error(e.getMessage(),e);
 		}
-		System.out.println("[INFO] ModelManager loadModel XML OK.");
+		logger.info("[INFO] ModelManager loadModel XML OK.");
 	}
 
 	/**

@@ -51,7 +51,7 @@ public class SimpleMailSender implements Runnable {
 	private String fromAddress;
 	private StringBuffer messages;
 
-	private final String BCC_ADDRESS="mogan@mogan.com.tw";
+	private final String BCC_ADDRESS="javamail@mogan.com.tw";
 	
 	public SimpleMailSender() {
 		// mailList = new ArrayList<MailSenderInfo>();
@@ -61,7 +61,7 @@ public class SimpleMailSender implements Runnable {
 	}
 
 	public void mailToAdmin(String msg){
-		MailSenderInfo msi=getMailInfo("系統管理者","elgoogdian@gmail.com");
+		MailSenderInfo msi=getMailInfo("系統管理者","mis@mogan.com.tw");
 		msi.setContent(msg);
 		sendHtmlMail(msi);
 	}
@@ -155,7 +155,7 @@ public class SimpleMailSender implements Runnable {
 					}
 				} else if (status == 3) {
 					//停止發信
-					System.out.println("[INFO] 停止發信.");
+					logger.info("[INFO] 停止發信.");
 					break;
 				}
 				Map tempMap = (Map) targetList.get(i);
@@ -170,7 +170,7 @@ public class SimpleMailSender implements Runnable {
 			    Matcher matcher = pattern.matcher(email);
 			    if (matcher.matches()){
 			    	mail.addBCCAddress(email);
-			    	System.out.println("[INFO] 信件#" + i + " 寄出."+tempMap.get("email")+"["+email+"]" );
+			    	logger.info("[INFO] 信件#" + i + " 寄出."+tempMap.get("email")+"["+email+"]" );
 			    }
 				setSendSeq(i+1);
 				//messages.append("\n[訊息] 信件#"+getSendSeq()+")"+" "+(String) tempMap.get("realname") +"("+email+")");
@@ -191,6 +191,7 @@ public class SimpleMailSender implements Runnable {
 				// TODO Auto-generated catch block
 				err++;
 				e.printStackTrace();
+				logger.error(e.getMessage(),e);
 			}
 		}/*
 		if (sendHtmlMail(mail)){
@@ -281,19 +282,17 @@ public class SimpleMailSender implements Runnable {
 		Properties pro = mailInfo.getProperties();
 		Transport transport;
 		// 如果需要身份認證，則創建一個密碼驗證器
-		System.out.println("[DEBUG] mailInfo.isValidate()::"+mailInfo.isValidate());
-		System.out.println("[DEBUG] mailInfo.getMailServerHost()::"+mailInfo.getMailServerHost());
-		System.out.println("[DEBUG] mailInfo.getMailServerPort()::"+mailInfo.getMailServerPort());
+		logger.info("[DEBUG] mailInfo.isValidate()::"+mailInfo.isValidate());
+		logger.info("[DEBUG] mailInfo.getMailServerHost()::"+mailInfo.getMailServerHost());
+		logger.info("[DEBUG] mailInfo.getMailServerPort()::"+mailInfo.getMailServerPort());
 		//if (mailInfo.isValidate()) {
+		/*
 			authenticator = new MyAuthenticator(mailInfo.getUserName(),
 					mailInfo.getPassword());
+					*/
 		//}
 		try {
-			Provider [] p=Security.getProviders();
-			for (int i=0;i<p.length;i++){
-				logger.info("Security OK!!"+p[i].getName());
-				
-			}
+
 		// 根據郵件會話屬性和密碼驗證器構造一個發送郵件的session
 		Session sendMailSession = Session
 				.getInstance(pro);
@@ -317,7 +316,7 @@ public class SimpleMailSender implements Runnable {
 			mailMessage.setRecipients(Message.RecipientType.CC, mailInfo.getCCAddressList());
 			mailMessage.setRecipients(Message.RecipientType.BCC, mailInfo.getBCCAddressList());
 			// 設置郵件消息的主題
-			System.out.println("mailInfo.getSubject()="+mailInfo.getSubject());
+			logger.info("mailInfo.getSubject()="+mailInfo.getSubject());
 			mailMessage.setSubject(MimeUtility.encodeText(
 					mailInfo.getSubject(), mailInfo.getCode(), null));
 			// 設置郵件消息發送的時間
@@ -331,14 +330,11 @@ public class SimpleMailSender implements Runnable {
 			mainPart.addBodyPart(html);
 			// 將MiniMultipart物件設置郵件內容
 			mailMessage.setContent(mainPart);
-			logger.info("[DEBUG] 收件人:1:"+mailInfo.getToName()+" ADDRESS:"+mailInfo.getToAddress());
 			// 發送郵件
 			transport.connect();
-			logger.info("[DEBUG] 收件人:2:"+mailInfo.getToName()+" ADDRESS:"+mailInfo.getToAddress());
 			transport.send(mailMessage, mailMessage.getAllRecipients());
-			logger.info("[DEBUG] 收件人:3:"+mailInfo.getToName()+" ADDRESS:"+mailInfo.getToAddress());
+			
 			transport.close();
-			logger.info("[DEBUG] 收件人:4:"+mailInfo.getToName()+" ADDRESS:"+mailInfo.getToAddress());
 			mailMessage=null;
 			transport=null;
 			sendMailSession=null;

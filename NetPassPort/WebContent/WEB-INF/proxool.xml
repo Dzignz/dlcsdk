@@ -2,7 +2,7 @@
 <!-- the proxool configuration can be embedded within your own application's.
 Anything outside the "proxool" tag is ignored. -->
 <something-else-entirely>
-	<!-- -->
+	<!-- - - >
 	<proxool>
 		<alias>mogan-tw</alias>
 		<driver-url>jdbc:mysql://192.168.1.42:3306/taiwan</driver-url>
@@ -18,14 +18,14 @@ Anything outside the "proxool" tag is ignored. -->
 		<minimum-connection-count>1</minimum-connection-count>
 		<house-keeping-test-sql>select CURRENT_DATE</house-keeping-test-sql>
 	</proxool>
+	<! - - -->
 	<!-- -->
-	<!-- - ->
 	<proxool>
 		<alias>mogan-tw</alias>
-		<driver-url>jdbc:mysql://192.168.1.67:3306/taiwan</driver-url>
+		<driver-url>jdbc:mysql://192.168.1.47:3306/taiwan</driver-url>
 		<driver-class>org.gjt.mm.mysql.Driver</driver-class>
 		<driver-properties>
-			<property name="user" value="mogans2007"/>
+			<property name="user" value="java_dlc"/>
 			<property name="password" value="x60m251o214"/>
 			<property name="useUnicode" value="true"/>
 			<property name="characterEncoding" value="utf8"/>
@@ -35,10 +35,10 @@ Anything outside the "proxool" tag is ignored. -->
 		<minimum-connection-count>1</minimum-connection-count>
 		<house-keeping-test-sql>select CURRENT_DATE</house-keeping-test-sql>
 	</proxool>	
-	<!- - -->
+	<!-- -->
 	<proxool>
 		<alias>mogan-DB</alias>
-		<driver-url>jdbc:mysql://192.168.1.42:3306/nagomdb</driver-url>
+		<driver-url>jdbc:mysql://192.168.1.47:3306/nagomdb</driver-url>
 		<driver-class>org.gjt.mm.mysql.Driver</driver-class>
 		<driver-properties>
 			<property name="user" value="java_dlc"/>

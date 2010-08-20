@@ -30,6 +30,30 @@ Mogan.model.reloadModels = function() {
 			});
 }
 
+Mogan.model.reloadSysParameter = function() {
+	setStatusMsg("Reload SysParameter Start.");
+	Ext.Ajax.request({
+				url : 'AjaxPortal',
+				callback : function() {
+				},
+				success : function(response) {
+					var json = parserJSON(response.responseText);
+					//Ext.getCmp("gridPanelModel").store.loadData(json);
+					Ext.Msg.alert("Message","讀取完成");
+					setStatusMsg("Load SysParameter success.");
+				},
+				failure : function(response) {
+					setStatusMsg("LoadModelData failure.");
+				},
+				params : {
+					APP_ID : "fccc13447039e0ebf289e4227bc8e9e6",
+					ACTION : "RELOAD_SYS_PARA",
+					MODEL_NAME : "ModelService",
+					RETURN_TYPE : "JSON"
+				}
+			});
+}
+
 /*
  * 讀取Model資料
  */

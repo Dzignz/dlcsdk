@@ -14,7 +14,7 @@ var checkSenderTask = {
 	interval : 1000
 };
 
-//var taskRunner = new Ext.util.TaskRunner();// taskRunner
+// var taskRunner = new Ext.util.TaskRunner();// taskRunner
 var statusMsg = new Object();
 statusMsg[0] = '未執行';
 statusMsg[1] = '發信中';
@@ -79,6 +79,7 @@ Mogan.mail.createMailSetupFrom = function() {// 設定表單
 		fields : ['dispalyValue', 'type'],
 		data : formatData
 	});
+
 	var comboFromat = new Ext.form.ComboBox({// 信件內容格式
 		// id : 'comboxLoginAccount',
 		store : formatStore,
@@ -169,9 +170,13 @@ Mogan.mail.createMailContentFrom = function() {// 信件內容表單
 								items : [{
 											fieldLabel : '收件群組',
 											disabled : true,
-											id : 'textfieldAddressee',
+											id : 'textfieldMailGroup',
 											anchor : '95%',
 											disabledClass : ' x-form-text x-form-field'
+										}, {
+											fieldLabel : '指定信箱',
+											anchor : '95%',
+											id : 'textFildMailAddress'
 										}, {
 											fieldLabel : '信件ID',
 											disabled : true,
@@ -244,9 +249,6 @@ var mailGroupMenu = new Ext.menu.Menu({
 						menu : {
 							id : 'typeMailGroup'
 						}
-					}, '-', {
-						id : 'advMailGroup',
-						text : '進階設定'
 					}]
 		});
 
@@ -323,8 +325,8 @@ Mogan.mail.setAddressee = function() {
 			msg += item.text;
 		}
 	}
-	var textfieldAddressee = Ext.getCmp("textfieldAddressee");
-	textfieldAddressee.setValue(msg);
+	var textfieldMailGroup = Ext.getCmp("textfieldMailGroup");
+	textfieldMailGroup.setValue(msg);
 }
 
 Mogan.mail.showUploadWindow = function() {
@@ -411,9 +413,11 @@ Mogan.mail.showUploadWindow = function() {
 	}
 	uploadWindow.show(this);
 }
-
+//TODO 上傳檔案
 Mogan.mail.submitSampleFile = function() {
 	var fp = Ext.getCmp("uploadFilePanel");
+	//alert(Ext.getCmp('fileuploadfield').value);
+	//return ;
 	// if (fp.getForm().isValid()) {
 	fp.getForm().submit({
 		url : 'FilePortal',
@@ -422,10 +426,11 @@ Mogan.mail.submitSampleFile = function() {
 			var uploadWindow = Ext.getCmp("uploadFileWindow");
 			Ext.getCmp("textfieldMailSubject")
 					.setValue(o.result.responseData[0]['mailSubject']);
+					
 			Mogan.mail.setStatusMsg("[訊息]\tupload file success.");
 			Ext.getCmp("textfieldTempletId")
-					.setValue(o.result.responseData[0]['id']);
-			Mogan.mail.loadTempletFile(o.result.responseData[0]['id']);
+					.setValue(o.result.responseData[0]['mailId']);
+			Mogan.mail.loadTempletFile(o.result.responseData[0]['mailId']);
 			Ext.Msg.alert('訊息', '檔案上傳完成')
 			uploadWindow.hide();
 			Ext.getCmp('mainTabPanel').setActiveTab('tabMailContent');
@@ -456,11 +461,9 @@ Mogan.mail.loadTempletFile = function(fileId) {
 						return;
 					}
 					Ext.getCmp("textfieldTempletId") //
-							.setValue(json['responseData'][0]['MailId']);
-					Ext.getCmp("textfieldMailSubject") //
-							.setValue(json['responseData'][0]['MailSubject']);
+							.setValue(json['responseData'][0]['mailId']);
 					Ext.getCmp("textareaMailContent") //
-							.setValue(json['responseData'][0]['MailContent']);
+							.setValue(json['responseData'][0]['mailContent']);
 				},
 				failure : function(response) {
 					Mogan.mail.setStatusMsg("[錯誤]\tloadTempletFile failure");
@@ -523,10 +526,21 @@ Mogan.mail.loadProperties = function() {
  * 初始化Mail相關設定
  */
 Mogan.mail.setMail = function() {
-	if (addresseeStore.length == 0) {
-		Ext.Msg.alert('錯誤', '未設定收件群組!!');
+		var mailAddrs=new Array();
+	var addrs=Ext.getCmp("textFildMailAddress").getValue().split(/(,|;|\s)/g);
+	for (var i=0;i<addrs.length;i++){
+		
+		if (addrs[i].replace(/(,|;|\s)/g,'').length>0 && /^[\w-]+(\.[\w-]+)*@[\w-]+(\.[\w-]+)+$/.test(addrs[i].replace(/(,|;|\s)/g,''))){
+			mailAddrs.push({email:addrs[i]});
+		}
+		
+	}
+	if (addresseeStore.length == 0 && mailAddrs.length==0) {
+		Ext.Msg.alert('錯誤', '未設定收件群組或未指定收件人!!');
 		return;
 	}
+
+
 	Ext.getCmp('textFieldStatus').setText('狀態：初始化中...');
 	Ext.Ajax.request({
 				url : 'AjaxPortal',
@@ -546,8 +560,8 @@ Mogan.mail.setMail = function() {
 					APP_ID : "fccc13447039e0ebf289e4227bc8e9e6",
 					ACTION : "SET_MAIL_THREAD",
 					MODEL_NAME : "MailService",
-					CONDITION_A : Ext.util.JSON.encode(addresseeStore),// 基本條件
-					CONDITION_B : "[]",// 進階條件
+					MAIL_ADDRESS : Ext.encode(mailAddrs),// 取得指定mail 位址
+					MEMBER_GROUP : Ext.util.JSON.encode(addresseeStore),// 基本條件
 					MAIL_SUBJECT : Ext.getCmp("textfieldMailSubject")
 							.getValue(),// 信件標題
 					MAIL_CONTENT : Ext.getCmp("textareaMailContent").getValue(),// 信件內容
@@ -605,11 +619,11 @@ Mogan.mail.setMailSenderAct = function(act) {
 	Ext.Ajax.request({
 				url : 'AjaxPortal',
 				callback : function() {
-						if (act=='RUN'){
-							Ext.MessageBox.alert("Message","寄件完成");
-						}else if (act=='STOP'){
-							Ext.MessageBox.alert("Message","寄件取消");
-						}
+					if (act == 'RUN') {
+						Ext.MessageBox.alert("Message", "寄件完成");
+					} else if (act == 'STOP') {
+						Ext.MessageBox.alert("Message", "寄件取消");
+					}
 				},
 				success : function(response) {
 					var json = parserJSON(response.responseText);
@@ -686,9 +700,9 @@ Mogan.mail.changeUIStatus = function(status) {
  */
 Mogan.mail.setCheckSenderTaskEnable = function(flag) {
 	if (flag && !statusFlag) {
-		//taskRunner.start(checkSenderTask);
+		// taskRunner.start(checkSenderTask);
 	} else if (flag == false) {
-		//taskRunner.stop(checkSenderTask);
+		// taskRunner.stop(checkSenderTask);
 	}
 }
 
@@ -749,6 +763,7 @@ Mogan.mail.setSenderStatus = function(json) {
  *            isNewLine
  */
 Mogan.mail.appendStatusMsg = function(msg, isNewLine) {
+	return ;
 	if (Ext.getCmp('textAreaStatusMsg').getValue().length > 0 && isNewLine) {
 		msg = Ext.getCmp('textAreaStatusMsg').getValue() + '\n' + msg;
 	} else {
@@ -907,7 +922,6 @@ Mogan.mail.openTempletLoader = function() {
 								}, {
 									text : '讀取',
 									xtype : 'button',
-									// id : 'btnSearch',
 									scale : 'large',
 									width : 80,
 									handler : function() {

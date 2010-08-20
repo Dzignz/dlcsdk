@@ -17,6 +17,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.log4j.Logger;
 import org.dom4j.Element;
 
 import com.mogan.exception.schedule.ScheduleIncorrectDateSpecException;
@@ -30,6 +31,7 @@ import com.mogan.sys.model.ScheduleModelAdapter;
  * Servlet implementation class Schedule2
  */
 public class ScheduleProtal extends HttpServlet {
+	private static Logger logger = Logger.getLogger( ScheduleProtal.class.getName());
 	private static final long serialVersionUID = 1L;
 	final private static String APP_ID = "APP_ID";
 
@@ -84,7 +86,7 @@ public class ScheduleProtal extends HttpServlet {
 			String scheduleName = e.elementText(SCHEDULE_NAME);
 			
 			Properties p = modelManager.getScheduleProperties(scheduleName);
-			System.out.println("[DEBUG] initSchedule ::"
+			logger.debug("[DEBUG] initSchedule ::"
 					+ e.elementText(SCHEDULE_NAME)+"::"+Boolean.valueOf(e.elementText(LOAD_ON_STARTUP)));
 			if (Boolean.valueOf(e.elementText(LOAD_ON_STARTUP))){
 				startSchedule(scheduleName,this.getInitParameter(APP_ID),this.getServletContext());
@@ -176,7 +178,7 @@ public class ScheduleProtal extends HttpServlet {
 			ServletContext sc,long delay) throws ScheduleIncorrectDateSpecException, ParseException  {
 		ScheduleModelAdapter scheduleModel = (ScheduleModelAdapter) modelManager
 				.getScheduleModel(scheduleName);
-		System.out.println("[DEBUG] Schedule 啟動開始::"+scheduleName);
+		logger.info("Schedule 啟動開始::"+scheduleName);
 		Timer timer;
 		if (scheduleMap.get(scheduleName) != null) {
 			timer = (Timer) scheduleMap.get(scheduleName);
@@ -219,10 +221,10 @@ public class ScheduleProtal extends HttpServlet {
 						.getInterval());
 			}
 		}
-		System.out.println("[DEBUG] Schedule 啟動時間::"+new Date());
+		logger.info("[DEBUG] Schedule 啟動時間::"+new Date());
 		scheduleModel.setStartScheduleDate(new Date());
 		scheduleMap.put(scheduleName, timer);
-		System.out.println("[DEBUG] Schedule 啟動完成::"+scheduleName + " assignDate:"+assignDate);
+		logger.info("[DEBUG] Schedule 啟動完成::"+scheduleName + " assignDate:"+assignDate);
 	}
 
 	/**
@@ -258,16 +260,16 @@ public class ScheduleProtal extends HttpServlet {
 	static public void restartSchedule(String scheduleName, String appid,
 			ServletContext sc) throws ScheduleIncorrectDateSpecException, ParseException {
 		//scheduleName
-		System.out.print("[INFO] 重啟排程...");
+		logger.info("重啟排程...");
 		List<Element> nodes=modelManager.getScheduleModels(scheduleName);
 		long delay=Long.parseLong(nodes.get(0).elementText("interval"));
 		if (nodes.get(0).elementText("interval").length()==0 && nodes.get(0).elementText("set-run-time-spec").length()==0){
-			System.out.println("失敗.(排程無 interval 及 set-run-time-spec 設定)");
+			logger.info("失敗.(排程無 interval 及 set-run-time-spec 設定)");
 			return;
 		}
 		stopSchedule(scheduleName);
 		startSchedule(scheduleName, appid, sc,delay*1000*60);
-		System.out.println("成功");
+		logger.info("重啟排程...成功");
 	}
 
 	/**

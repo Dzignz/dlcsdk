@@ -69,6 +69,9 @@ Mogan.transactionTrace.createLoadBidItemsParams = function(store, startIndex,
 Mogan.transactionTrace.clickItem = function(grid, rowIndex, e) {
 
 	var r = grid.getStore().getAt(rowIndex);
+	if (r.get('cancel_flag')=="0"){
+		alert("此商品有被取消的記錄\r請細詳確認");
+	}
 	Mogan.transactionTrace.loadBidItemData(grid, rowIndex, e);// 將資料顯示基本資料Tab
 	Mogan.transactionTrace.updateBidItemData(grid, rowIndex, e);// 更新商品資料
 	Mogan.transactionTrace.setSenderData(r);// 設定訊息發送Tab

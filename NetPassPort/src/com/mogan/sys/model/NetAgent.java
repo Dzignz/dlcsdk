@@ -29,6 +29,7 @@ import org.apache.commons.httpclient.methods.multipart.Part;
 import org.apache.commons.httpclient.methods.multipart.PartSource;
 import org.apache.commons.httpclient.methods.multipart.StringPart;
 import org.apache.commons.httpclient.params.HttpMethodParams;
+import org.apache.log4j.Logger;
 import org.htmlparser.Node;
 import org.htmlparser.NodeFilter;
 import org.htmlparser.Parser;
@@ -42,6 +43,7 @@ import org.htmlparser.util.ParserException;
  * @author Dian 20090914 yahoo japen
  */
 public class NetAgent extends HttpClient {
+	private static Logger logger =Logger.getLogger(NetAgent.class.getName());
 	private StringBuffer responseBody; // 回傳的html body資料
 	private Header[] responseHeader;// 回傳 html head資料
 	private int statusCode;
@@ -74,7 +76,7 @@ public class NetAgent extends HttpClient {
 	}
 
 	public String getEcho(String msg){
-		return msg+"XXXXXXXXXX";
+		return msg;
 	}
 	
 	/**
@@ -87,7 +89,7 @@ public class NetAgent extends HttpClient {
 	public void showNodesText(NodeList nodes) {
 		for (int i = 0; i < nodes.size(); i++) {
 			Node tempNode = nodes.elementAt(i);
-			System.out.println("[INFO] showNodesText#" + i + " "
+			logger.info("[INFO] showNodesText#" + i + " "
 					+ tempNode.getText());
 		}
 
@@ -158,7 +160,7 @@ public class NetAgent extends HttpClient {
 			
 			if (statusCode == 302) {
 				String newUrl = getRedirectLocation();
-				System.out.println("[DEBUG] 302 NEW URL::" + newUrl);
+				logger.info("[DEBUG] 302 NEW URL::" + newUrl);
 				statusCode = getDataWithPost(newUrl);
 			}
 		} catch (HttpException e) {
@@ -200,11 +202,12 @@ public class NetAgent extends HttpClient {
 			
 			if (statusCode == 302) {
 				String newUrl = getRedirectLocation();
-				System.out.println("[DEBUG] 302 NEW URL::" + newUrl);
+				logger.info("[DEBUG] 302 NEW URL::" + newUrl);
 				statusCode = getDateWithPostFile(newUrl);
 			}
 		} catch (Exception ex) {
 			ex.printStackTrace();
+			logger.error(ex.getMessage(),ex);
 		}
 		return statusCode;
 	}
@@ -518,21 +521,17 @@ public class NetAgent extends HttpClient {
 			
 			//判斷Map中的value是屬於那種型態的資料
 			if (tempMap.get(key) instanceof java.io.File){
-				System.out.println("[DEBUG]postMaptoDataForMultipart file."+key+"#"+((File)tempMap.get(key)).length());
+				logger.info("[DEBUG]postMaptoDataForMultipart file."+key+"#"+((File)tempMap.get(key)).length());
 				File f=(File) tempMap.get(key);
 				try {
 					multipart[i]=new FilePart(key,f.getName(),f);
 				} catch (FileNotFoundException e) {
-					// TODO Auto-generated catch block
-					System.out.println("[ERR] postMaptoDataForMultipart,檔案傳換錯誤.");
 					e.printStackTrace();
+					logger.error(e.getMessage(),e);
 				}
 			}else if (tempMap.get(key) instanceof java.lang.String){
 				multipart[i]=new StringPart(key,(String) tempMap.get(key));
-				System.out.println("[DEBUG]postMaptoDataForMultipart string."+key+"#"+tempMap.get(key));
 			}
-
-			//multipart[i] = new NameValuePair(key, (String) tempMap.get(key));
 		}
 		tempMap=null;
 	}
@@ -546,8 +545,6 @@ public class NetAgent extends HttpClient {
 		Iterator it = postDataMap.keySet().iterator();
 		for (int i = 0; it.hasNext(); i++) {
 			String key = (String) it.next();
-			// System.out.println("postMaptoData#" + key + ":" +
-			// postDataMap.get(key));
 			postData[i] = new NameValuePair(key, (String) postDataMap.get(key));
 		}
 	}
@@ -573,8 +570,6 @@ public class NetAgent extends HttpClient {
 			String tagText = e.getText();
 			if (!(tagText.split("(?i)(name)=").length > 1
 					&& tagText.split("(?i)(value)=").length > 1)) {
-//				System.out.println(tagText);
-				//沒有name 跟value其中之一的就出局
 				continue;
 			}
 			String key = tagText.split("(?i)(name)=")[1].split(" ")[0];
@@ -697,8 +692,8 @@ public class NetAgent extends HttpClient {
 				resultMsg = "1";
 			}
 		} catch (ParserException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
+			logger.error(e.getMessage(),e);
 		}
 		return resultMsg;
 	}
@@ -747,10 +742,9 @@ public class NetAgent extends HttpClient {
 				}
 
 			}
-			System.out.println("[DEBUG] isMyBid resultMsg::" + resultMsg);
 		} catch (ParserException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
+			logger.error(e.getMessage(),e);
 		}
 		return resultMsg;
 	}
@@ -766,8 +760,8 @@ public class NetAgent extends HttpClient {
 			NodeList nodes = parser.extractAllNodesThatMatch(andFilter);
 			resultMsg = nodes.size() + "";
 		} catch (ParserException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
+			logger.error(e.getMessage(),e);
 		}
 		return resultMsg;
 	}
@@ -786,8 +780,8 @@ public class NetAgent extends HttpClient {
 			NodeList nodes = parser.extractAllNodesThatMatch(nf);
 			return nodes;
 		} catch (ParserException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
+			logger.error(e.getMessage(),e);
 			throw e;
 		}
 	}
@@ -838,9 +832,8 @@ public class NetAgent extends HttpClient {
 			}
 			return buf.toString();
 		} catch (NoSuchAlgorithmException e) {
-			System.err.println("Exception caught: " + e);
 			e.printStackTrace();
-
+			logger.error(e.getMessage(),e);
 		}
 		return null;
 	}
@@ -866,8 +859,8 @@ public class NetAgent extends HttpClient {
 			
 			in = new BufferedReader(new InputStreamReader(is, charSet));
 		} catch (UnsupportedEncodingException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
+			logger.error(e1.getMessage(),e1);
 			in = new BufferedReader(new InputStreamReader(is));
 		}
 		String s = "";
@@ -883,6 +876,7 @@ public class NetAgent extends HttpClient {
 				this.responseBody.append(s + "\n");
 			} catch (IOException e) {
 				// 讀取內容發生錯誤
+				logger.error(e.getMessage(),e);
 				s = null;
 			}
 		}

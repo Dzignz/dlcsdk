@@ -9,6 +9,8 @@ import java.util.TimerTask;
 
 import javax.servlet.ServletContext;
 
+import org.apache.log4j.Logger;
+
 import net.sf.json.JSONArray;
 
 import com.mogan.exception.schedule.ScheduleIncorrectDateSpecException;
@@ -22,6 +24,7 @@ import com.mogan.sys.SysCalendar;
  * @author Dian
  */
 public abstract class ScheduleModelAdapter extends TimerTask implements ScheduleModelFace {
+	private static Logger logger=Logger.getLogger(ScheduleModelAdapter.class.getName());
 	private Properties p =new Properties();
 	private String appId = "";
 	private String act = "";
@@ -55,32 +58,31 @@ public abstract class ScheduleModelAdapter extends TimerTask implements Schedule
 	 */
 	@Override
 	final public void run() {
-		System.out.println("[INFO] SCHEDULE::"+this.getModelName()+" Start."+this.getRemainTime());
+		logger.info("[INFO] SCHEDULE::"+this.getModelName()+" Start."+this.getRemainTime());
+
 		Date d=new Date();
 		this.setLastExecuteDate(d);
 		
 		exeSchedule();
 		exeTime++;
-		System.out.println("[INFO] SCHEDULE::"+this.getModelName()+" end."+this.isLoop());
+		logger.info("[INFO] SCHEDULE::"+this.getModelName()+" end."+this.isLoop());
 		if (!this.isLoop()) {
 			//是否重覆執行，重覆執行就不自動中斷
 			setRemainTime(this.getRemainTime() - 1);
-			System.out.println("[INFO] SCHEDULE::"+this.getModelName()+" getRemainTime."+(this.getRemainTime() <= 0));
+			logger.info("[INFO] SCHEDULE::"+this.getModelName()+" getRemainTime."+(this.getRemainTime() <= 0));
 			if (this.getRemainTime() <= 0) {
 				resetStatus(this.getModelName());
 				ScheduleProtal.stopSchedule(this.getModelName());
-				//if (this.isLoop()) {
 					try {
 						ScheduleProtal.restartSchedule(this.getModelName(),
 								this.getAppId(), this.getModelServletContext());
 					} catch (ScheduleIncorrectDateSpecException e) {
-						// TODO Auto-generated catch block
 						e.printStackTrace();
+						logger.error(e.getMessage(),e);
 					} catch (ParseException e) {
-						// TODO Auto-generated catch block
 						e.printStackTrace();
+						logger.error(e.getMessage(),e);
 					}
-				//}
 			}
 		}
 		SysCalendar sysCal=new SysCalendar();

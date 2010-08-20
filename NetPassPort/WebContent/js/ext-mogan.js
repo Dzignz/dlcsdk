@@ -3,8 +3,7 @@
  * responseResult-���\�Υ���, responseMsg-��~�T��, responseData-�^�ǭ�,
  * responseTime-����ɶ�
  */
- 
- 
+
 var xr = new Ext.data.XmlReader({
 			totalRecords : 'responseRecords',
 			id : 'id',
@@ -65,7 +64,11 @@ function CreateXMLDOM() {// window平台專用XML解析物件
 
 function parserJSON(jsonStr) {
 	// var rs = jr.readRecords(Ext.util.JSON.decode(jsonStr));
-	return Ext.util.JSON.decode(jsonStr);
+	try {
+		return Ext.util.JSON.decode(jsonStr);
+	} catch (e) {
+		return {};
+	}
 }
 
 function createXhrObject() {

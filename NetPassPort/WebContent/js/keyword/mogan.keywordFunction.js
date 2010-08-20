@@ -3,30 +3,32 @@ var dataStroe = new Object();
 var keepSearch = false; // 是否繼續搜尋
 
 Mogan.keyword.fixKeyword = function(keyword, isUseDBWord, day) {
-		Ext.Ajax.request({
-		url : 'AjaxPortal',
-		callback : function() {
-		},
-		success : function(response) {
-			var json = parserJSON(response.responseText);
-			if (json['responseResult'] == 'failure') {
-				Ext.Msg.alert('搜尋失敗', json['responseMsg']);
-				return;
-			}
-			Ext.Msg.alert('搜尋成功', json['responseData'][0]+" 日文英數=>中、英關鍵字<br /> "+json['responseData'][1]+" 中文英數=>英關鍵字");
-		},
-		failure : function(response) {
-			
-			// Mogan.mail.setStatusMsg("[錯誤]\tSave Properties
-			// failure.");
-		},
-		params : {
-			APP_ID : "fccc13447039e0ebf289e4227bc8e9e6",
-			ACTION : "FIX_KEYWORD",
-			MODEL_NAME : "WebWalkService",
-			RETURN_TYPE : "JSON"
-		}
-	});
+	Ext.Ajax.request({
+				url : 'AjaxPortal',
+				callback : function() {
+				},
+				success : function(response) {
+					var json = parserJSON(response.responseText);
+					if (json['responseResult'] == 'failure') {
+						Ext.Msg.alert('搜尋失敗', json['responseMsg']);
+						return;
+					}
+					Ext.Msg.alert('搜尋成功', json['responseData'][0]
+									+ " 日文英數=>中、英關鍵字<br /> "
+									+ json['responseData'][1] + " 中文英數=>英關鍵字");
+				},
+				failure : function(response) {
+
+					// Mogan.mail.setStatusMsg("[錯誤]\tSave Properties
+					// failure.");
+				},
+				params : {
+					APP_ID : "fccc13447039e0ebf289e4227bc8e9e6",
+					ACTION : "FIX_KEYWORD",
+					MODEL_NAME : "WebWalkService",
+					RETURN_TYPE : "JSON"
+				}
+			});
 }
 
 Mogan.keyword.searchKeyword = function(keyword, isUseDBWord, day) {
@@ -52,6 +54,8 @@ Mogan.keyword.searchKeyword = function(keyword, isUseDBWord, day) {
 			}
 
 			Mogan.keyword.appendWalkMsg(msg);
+			
+
 			if (keepSearch) {
 				var delay = new Ext.util.DelayedTask(function() {
 							Mogan.keyword.searchKeyword('', isUseDBWord, day);
@@ -89,7 +93,7 @@ Mogan.keyword.appendWalkMsg = function(msg) {
 		msg = Ext.getCmp('textareaWalkMsg').getValue() + msg;
 	}
 
-	/*最大行數設定，上限好像是1000*/
+	/* 最大行數設定，上限好像是1000 */
 	while (msg.split('\n').length > Ext.getCmp('spinnerfieldRowCount')
 			.getValue()) {
 		msg = msg.replace(msg.split('\n')[0] + '\n', '');

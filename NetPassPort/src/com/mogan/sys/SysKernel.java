@@ -21,6 +21,12 @@ import net.sf.json.JSONObject;
 public class SysKernel extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	private static ServletContext servletContext;
+	/**
+	 * 摩根小甜心，在系統中的代號
+	 */
+	final public static String MOGAN_SWEET_ID="MOGAN_SWEET_ID";
+	final public static String BID_ALERT_GROUP_ID="BID_ALERT_GROUP_ID";
+	final public static String MAIN_DB="MAIN_DB";
 	
     /**
      * @see HttpServlet#HttpServlet()
@@ -32,9 +38,27 @@ public class SysKernel extends HttpServlet {
 
 	public void init(ServletConfig config) throws ServletException {
 		super.init(config);
-		servletContext = this.getServletContext();
+		setServletContext(this.getServletContext());
 	}
     
+	/**
+	 * 取得DB連線
+	 * @return
+	 */
+	public static DBConn getConn(){
+		DBConn conn = (DBConn) servletContext.getAttribute("DBConn");
+		return conn;
+	}
+	
+	/**
+	 * 取得系統參數
+	 * @param attrName
+	 * @return
+	 */
+	public static Object getApplicationAttr(String attrName){
+		return servletContext.getAttribute(attrName);
+	}
+	
 	/**
 	 * 檢查Appid 是否被接受,回傳APP_ID是否開放使用，無對應APP_ID回傳false
 	 * 
@@ -76,4 +100,19 @@ public class SysKernel extends HttpServlet {
 		}
 		return jArray;
 	}
+
+	/**
+	 * @param servletContext the servletContext to set
+	 */
+	private static void setServletContext(ServletContext servletContext) {
+		SysKernel.servletContext = servletContext;
+	}
+
+	/**
+	 * @return the servletContext
+	 */
+	public static ServletContext getSysContextx() {
+		return servletContext;
+	}
+	
 }

@@ -115,6 +115,13 @@ createHeadPanel = function() {
 				handler : function() {
 					loginGmail();
 				}
+			}),	new Ext.Button({
+				scale : 'medium',
+				text : '重讀參數',
+				id : 'btnReloadSysParameter',
+				handler : function() {
+					reloadSysParameter();
+				}
 			})]);
 	return btns;
 }

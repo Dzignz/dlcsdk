@@ -1,7 +1,33 @@
-//Ext.namespace("Mogan.transactionTrace");
+// Ext.namespace("Mogan.transactionTrace");
 
 var appId = "26b782eb04abbd54efba0dcf854b158d";
 var statusCondition = "0123";
+
+reloadSysParameter = function() {
+	Ext.Ajax.request({
+				url : 'AjaxPortal',
+				callback : function() {
+					
+				},
+				success : function(response) {
+					var json = parserJSON(response.responseText);
+					if (json['responseResult'] == "failure") {
+						Ext.Msg.alert("失敗", "讀取完成");
+					} else {
+						Ext.Msg.alert("成功", "讀取完成");
+					}
+				},
+				failure : function(response) {
+					addMsg("[錯誤]\tajax failure");
+				},
+				params : {
+					APP_ID : appId,
+					ACTION : "RELOAD_PARMETER",
+					RETURN_TYPE : "JSON",
+					MODEL_NAME : "SYS_CONTROL"
+				}
+			});
+}
 
 var loadBidItemsParams = {
 	APP_ID : appId,
@@ -14,8 +40,8 @@ var loadBidItemsParams = {
 	DIR : 'DESC'
 };
 
-loginGmail = function (){
-			Ext.Ajax.request({
+loginGmail = function() {
+	Ext.Ajax.request({
 				url : 'AjaxPortal',
 				callback : function() {
 					Ext.Msg.alert("訊息", "儲存完成");
@@ -44,7 +70,7 @@ loginGmail = function (){
  * 登入日本yahoo
  */
 logYj = function() {
-		Ext.Ajax.request({
+	Ext.Ajax.request({
 				url : 'AjaxPortal',
 				callback : function() {
 					Ext.Msg.alert("訊息", "儲存完成");
@@ -65,9 +91,9 @@ logYj = function() {
 					ACTION : "LOGIN",
 					RETURN_TYPE : "JSON",
 					MODEL_NAME : "BidManager",
-					WEB_SITE_ID:"SWD-2009-0001",
-					UID:"gWHmYjuK",
-					PWD:"87KSJ0ST"
+					WEB_SITE_ID : "SWD-2009-0001",
+					UID : "gWHmYjuK",
+					PWD : "87KSJ0ST"
 				}
 			});
 }
@@ -76,7 +102,7 @@ logYj = function() {
  * 取得商品orderform
  */
 getItemOrderForm = function() {
-		Ext.Ajax.request({
+	Ext.Ajax.request({
 				url : 'AjaxPortal',
 				callback : function() {
 					Ext.Msg.alert("訊息", "儲存完成");
@@ -86,16 +112,16 @@ getItemOrderForm = function() {
 					if (json['responseResult'] == "failure") {
 						Ext.Msg.alert("錯誤", json['responseMsg']);
 					} else {
-							var win = new Ext.Window({
-										el:'window-itemOrderForm-YAHOOJP',
-										layout:'fit',
-										html : json['responseData'][0],
-										width : 800,
-										height : 600,
-										closeAction:'hide',
-										modal : true
-									});
-							win.show();
+						var win = new Ext.Window({
+									el : 'window-itemOrderForm-YAHOOJP',
+									layout : 'fit',
+									html : json['responseData'][0],
+									width : 800,
+									height : 600,
+									closeAction : 'hide',
+									modal : true
+								});
+						win.show();
 					}
 				},
 				failure : function(response) {
@@ -106,50 +132,48 @@ getItemOrderForm = function() {
 					ACTION : "GET_ITEM_ORDER_FORM",
 					RETURN_TYPE : "JSON",
 					MODEL_NAME : "BidManager",
-					WEB_SITE_ID:"SWD-2009-0001",
-					UID:"gWHmYjuK",
-					ITEM_ID:'c231442059'
+					WEB_SITE_ID : "SWD-2009-0001",
+					UID : "gWHmYjuK",
+					ITEM_ID : 'c231442059'
 				}
 			});
 }
-
 
 bidItem = function() {
-		Ext.Ajax.request({
-				url : 'AjaxPortal',
-				callback : function() {
-					Ext.Msg.alert("訊息", "儲存完成");
-				},
-				success : function(response) {
-					var json = parserJSON(response.responseText);
-					if (json['responseResult'] == "failure") {
-						Ext.Msg.alert("錯誤", json['responseMsg']);
-					} else {
-						Ext.Msg.alert("成功", json['responseData']);
-					}
-				},
-				failure : function(response) {
-					addMsg("[錯誤]\tajax failure");
-				},
-				params : {
-					APP_ID : appId,
-					ACTION : "BID_ITEM",
-					RETURN_TYPE : "JSON",
-					MODEL_NAME : "BidManager",
-					WEB_SITE_ID:"SWD-2009-0001",
-					UID:"moganbid01",
-					PWD:"04100515",
-					ITEM_ID:"v131694986",
-					ITEM_URL:"http://page17.auctions.yahoo.co.jp/jp/auction/v131694986",
-					PRICE:"1700",
-					QTY:"1"
-				}
-			});
+	Ext.Ajax.request({
+		url : 'AjaxPortal',
+		callback : function() {
+			Ext.Msg.alert("訊息", "儲存完成");
+		},
+		success : function(response) {
+			var json = parserJSON(response.responseText);
+			if (json['responseResult'] == "failure") {
+				Ext.Msg.alert("錯誤", json['responseMsg']);
+			} else {
+				Ext.Msg.alert("成功", json['responseData']);
+			}
+		},
+		failure : function(response) {
+			addMsg("[錯誤]\tajax failure");
+		},
+		params : {
+			APP_ID : appId,
+			ACTION : "BID_ITEM",
+			RETURN_TYPE : "JSON",
+			MODEL_NAME : "BidManager",
+			WEB_SITE_ID : "SWD-2009-0001",
+			UID : "moganbid01",
+			PWD : "04100515",
+			ITEM_ID : "v131694986",
+			ITEM_URL : "http://page17.auctions.yahoo.co.jp/jp/auction/v131694986",
+			PRICE : "1700",
+			QTY : "1"
+		}
+	});
 }
 
-
 testWonMsg = function() {
-		Ext.Ajax.request({
+	Ext.Ajax.request({
 				url : 'AjaxPortal',
 				callback : function() {
 					Ext.Msg.alert("訊息", "儲存完成");
@@ -170,17 +194,17 @@ testWonMsg = function() {
 					ACTION : "SEND_WON_MESSAGE",
 					RETURN_TYPE : "JSON",
 					MODEL_NAME : "BidManager",
-					WEB_SITE_ID:"SWD-2009-0001",
-					BID_ACCOUNT:"akekahua",
-					ITEM_ID:"d97218505",
-					SUBJECT:"0",
-					MSG:"Dian test"
+					WEB_SITE_ID : "SWD-2009-0001",
+					BID_ACCOUNT : "akekahua",
+					ITEM_ID : "d97218505",
+					SUBJECT : "0",
+					MSG : "Dian test"
 				}
 			});
 }
 
 testContact = function() {
-		Ext.Ajax.request({
+	Ext.Ajax.request({
 				url : 'AjaxPortal',
 				callback : function() {
 					Ext.Msg.alert("訊息", "儲存完成");
@@ -201,17 +225,17 @@ testContact = function() {
 					ACTION : "SEND_MESSAGE",
 					RETURN_TYPE : "JSON",
 					MODEL_NAME : "BidManager",
-					WEB_SITE_ID:"SWD-2009-0001",
-					BID_ACCOUNT:"jpitiban",
-					ITEM_ID:"g81350778",
-					SUBJECT:"0",
-					MSG:"Dian test"
+					WEB_SITE_ID : "SWD-2009-0001",
+					BID_ACCOUNT : "jpitiban",
+					ITEM_ID : "g81350778",
+					SUBJECT : "0",
+					MSG : "Dian test"
 				}
 			});
 }
 
 fixKeyword = function(btn, text) {
-		Ext.Ajax.request({
+	Ext.Ajax.request({
 				url : 'AjaxPortal',
 				callback : function() {
 					Ext.Msg.alert("訊息", "儲存完成");
@@ -232,8 +256,8 @@ fixKeyword = function(btn, text) {
 					ACTION : "SEND_MSG",
 					RETURN_TYPE : "JSON",
 					MODEL_NAME : "MsnBot",
-					ACCOUNT:"dianwork@hotmail.com",
-					MSG:text
+					ACCOUNT : "dianwork@hotmail.com",
+					MSG : text
 				}
 			});
 }
@@ -264,15 +288,14 @@ sendMsnMsg = function(btn, text) {
 					ACTION : "SEND_MSG",
 					RETURN_TYPE : "JSON",
 					MODEL_NAME : "MsnBot",
-					ACCOUNT:"dianwork@hotmail.com",
-					MSG:text
+					ACCOUNT : "dianwork@hotmail.com",
+					MSG : text
 				}
 			});
-			
+
 	Ext.MessageBox.prompt('Name', 'Please enter your name:', showResultText);
 	btn, text
 }
-
 
 /**
  * 取得競標商品資料
@@ -286,8 +309,8 @@ sendMsnMsg = function(btn, text) {
  * @param {}
  *            callbackFunction 回呼FUNCTION
  */
-createLoadBidItemsParams = function(store, startIndex,
-		pageSize, orderBy, condition, callbackFunction) {
+createLoadBidItemsParams = function(store, startIndex, pageSize, orderBy,
+		condition, callbackFunction) {
 
 	var loadParams = {
 		params : {
