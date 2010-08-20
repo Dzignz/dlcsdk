@@ -14,9 +14,6 @@ public class HTMLNodeFilter implements NodeFilter {
 	public boolean accept(Node node) {
 
 		if (node.getText().contains(keyWord)) {// 使用關鍵篩選
-			if (keyWord.equals("strong")){
-				System.out.println("HTMLNodeFilter : "+node.getText());
-			}
 			return true;
 		} else {
 			return false;

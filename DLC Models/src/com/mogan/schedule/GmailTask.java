@@ -7,12 +7,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
-
-import javax.mail.NoSuchProviderException;
-
 import org.apache.log4j.Logger;
-
-import com.mogan.entity.ItemOrderEntity;
 import com.mogan.exception.netAgent.AccountNotExistException;
 import com.mogan.model.SMSModel;
 import com.mogan.model.netAgent.NetAgent;
@@ -98,6 +93,8 @@ public class GmailTask extends ScheduleModelAdapter {
 					.getProperty(YAHOO_JP_CANCEL_BID_MAIL));
 			logAlert(msgList, YAHOO_JP_CANCEL_BID_MAIL, this
 					.getProperty(YAHOO_JP_WEBSITE_ID));
+			markOrder(msgList,this
+					.getProperty(YAHOO_JP_WEBSITE_ID));
 			msgList = new ArrayList();
 
 			/** 聯絡資料更新 */
@@ -114,12 +111,19 @@ public class GmailTask extends ScheduleModelAdapter {
 			msgList.addAll(nAgentG.getMail(this
 					.getProperty(YAHOO_JP_BUYER_DISCUSS_MAIL)));
 			updateItemContactMsg(msgList, this.getProperty(YAHOO_JP_WEBSITE_ID));
-			msgList = new ArrayList();
+			msgList.clear() ;
 
+			/** 最高出價者 */
+			msgList = nAgentG.getMail(this
+					.getProperty(YAHOO_JP_HIGHEST_BIDDER_MAIL));
+			logger.info("最高出價者 : "+msgList.size());
+			logAlert(msgList, YAHOO_JP_HIGHEST_BIDDER_MAIL, this
+					.getProperty(YAHOO_JP_WEBSITE_ID));
+			
 			/** 未處理 */
 			nAgentG.getMail(this.getProperty(YAHOO_JP_AUTO_POST_ITEM_MAIL));
 
-			nAgentG.getMail(this.getProperty(YAHOO_JP_HIGHEST_BIDDER_MAIL));
+			
 			nAgentG.getMail(this.getProperty(YAHOO_JP_POST_ITEM_MAIL));
 			nAgentG.getMail(this.getProperty(YAHOO_JP_SOLD_ITEM_MAIL));
 
@@ -135,15 +139,15 @@ public class GmailTask extends ScheduleModelAdapter {
 
 			updateGmailStatus("OK");
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
+			e.printStackTrace();
 			logger.info(e.getMessage(),e);
 			try {
 				updateGmailStatus("NOT_OK");
 			} catch (UnsupportedEncodingException e1) {
-				// TODO Auto-generated catch block
+				e1.printStackTrace();
 				logger.info(e1.getMessage(),e1);
 			} catch (SQLException e1) {
-				// TODO Auto-generated catch block
+				e1.printStackTrace();
 				logger.info(e1.getMessage(),e1);
 			}
 			e.printStackTrace();
@@ -192,7 +196,6 @@ public class GmailTask extends ScheduleModelAdapter {
 
 		NetAgentYJ netAgentYJ = new NetAgentYJ(this.getModelServletContext(),
 				this.getAppId());
-
 		for (int i = 0; i < dataList.size(); i++) {
 			Map<String, String> tempMap = dataList.get(i);
 			String itemId = (String) tempMap.get("ITEM_ID");
@@ -235,7 +238,6 @@ public class GmailTask extends ScheduleModelAdapter {
 				try {
 					netAgentYJ.getItemContactMsg(itemOrderId);
 				} catch (AccountNotExistException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 					logger.error(e.getMessage(),e);
 				}
@@ -260,8 +262,11 @@ public class GmailTask extends ScheduleModelAdapter {
 			Map dataMap = new HashMap();
 			for (int i = 0; i < dataList.size(); i++) {
 				Map<String, String> tempMap = (Map) dataList.get(i);
+				
 				ArrayList<Map> itemOrderIdList = getItemOrderIds(websiteId,
 						tempMap.get("ACCOUNT"), tempMap.get("ITEM_ID"));
+									
+				
 				if (itemOrderIdList.size() > 0) {
 					for (int j = 0; j < itemOrderIdList.size(); j++) {
 						String itemOrderId = (String) itemOrderIdList.get(j)
@@ -271,24 +276,23 @@ public class GmailTask extends ScheduleModelAdapter {
 						dataMap.put("create_date", new Date());
 						dataMap.remove("info");
 						dataMap.put("seq_no", autoNum);
-
 						conn.newData("mogan-DB", "system_alert", dataMap);
-
+						dataMap.clear();
 					}
 				} else {
-					dataMap.put("alert", "YAHOO_UNDEFINED");
+					dataMap.put("alert",action+"_UNDEFINED");
 					dataMap.put("create_date", new Date());
 					dataMap.put("info", "YAHOO ACCOUNT:"
 							+ tempMap.get("ACCOUNT") + ", ITEM ID:"
 							+ tempMap.get("ITEM_ID"));
 					dataMap.put("seq_no", autoNum);
 					conn.newData("mogan-DB", "system_alert", dataMap);
+					dataMap.clear();
 				}
 			}
 
 			NetAgent nAgent = new NetAgent();
-
-			System.out.println("[INFO] logAlert URL::"
+			logger.info("logAlert URL::"
 					+ this.getProperty(PHP_COMMON_ALERT_URL) + "?appId="
 					+ this.getProperty(PHP_APP_ID) + "&action=" + action
 					+ "&seq_no=" + autoNum);
@@ -306,7 +310,7 @@ public class GmailTask extends ScheduleModelAdapter {
 
 	/**
 	 * 複數商品可能有多個得標者
-	 * 
+	 * 舊版DB
 	 * @param webSiteId
 	 * @param account
 	 * @param itemId
@@ -320,13 +324,43 @@ public class GmailTask extends ScheduleModelAdapter {
 				"SELECT item_order_id FROM view_bid_item_order WHERE website_id='"
 						+ webSiteId + "' AND account='" + account
 						+ "' AND item_id='" + itemId + "'");
-		
-		System.out
-				.println("[DEBUG] getItemOrderIds::"
-						+ "SELECT item_order_id FROM view_bid_item_order WHERE website_id='"
-						+ webSiteId + "' AND account='" + account
-						+ "' AND item_id='" + itemId + "'");
 		return dataList;
+	}
+	
+	/**
+	 * 註記下標已被取消
+	 * @param dataList
+	 * @param websiteId
+	 */
+	private void markOrder(ArrayList dataList,  String websiteId){
+		Map dataMap=new HashMap();
+		Map conditionMap=new HashMap();
+		
+		DBConn conn = (DBConn) this.getModelServletContext().getAttribute(
+				"DBConn");
+		for (int i = 0; i < dataList.size(); i++) {
+			Map<String, String> tempMap = (Map) dataList.get(i);
+			
+			ArrayList<Map> itemOrderIdList = getItemOrderIds(websiteId,
+					tempMap.get("ACCOUNT"), tempMap.get("ITEM_ID"));
+			
+				for (int j = 0; j < itemOrderIdList.size(); j++) {
+					String itemOrderId = (String) itemOrderIdList.get(j)
+							.get("item_order_id");
+					conditionMap.put("no", itemOrderId);
+					dataMap.put("cancel_flag", "0");
+					try {
+						conn.update("mogan-tw", "web_won",conditionMap, dataMap);
+					} catch (UnsupportedEncodingException e) {
+						e.printStackTrace();
+						logger.error(e.getMessage(),e);
+					} catch (SQLException e) {
+						e.printStackTrace();
+						logger.error(e.getMessage(),e);
+					}
+					dataMap.clear();
+				}
+		}
 	}
 
 }

@@ -8,6 +8,8 @@ import java.util.Map;
 import javax.mail.NoSuchProviderException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.log4j.Logger;
+
 import net.sf.jml.message.MsnControlMessage;
 import net.sf.jml.message.MsnInstantMessage;
 import net.sf.jml.message.MsnDatacastMessage;
@@ -37,7 +39,7 @@ import com.mogan.sys.model.ServiceModelFace;
  * @author Dian
  */
 public class MsnBot extends ProtoModel implements ServiceModelFace {
-
+	private static Logger logger = Logger.getLogger(MsnBot.class.getName() );
 	final private String welcomMsg = "會員#MOGAN_USER_ID 您好\n歡迎使用 摩根小甜心 MSN 即時服務";
 	final private String welcomMsg_1 = "小甜心 不懂你的意思\n建議使用下列指令";
 	final private String newUser = "小甜心 還不認識你";
@@ -70,16 +72,16 @@ public class MsnBot extends ProtoModel implements ServiceModelFace {
 
 	
 	public void run() {
-		System.out.println("MsnBot run.");
+		logger.info("MsnBot run.");
 		sysLogin();
 		boolean run_flag = true;
 		while (run_flag) {
-			System.out.println("[INFO]CHECK checkBid");
+			logger.info("[INFO]CHECK checkBid");
 			try {
 				checkBid();
 				Thread.sleep(1000 * 60 * 5);
 				sysLogout();
-				System.out.println("[INFO] CHECK checkBid logout");
+				logger.info("[INFO] CHECK checkBid logout");
 				run_flag=false;
 			} catch (InterruptedException e) {
 				// TODO 寄信通知管理者
@@ -245,7 +247,7 @@ public class MsnBot extends ProtoModel implements ServiceModelFace {
 	 */
 	private MsnMessenger login(String account, String pwd) {
 		// create MsnMessenger instance
-		System.out.println("MsnBot login." + account);
+		logger.info("MsnBot login." + account);
 		MsnMessenger messenger = MsnMessengerFactory.createMsnMessenger(
 				account, pwd);
 
@@ -339,7 +341,7 @@ public class MsnBot extends ProtoModel implements ServiceModelFace {
 	}
 
 	protected void initMessenger(MsnMessenger messenger) {
-		System.out.println("MsnBot initMessenger.");
+		logger.info("MsnBot initMessenger.");
 		// messenger.addListener(new MsnAdapter(){});
 		messenger.addMessageListener(new MsnMessageAdapter() {
 
@@ -353,15 +355,15 @@ public class MsnBot extends ProtoModel implements ServiceModelFace {
 			public void instantMessageReceived(MsnSwitchboard switchboard,
 					MsnInstantMessage message, MsnContact contact) {
 				// text message received
-				// System.out.println("[DEBUG] instantMessageReceived 1#"+switchboard.getIncomingMessageChain().iterator().previous().asString());
-				// System.out.println("[DEBUG] instantMessageReceived 2#"+switchboard.getIncomingMessageChain().iterator().previous().toString());
-				// System.out.println("[DEBUG] instantMessageReceived 3#"+switchboard.getIncomingMessageChain().iterator().previous().getCommand());
-				// System.out.println("[DEBUG] instantMessageReceived 4#"+switchboard.getIncomingMessageChain().iterator().previous().getCommand());
+				// logger.info("[DEBUG] instantMessageReceived 1#"+switchboard.getIncomingMessageChain().iterator().previous().asString());
+				// logger.info("[DEBUG] instantMessageReceived 2#"+switchboard.getIncomingMessageChain().iterator().previous().toString());
+				// logger.info("[DEBUG] instantMessageReceived 3#"+switchboard.getIncomingMessageChain().iterator().previous().getCommand());
+				// logger.info("[DEBUG] instantMessageReceived 4#"+switchboard.getIncomingMessageChain().iterator().previous().getCommand());
 				/*
 				 * JSONArray userList = getUserInfoByMsnAccount(contact.getEmail() .getEmailAddress()); MsnInstantMessage outMessage = new
 				 * MsnInstantMessage(); if (userList.size() > 0) { outMessage.setContent(welcomMsg.replaceAll( "#MOGAN_USER_ID",
 				 * userList.getJSONObject(0) .getString("name"))); } else { outMessage.setContent(contact.getEmail().getEmailAddress() + "\n" +
-				 * newUser); } System.out.println("[debug]" + contact.getEmail().getEmailAddress()); System.out.println("[debug]" +
+				 * newUser); } logger.info("[debug]" + contact.getEmail().getEmailAddress()); logger.info("[debug]" +
 				 * message.getContent()); // welcomMsg.replaceAll("#MOGAN_USER_ID", "Dian");
 				 */
 
@@ -380,7 +382,7 @@ public class MsnBot extends ProtoModel implements ServiceModelFace {
 				// such as typing message and recording message
 				// switchboard.sendMessage(message);
 
-				System.out.println("[DEBUG] 正在輸入文字::"
+				logger.info("[DEBUG] 正在輸入文字::"
 						+ message.getRecordingUser());
 			}
 
@@ -394,7 +396,7 @@ public class MsnBot extends ProtoModel implements ServiceModelFace {
 			public void datacastMessageReceived(MsnSwitchboard switchboard,
 					MsnDatacastMessage message, MsnContact contact) {
 				// such as Nudge
-				System.out.println("[DEBUG] 正在輸入文字::"
+				logger.info("[DEBUG] 正在輸入文字::"
 						+ message.getContentType());
 				// switchboard.sendMessage(message);
 			}
@@ -404,13 +406,13 @@ public class MsnBot extends ProtoModel implements ServiceModelFace {
 
 			public void contactStatusChanged(MsnMessenger messenger,
 					MsnContact friend) {
-				System.out.println("[DEBUG] friend " + friend.getEmail()
+				logger.info("[DEBUG] friend " + friend.getEmail()
 						+ " status changed from " + friend.getOldStatus()
 						+ " to " + friend.getStatus());
 			}
 
 			public void contactAddedMe(MsnMessenger messenger, MsnContact friend) {
-				System.out.println(friend.getEmail() + " add " + messenger);
+				logger.info(friend.getEmail() + " add " + messenger);
 				messenger.addFriend(friend.getEmail(), "測試加入聯絡人");
 				// helloMyFriend();
 			}
@@ -424,7 +426,7 @@ public class MsnBot extends ProtoModel implements ServiceModelFace {
 				// log.info(messenger + " login complete ");
 				// messenger.getOwner().getEmail()
 
-				System.out.println(messenger.getOwner().getEmail()
+				logger.info(messenger.getOwner().getEmail()
 						+ " add loginCompleted");
 			}
 
@@ -436,10 +438,10 @@ public class MsnBot extends ProtoModel implements ServiceModelFace {
 				// get contacts in allow list
 				MsnContact[] contacts = messenger.getContactList()
 						.getContactsInList(MsnList.AL);
-				System.out.println("[DEBUG] Allow List." + contacts.length);
+				logger.info("[DEBUG] Allow List." + contacts.length);
 				for (int i = 0; i < contacts.length; i++) {
 					// don't send message to offline contact
-					System.out.println("contacts[i].getEmail()"
+					logger.info("contacts[i].getEmail()"
 							+ contacts[i].getEmail());
 					if (contacts[i].getStatus() != MsnUserStatus.OFFLINE) {
 						// this is the simplest way to send text
@@ -448,21 +450,21 @@ public class MsnBot extends ProtoModel implements ServiceModelFace {
 				}
 				contacts = messenger.getContactList().getContactsInList(
 						MsnList.BL);
-				System.out.println("[DEBUG] Block  List." + contacts.length);
+				logger.info("[DEBUG] Block  List." + contacts.length);
 				for (int i = 0; i < contacts.length; i++) {
 					messenger.addFriend(contacts[i].getEmail(), "測試加入聯絡人");
 				}
 
 				contacts = messenger.getContactList().getContactsInList(
 						MsnList.FL);
-				System.out.println("[DEBUG] Forward  List." + contacts.length);
+				logger.info("[DEBUG] Forward  List." + contacts.length);
 				for (int i = 0; i < contacts.length; i++) {
 					messenger.addFriend(contacts[i].getEmail(), "測試加入聯絡人");
 				}
 
 				contacts = messenger.getContactList().getContactsInList(
 						MsnList.RL);
-				System.out.println("[DEBUG] Reverse List." + contacts.length);
+				logger.info("[DEBUG] Reverse List." + contacts.length);
 				for (int i = 0; i < contacts.length; i++) {
 					messenger.addFriend(contacts[i].getEmail(), "測試加入聯絡人");
 				}

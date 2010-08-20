@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import org.apache.log4j.Logger;
+
 import com.google.gdata.client.GoogleService;
 import com.google.gdata.client.calendar.CalendarService;
 import com.google.gdata.data.PlainTextConstruct;
@@ -19,7 +21,7 @@ import com.google.gdata.util.ServiceException;
 import com.mogan.face.NetAgentModel;
 
 public class NetAgentGcalendar extends NetAgentModel {
-
+	private static Logger logger = Logger.getLogger(NetAgentGcalendar.class.getName() );
 	// 基本網址
 	private static final String METAFEED_URL_BASE = "http://www.google.com/calendar/feeds/";
 
@@ -60,7 +62,7 @@ public class NetAgentGcalendar extends NetAgentModel {
 		NetAgentGcalendar nag = new NetAgentGcalendar("elgoogdian@gmail.com",
 				"vfbyfnfvygo");
 
-		System.out.println("Calendars in metafeed");
+		logger.info("Calendars in metafeed");
 		try {
 			nag.printUserCalendars(nag.metafeedUrl);
 		    //  CalendarEntry newCalendar = nag.createCalendar();
@@ -77,8 +79,8 @@ public class NetAgentGcalendar extends NetAgentModel {
 			e.printStackTrace();
 		}
 		/*
-		 * printUserCalendars(service, metafeedUrl); System.out.println("Calendars in allcalendars feed"); printUserCalendars(service,
-		 * allcalendarsFeedUrl); System.out.println("Calendars in owncalendars feed"); printUserCalendars(service, owncalendarsFeedUrl);
+		 * printUserCalendars(service, metafeedUrl); logger.info("Calendars in allcalendars feed"); printUserCalendars(service,
+		 * allcalendarsFeedUrl); logger.info("Calendars in owncalendars feed"); printUserCalendars(service, owncalendarsFeedUrl);
 		 */
 	}
 
@@ -127,7 +129,7 @@ public class NetAgentGcalendar extends NetAgentModel {
 		// Print the title of each calendar
 		for (int i = 0; i < resultFeed.getEntries().size(); i++) {
 			CalendarEntry entry = resultFeed.getEntries().get(i);
-			System.out.println("\t" + entry.getTitle().getPlainText());
+			logger.info("\t" + entry.getTitle().getPlainText());
 		}
 	}
 	
@@ -141,7 +143,7 @@ public class NetAgentGcalendar extends NetAgentModel {
 	   */
 	  private CalendarEntry createCalendar()
 	      throws IOException, ServiceException {
-	    System.out.println("Creating a secondary calendar");
+	    logger.info("Creating a secondary calendar");
 
 	    // Create the calendar
 	    CalendarEntry calendar = new CalendarEntry();
@@ -169,7 +171,7 @@ public class NetAgentGcalendar extends NetAgentModel {
 	   */
 	  private CalendarEntry updateCalendar(CalendarEntry calendar)
 	      throws IOException, ServiceException {
-	    System.out.println("Updating the secondary calendar"+calendar.getId());
+	    logger.info("Updating the secondary calendar"+calendar.getId());
 
 	    calendar.setTitle(new PlainTextConstruct("New title"));
 	    calendar.setColor(new ColorProperty(GREEN));
@@ -186,7 +188,7 @@ public class NetAgentGcalendar extends NetAgentModel {
 	   */
 	  private void deleteCalendar(CalendarEntry calendar)
 	      throws IOException, ServiceException {
-	    System.out.println("Deleting the secondary calendar");
+	    logger.info("Deleting the secondary calendar");
 
 	    calendar.delete();
 	  }	  
@@ -202,7 +204,7 @@ public class NetAgentGcalendar extends NetAgentModel {
 	   */
 	  private CalendarEntry createSubscription()
 	      throws IOException, ServiceException {
-	    System.out.println("Subscribing to the Google Doodles calendar");
+	    logger.info("Subscribing to the Google Doodles calendar");
 
 	    CalendarEntry calendar = new CalendarEntry();
 	    calendar.setId("6anunud5suvvk3lkl7j1d2d3js@group.calendar.google.com");
@@ -220,7 +222,7 @@ public class NetAgentGcalendar extends NetAgentModel {
 	   */
 	  private CalendarEntry updateSubscription(CalendarEntry calendar)
 	      throws IOException, ServiceException {
-	    System.out.println("Updating the display color of the Doodles calendar");
+	    logger.info("Updating the display color of the Doodles calendar");
 
 	    calendar.setColor(new ColorProperty(RED));
 	    return calendar.update();
@@ -235,7 +237,7 @@ public class NetAgentGcalendar extends NetAgentModel {
 	   */
 	  private void deleteSubscription(CalendarEntry calendar)
 	      throws IOException, ServiceException {
-	    System.out.println("Deleting the subscription to the Doodles calendar");
+	    logger.info("Deleting the subscription to the Doodles calendar");
 
 	    calendar.delete();
 	  }	  

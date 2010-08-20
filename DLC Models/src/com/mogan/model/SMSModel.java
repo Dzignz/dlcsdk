@@ -4,6 +4,8 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.Map;
 import java.util.Properties;
+
+import org.apache.log4j.Logger;
 import org.htmlparser.util.NodeList;
 import org.htmlparser.util.ParserException;
 import net.sf.json.JSONArray;
@@ -14,6 +16,7 @@ import com.mogan.sys.model.ProtoModel;
 import com.mogan.sys.model.ServiceModelFace;
 
 public class SMSModel extends ProtoModel implements ServiceModelFace {
+	private static Logger logger = Logger.getLogger(SMSModel.class.getName() );
 	private final static String LOG_SERVER_URL = "LOG_SERVER_URL";
 	private final static String SEND_SERVER_URL = "SEND_SERVER_URL";
 	private final static String SEND_TEXT = "SEND_TEXT";
@@ -34,7 +37,7 @@ public class SMSModel extends ProtoModel implements ServiceModelFace {
 	public JSONArray doAction(Map parameterMap) throws Exception {
 		// TODO Auto-generated method stub
 		JSONArray jArray = new JSONArray();
-		System.out.println("[INFO]SMSModel ACTION start. " + this.getAct());
+		logger.info("[INFO]SMSModel ACTION start. " + this.getAct());
 		if (this.getAct().equals("SEND_TEXT")) {
 			JSONArray numberJarray = JSONArray.fromObject(parameterMap
 					.get("NUMBER_JARRAY"));
@@ -134,9 +137,9 @@ public class SMSModel extends ProtoModel implements ServiceModelFace {
 				+ "&od_sob=" + checkKey + "&movetel=" + numbers + "&name="
 				+ names + "&sb=" + msg ;
 		
-		System.out.println(url);
+		logger.info(url);
 		nAgent.getDataWithGet(url);
-		System.out.println(nAgent.getResponseBody());
+		logger.info(nAgent.getResponseBody());
 		jArray.add("1");
 		return jArray;
 	}
@@ -170,20 +173,20 @@ public class SMSModel extends ProtoModel implements ServiceModelFace {
 				+ this.getProperty(QUERY_LOG) + "?yhy="
 				+ this.getProperty(ACCOUNT) + "&dc2a=" + this.getProperty(PWD)
 				+ "&bf=" + dateStr + "&sms_sb=1";
-		System.out.println(url);
+		logger.info(url);
 		nAgent.getDataWithGet(url);
 
 		JSONObject jObj = new JSONObject();
 		try {
 			nAgent.setResponseBody(new String(nAgent.getResponseBody()
 					.getBytes("ISO-8859-1"), "BIG5"));
-			System.out.println( nAgent.getResponseBody());
-			System.out.println("===============");
+			logger.info( nAgent.getResponseBody());
+			logger.info("===============");
 			NodeList nodes = nAgent.filterItem(new HTMLNodeFilter("p"));
 
 			for (int i = 0; i < nodes.size(); i = i + 2) {
 				jObj = new JSONObject();
-				System.out.println(i + ":"
+				logger.info(i + ":"
 						+ nodes.elementAt(i).toPlainTextString());
 				System.out
 						.println(i
@@ -203,8 +206,8 @@ public class SMSModel extends ProtoModel implements ServiceModelFace {
 				jArray.add(jObj);
 			}
 
-			System.out.println(nAgent.getResponseBody());
-			System.out.println(jArray);
+			logger.info(nAgent.getResponseBody());
+			logger.info(jArray);
 		} catch (ParserException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

@@ -18,6 +18,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
+
+import org.apache.log4j.Logger;
 import org.htmlparser.Node;
 import org.htmlparser.util.NodeList;
 import org.htmlparser.util.ParserException;
@@ -29,16 +31,17 @@ import com.mogan.sys.model.ServiceModelFace;
 
 public class WebWalker extends ProtoModel implements ServiceModelFace {
 	static NetAgent nAgent = new NetAgent();
-
+	private static Logger logger = Logger.getLogger( WebWalker.class.getName());
+	
 	private JSONArray fixKeyword() throws UnsupportedEncodingException, SQLException {
 		JSONArray jArray = new JSONArray();
 		DBConn conn = (DBConn) this.getModelServletContext().getAttribute(
 				"DBConn");
 		String sql = "SELECT * FROM search_keyword WHERE (keyword_tw IS NULL OR keyword_tw='') and (keyword_us IS NULL OR keyword_us='')";
-		int count = conn.getQueryDataSize("mogan-tw", sql);
+		int count = conn.getQueryDataSize("mogan-DB", sql);
 		int pageSize = 1000;
 		int fixCount = 0;
-		System.out.println("[INFO] fixKeyword-1:count="
+		logger.info("[INFO] fixKeyword-1:count="
 				+ ((count + pageSize) / pageSize));
 		ArrayList keywords;
 		Map<String, String> tempMap;
@@ -65,7 +68,7 @@ public class WebWalker extends ProtoModel implements ServiceModelFace {
 					fixCount++;
 				}
 			}
-			System.out.println("[INFO] fixKeyword-1:已處理筆數=" + i * pageSize
+			logger.info("[INFO] fixKeyword-1:已處理筆數=" + i * pageSize
 					+ ":" + fixCount);
 			// break;
 		}
@@ -75,7 +78,7 @@ public class WebWalker extends ProtoModel implements ServiceModelFace {
 		sql = "SELECT * FROM search_keyword WHERE keyword_tw IS NOT NULL AND  keyword_tw  NOT LIKE ''  AND keyword_jp IS NOT NULL AND keyword_jp NOT LIKE '' AND (keyword_us IS NULL OR keyword_us='')";
 		count = conn.getQueryDataSize("mogan-tw", sql);
 
-		System.out.println("[INFO] fixKeyword-2:count="
+		logger.info("[INFO] fixKeyword-2:count="
 				+ ((count + pageSize) / pageSize));
 		
 		fixCount=0;//將修正數量歸零
@@ -95,10 +98,10 @@ public class WebWalker extends ProtoModel implements ServiceModelFace {
 							dataMap);
 					fixCount++;
 				}
-				// System.out.println("[DEBUG] fixKeyword:("+j+")="+tempMap.get("id")+":"+tempMap.get("keyword_jp")+":"+tempMap.get("keyword_tw")+":"+
+				// logger.info("[DEBUG] fixKeyword:("+j+")="+tempMap.get("id")+":"+tempMap.get("keyword_jp")+":"+tempMap.get("keyword_tw")+":"+
 				// tempMap.get("keyword_us"));
 			}
-			System.out.println("[INFO] fixKeyword-2:已處理筆數=" + i * pageSize
+			logger.info("[INFO] fixKeyword-2:已處理筆數=" + i * pageSize
 					+ ":" + fixCount);
 			// break;
 		}
@@ -108,7 +111,7 @@ public class WebWalker extends ProtoModel implements ServiceModelFace {
 		sql = "SELECT * FROM api_category WHERE category_jp IS NOT NULL AND  category_jp  NOT LIKE ''  AND (category_tw IS NULL OR category_tw='' OR category_en IS NULL OR category_en='' OR category_cn IS NULL OR category_cn='')";
 		count = conn.getQueryDataSize("mogan-DB", sql);
 
-		System.out.println("[INFO] fixKeyword-3:count="
+		logger.info("[INFO] fixKeyword-3:count="
 				+ ((count + pageSize) / pageSize));
 		
 		fixCount=0;//將修正數量歸零
@@ -130,10 +133,10 @@ public class WebWalker extends ProtoModel implements ServiceModelFace {
 							dataMap);
 					fixCount++;
 				}
-				// System.out.println("[DEBUG] fixKeyword:("+j+")="+tempMap.get("id")+":"+tempMap.get("keyword_jp")+":"+tempMap.get("keyword_tw")+":"+
+				// logger.info("[DEBUG] fixKeyword:("+j+")="+tempMap.get("id")+":"+tempMap.get("keyword_jp")+":"+tempMap.get("keyword_tw")+":"+
 				// tempMap.get("keyword_us"));
 			}
-			System.out.println("[INFO] fixKeyword-3:已處理筆數=" + i * pageSize
+			logger.info("[INFO] fixKeyword-3:已處理筆數=" + i * pageSize
 					+ ":" + fixCount);
 			// break;
 		}
@@ -143,7 +146,7 @@ public class WebWalker extends ProtoModel implements ServiceModelFace {
 		sql = "SELECT * FROM api_category WHERE category_jp IS NOT NULL AND  category_tw  NOT LIKE ''  AND category_jp IS NOT NULL AND ( category_en IS NULL OR category_en='' )";
 		count = conn.getQueryDataSize("mogan-DB", sql);
 
-		System.out.println("[INFO] fixKeyword-4:count="
+		logger.info("[INFO] fixKeyword-4:count="
 				+ ((count + pageSize) / pageSize));
 		
 		fixCount=0;//將修正數量歸零
@@ -159,7 +162,7 @@ public class WebWalker extends ProtoModel implements ServiceModelFace {
 					fixCount++;
 				}
 			}
-			System.out.println("[INFO] fixKeyword-4:已處理筆數=" + i * pageSize
+			logger.info("[INFO] fixKeyword-4:已處理筆數=" + i * pageSize
 					+ ":" + fixCount);
 		}
 		jArray.add(fixCount+"/"+count);
@@ -167,7 +170,7 @@ public class WebWalker extends ProtoModel implements ServiceModelFace {
 		sql = "SELECT * FROM api_category WHERE category_tw IS NOT NULL AND  category_tw  NOT LIKE ''  AND category_jp IS NOT NULL AND ( category_cn IS NULL OR category_cn='' )";
 		count = conn.getQueryDataSize("mogan-DB", sql);
 
-		System.out.println("[INFO] fixKeyword-5:count="
+		logger.info("[INFO] fixKeyword-5:count="
 				+ ((count + pageSize) / pageSize));
 		fixCount=0;//將修正數量歸零
 		for (int i = 0; i < ((count + pageSize * 2) / pageSize); i++) {
@@ -182,12 +185,12 @@ public class WebWalker extends ProtoModel implements ServiceModelFace {
 					fixCount++;
 				}
 			}
-			System.out.println("[INFO] fixKeyword-5:已處理筆數=" + i * pageSize
+			logger.info("[INFO] fixKeyword-5:已處理筆數=" + i * pageSize
 					+ ":" + fixCount);
 		}
 		jArray.add(fixCount+"/"+count);
 		
-		System.out.println("[DEBUG] fixKeyword:END");
+		logger.info("[DEBUG] fixKeyword:END");
 		// jArray.add(keywords);
 		return jArray;
 	}
@@ -204,12 +207,44 @@ public class WebWalker extends ProtoModel implements ServiceModelFace {
 	 * @return
 	 * @throws Exception
 	 */
-	private JSONArray searchKeyword(String keyword, String charSet,
+	private JSONArray searchKeyword(String keyword,final String charSet,
 			boolean isUseDBWord, int day) throws Exception {
 		if (isUseDBWord) {
-			keyword = getDBWord(day);
+			 keyword=getDBWord(day);
 		}
 		return searchKeyword(keyword, charSet);
+	}
+	
+	private void searchKeywordByThread(String keyword,final String charSet,
+			boolean isUseDBWord, int day) throws Exception {
+		if (isUseDBWord) {
+			ArrayList dataList=getDBWord(day,3);
+			for (int i=0;i<dataList.size();i++){
+				Map tempMap = (Map) dataList.get(i);
+				final String keyword2=(String) tempMap.get("keyword_jp");
+				logger.info(tempMap.get("keyword_jp")+"---xxxxxxxxxxx Start.("+i);
+				class keyword extends Thread {
+					private String keyword;
+					private String charSet;
+					public keyword(String keyword,String charSet){
+						this.keyword=keyword;
+						this.charSet=charSet;
+					}
+					
+					public synchronized  void run (){
+						logger.info(keyword+"---Start.");
+						try {
+							searchKeyword(keyword, charSet);
+						} catch (Exception e) {
+							logger.error(e.getMessage(),e);
+						}
+						logger.info(keyword+"---End.");
+					}
+				}
+				Thread t=new keyword((String) tempMap.get("keyword_jp"),charSet);
+				t.start();
+			}
+		}
 	}
 
 	/**
@@ -236,14 +271,15 @@ public class WebWalker extends ProtoModel implements ServiceModelFace {
 	 */
 	private JSONArray searchKeyword(String keyword, String charSet)
 			throws Exception {
-		JSONArray jArray = new JSONArray();
+		
+		JSONArray jArray =new JSONArray();
 
 		DBConn conn = (DBConn) this.getModelServletContext().getAttribute(
 				"DBConn");
 		try {
-			Connection connection = conn.getConnection("mogan-tw");
+			Connection connection = conn.getConnection("mogan-DB");
 			CallableStatement cs = connection
-					.prepareCall("{?=call addkeyword(?,?,?)}");
+					.prepareCall("{?=call addkeyword(?,?)}");
 			cs.registerOutParameter(1, Types.BIT);// 設定輸出子的資料狀態
 
 			JSONObject jObj = new JSONObject();
@@ -251,7 +287,7 @@ public class WebWalker extends ProtoModel implements ServiceModelFace {
 			jObj.put("KEY_WORD", keyword);
 
 			String encodeKeyword;
-			System.out.println("[DEBUG]searchKeyword:" + keyword);
+			logger.info("[DEBUG]searchKeyword:" + keyword);
 			encodeKeyword = URLEncoder.encode(keyword, charSet);// 進行資料編碼
 			nAgent
 					.getDataWithGet("http://search.auctions.yahoo.co.jp/jp/search/auc?p="
@@ -262,7 +298,6 @@ public class WebWalker extends ProtoModel implements ServiceModelFace {
 			NodeList nodes = nAgent.filterReferenceKeyword();
 			cs.setString(2, keyword);
 			cs.setString(3, keyword);
-			cs.setString(4, "");
 			cs.execute();// 預先執行，避免查尋結果沒有建議關鍵字造成LOOP
 
 			for (int i = 0; i < nodes.size(); i++) {
@@ -270,19 +305,15 @@ public class WebWalker extends ProtoModel implements ServiceModelFace {
 				Node n = nodes.elementAt(i);
 				tempKeyword = n.toHtml();
 				tempKeyword = tempKeyword.split("<nobr>")[1].split("</nobr>")[0];// 篩選掉不該出現的HTML符号
-				// System.out.println(l + ") " + tempKeyword + " (" + keyword + ") "+checkChart(tempKeyword));
+				// logger.info(l + ") " + tempKeyword + " (" + keyword + ") "+checkChart(tempKeyword));
 
 				cs.setString(2, keyword);
 				cs.setString(3, tempKeyword);
-				if (checkChart(tempKeyword)) {// 判斷是否含有全形字
-					cs.setString(4, "EN");
-				} else {
-					cs.setString(4, "");
-				}
+
 				cs.execute();
 
-				// System.out.println("cs.getInt(1)::"+cs.getResultSet().getRow());
-				// System.out.println("cs.getInt(1)::" + cs.getInt(1));
+				// logger.info("cs.getInt(1)::"+cs.getResultSet().getRow());
+				// logger.info("cs.getInt(1)::" + cs.getInt(1));
 				if (cs.getInt(1) == 1) {// 取回回傳值(第一個?)0=已資料存在
 					tempKeyword = "*" + tempKeyword;// 如果是新字就加上*号
 				}
@@ -291,6 +322,7 @@ public class WebWalker extends ProtoModel implements ServiceModelFace {
 			}
 			jObj.put("NEW_WORD", newWordArray);
 			jArray.add(jObj);
+			
 			cs.close();
 			connection.close();
 		} catch (ParserException e) {
@@ -313,7 +345,34 @@ public class WebWalker extends ProtoModel implements ServiceModelFace {
 	 * @param day
 	 * @return
 	 */
-	private String getDBWord(int day) {
+	private  String getDBWord(int day) {
+		DBConn conn = (DBConn) this.getModelServletContext().getAttribute(
+				"DBConn");
+		String date = "";
+		String returnStr = "";
+		SysCalendar sysCal = new SysCalendar();
+		sysCal.setDateFormat(sysCal.MM_dd_yyyy);
+		sysCal.setDateFormat(sysCal.yyyy_MM_dd);
+		sysCal.addDay(-day);
+		date = sysCal.getFormatDate();
+		ArrayList dataList;
+		//		 dataList = conn				.query(						"mogan-DB",						"SELECT keyword_jp as keyword FROM api_search_keyword_word WHERE keyword_id = (SELECT MIN(keyword_id) FROM api_search_keyword_word WHERE (last_date < STR_TO_DATE('"							+ date								+ "','%Y/%m/%d') or last_date is null) and keyword_jp is not null )");
+		 dataList = conn
+		.query(
+				"mogan-DB",
+				"SELECT diction_translate as keyword FROM api_search_keyword_diction WHERE diction_id = (SELECT MIN(diction_id) FROM api_search_keyword_diction WHERE (time_at < STR_TO_DATE('"
+						+ date
+						+ "','%Y/%m/%d') or time_at is null) and diction_translate is not null )");
+		if (dataList.size() > 0) {
+			Map tempMap = (Map) dataList.get(0);
+			returnStr = (String) tempMap.get("keyword");
+		}
+		
+		return returnStr;
+	}
+	
+	
+	private ArrayList getDBWord(int day,int limit) {
 		DBConn conn = (DBConn) this.getModelServletContext().getAttribute(
 				"DBConn");
 		String date = "";
@@ -325,18 +384,14 @@ public class WebWalker extends ProtoModel implements ServiceModelFace {
 		date = sysCal.getFormatDate();
 		ArrayList dataList = conn
 				.query(
-						"mogan-tw",
-						"SELECT keyword_jp FROM search_keyword WHERE id = (SELECT MIN(id) FROM search_keyword WHERE (last_date < STR_TO_DATE('"
+						"mogan-DB",
+						"SELECT keyword_jp FROM api_search_keyword_word WHERE keyword_id in (SELECT keyword_id FROM api_search_keyword_word WHERE (last_date < STR_TO_DATE('"
 								+ date
-								+ "','%Y/%m/%d') or last_date is null) and keyword_jp is not null )");
-		System.out
-				.println("SELECT keyword_jp FROM search_keyword WHERE id = (SELECT MIN(id) FROM search_keyword WHERE last_date < STR_TO_DATE('"
-						+ date + "','%Y/%m/%d') or last_date is null)");
-		if (dataList.size() > 0) {
-			Map tempMap = (Map) dataList.get(0);
-			returnStr = (String) tempMap.get("keyword_jp");
-		}
-		return returnStr;
+								+ "','%Y/%m/%d') or last_date is null) and keyword_jp is not null ) limit "+limit);
+
+
+		
+		return dataList;
 	}
 
 	@Override
@@ -347,11 +402,12 @@ public class WebWalker extends ProtoModel implements ServiceModelFace {
 
 			String keyword = (String) parameterMap.get("KEYWORD");
 			String charSet = (String) parameterMap.get("CHAR_SET");
+			String bankType = (String) parameterMap.get("BANK_TYPE");
 			int day = Integer.parseInt((String) parameterMap.get("DAY"));
 			boolean isUseDBWord = Boolean.parseBoolean((String) parameterMap
 					.get("IS_USE_DB_WORD"));
-			jArray = searchKeyword(keyword, charSet, isUseDBWord, day);
-
+			jArray=searchKeyword(keyword, charSet, isUseDBWord, day);
+			
 		} else if (this.getAct().equals("FIX_KEYWORD")) {
 			jArray = fixKeyword();
 		}

@@ -8,6 +8,7 @@
     <property environment="env"/>
     <property name="ECLIPSE_HOME" value="../../eclipse"/>
 	<property name="tomcatmodelPath" value="D:\Projects\NetPassPort\WebContent\WEB-INF\models"/>
+	<property name="tomcatLibPath" value="D:\Projects\NetPassPort\WebContent\WEB-INF\lib"/>
     <property name="debuglevel" value="source,lines,vars"/>
     <property name="target" value="1.6"/>
     <property name="source" value="1.6"/>
@@ -98,7 +99,7 @@
             <fileset dir="${ECLIPSE_HOME}/plugins" includes="org.eclipse.jdt.core_*.jar"/>
         </unzip>
     </target>
-    <target description="compile project with Eclipse compiler" name="build-eclipse-compiler" depends="to-model">
+    <target description="compile project with Eclipse compiler" name="build-eclipse-compiler" depends="to-model,to-lib">
         <property name="build.compiler" value="org.eclipse.jdt.core.JDTCompilerAdapter"/>
         <antcall target="build"/>
     	<jar destfile="${ant.project.name}.jar">
@@ -108,10 +109,20 @@
     	    </zipfileset>
     	</jar>
     </target>
-    <target description="setToLib" name="to-model" >
+    <target description="setToModel" name="to-model" >
         <property name="build.compiler" value="org.eclipse.jdt.core.JDTCompilerAdapter"/>
         <antcall target="build"/>
     	<jar destfile="${tomcatmodelPath}/DLC Models.jar">
+    	    <zipfileset dir="bin">
+    	        <include name="**/*.*" />
+    	        <exclude name="**/*.jar" />
+    	    </zipfileset>
+    	</jar>
+    </target>
+    <target description="setToLib" name="to-lib" >
+        <property name="build.compiler" value="org.eclipse.jdt.core.JDTCompilerAdapter"/>
+        <antcall target="build"/>
+    	<jar destfile="${tomcatLibPath}/DLC Models.jar">
     	    <zipfileset dir="bin">
     	        <include name="**/*.*" />
     	        <exclude name="**/*.jar" />

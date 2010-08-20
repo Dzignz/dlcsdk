@@ -13,12 +13,9 @@ public class WsDebug  extends ProtoModel implements ServiceModelFace{
 		// TODO Auto-generated method stub
 		if (this.getAct().equals("SHOW_PARAS_DATA")){
 			Iterator it = parameterMap.keySet().iterator();
-			System.out.println("[DEBUG] WS SHOW_PARAS_DATA====");
 			for (;it.hasNext();){
 				String key=(String) it.next();
-				System.out.println("[DEBUG] WS::"+key+"="+parameterMap.get(key));
 			}
-			System.out.println("[DEBUG] WS SHOW_PARAS_DATA....");
 		}
 		return null;
 	}

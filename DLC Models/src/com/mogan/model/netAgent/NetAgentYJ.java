@@ -178,14 +178,14 @@ public class NetAgentYJ extends NetAgentModel implements BidFace {
 					yahooItemId).replaceAll("\\$PAGE", page));
 			topDivKey = "div class=\"modPgCnt\"";
 			listDivKey = "div id=\"modCtgSearchResult\"";
-			System.out.println(BID_HIST_URL_A.replaceAll("\\$YAHOO_ITEM_ID",
+			logger.info(BID_HIST_URL_A.replaceAll("\\$YAHOO_ITEM_ID",
 					yahooItemId).replaceAll("\\$PAGE", page));
 		} else if (listType.equals("LOG_LIST")) {
 			topDivKey = "div class=\"modPgCntTop\"";
 			listDivKey = "div id=\"modCtgSearchResult\"";
 			nAgent.getDataWithGet(BID_HIST_URL_B.replaceAll("\\$YAHOO_ITEM_ID",
 					yahooItemId).replaceAll("\\$PAGE", page));
-			System.out.println(BID_HIST_URL_B.replaceAll("\\$YAHOO_ITEM_ID",
+			logger.info(BID_HIST_URL_B.replaceAll("\\$YAHOO_ITEM_ID",
 					yahooItemId).replaceAll("\\$PAGE", page));
 		}
 		this.outputTofile(nAgent.getResponseBody());
@@ -904,7 +904,7 @@ public class NetAgentYJ extends NetAgentModel implements BidFace {
 				nAgent.setPostDataMap(postDataMap);
 
 				nAgent.postMaptoData();
-				// System.out.println("[DEBUG] sendMsg.postMsgURL::....test."+((String)postDataMap.get("comment")).length());
+				// logger.info("[DEBUG] sendMsg.postMsgURL::....test."+((String)postDataMap.get("comment")).length());
 				nAgent.getDataWithPost(previewMsgURL);
 				this.outputTofile(nAgent.getResponseBody());
 				postDataMap = new HashMap();
@@ -993,14 +993,14 @@ public class NetAgentYJ extends NetAgentModel implements BidFace {
 
 				nodes = nAgent.filterItem(andFilter);
 				for (int n = 0; n < nodes.size(); n++) {
-					System.out.println("[DEBUG]" + nodes.elementAt(n).toHtml());
+					logger.info("[DEBUG]" + nodes.elementAt(n).toHtml());
 					postDataMap.put(
 							nodes.elementAt(n).toHtml().split("name=")[1]
 									.split(" ")[0], nodes.elementAt(n).toHtml()
 									.split("VALUE=\"")[1].split("\"")[0]);
 				}
 				postDataMap.put("comment", msgContact);
-				System.out.println("[DEBUG]" + postDataMap);
+				logger.info("[DEBUG]" + postDataMap);
 				andFilter = new AndFilter(new HTMLNodeFilter("METHOD"),
 						new HTMLNodeFilter("discussion_submit"));
 				nodes = nAgent.filterItem(andFilter);
@@ -1018,7 +1018,7 @@ public class NetAgentYJ extends NetAgentModel implements BidFace {
 						.size() > 0) {
 					results = true;
 				}
-				System.out.println(postDataMap);
+				logger.info(postDataMap);
 				// 送信完了しました。
 				break;
 			}
@@ -1053,7 +1053,7 @@ public class NetAgentYJ extends NetAgentModel implements BidFace {
 					+ oldArgs[i].split("=")[0] + "\" VALUE=\""
 					+ oldArgs[i].split("=")[1] + "\">\n");
 		}
-		// System.out.println(newArgs);
+		// logger.info(newArgs);
 		return newArgs.toString();
 
 	}
@@ -1086,7 +1086,7 @@ public class NetAgentYJ extends NetAgentModel implements BidFace {
 
 		nAgent.setPostDataMap(postMap);
 		nAgent.postMaptoData();
-		System.out.println("[DEBUG] postOrderForm::" + nAgent.getPostDataMap());
+		logger.info("[DEBUG] postOrderForm::" + nAgent.getPostDataMap());
 		nAgent.getDataWithPost(url, charSet);
 		// /jp/config/orderform?save=order_form&.crumb=zyj5nCAuUUf
 		jArray.add(nAgent.getResponseBody());
@@ -1167,12 +1167,6 @@ public class NetAgentYJ extends NetAgentModel implements BidFace {
 				"\\$YAHOO_SELLER_ACCOUNT", sellerId));
 		String sb = nAgent.getResponseBody();
 
-		/*
-		 * sb = sb.replaceAll( "<TABLE CELLPADDING=\"4\" CELLSPACING=\"0\" BORDER=\"0\" WIDTH=\"100%\">\\s<TR><FORM METHOD=POST NAME=\"orderForm\">",
-		 * "<FORM METHOD=POST NAME=\"orderForm\"><TABLE CELLPADDING=\"4\" CELLSPACING=\"0\" BORDER=\"0\" WIDTH=\"100%\"><TR>"); sb =
-		 * sb.replaceAll("</FORM>\\s</TR>\\s</TABLE>","</TR></TABLE></FORM>"); //
-		 */
-
 		sb = sb.replaceAll("oForm.submit\\(\\);",
 				"	oForm.action = \"/NetPassPort/ProxyProtal\";\n"
 						+ "oForm.submit\\(\\);");
@@ -1251,50 +1245,50 @@ public class NetAgentYJ extends NetAgentModel implements BidFace {
 				itemId));
 
 		try {
-			System.out.println("[DEBUG] COUNT A:"
+			logger.info("[DEBUG] COUNT A:"
 					+ nAgent.filterItem(
 							new HasChildFilter(new HTMLNodeFilter("アクセス総数")))
 							.elementAt(0).getParent().toPlainTextString()
 							.split("： ")[1]);
-			// System.out.println("[DEBUG] COUNT A:"+nAgent.filterItem(new HasChildFilter(new
+			// logger.info("[DEBUG] COUNT A:"+nAgent.filterItem(new HasChildFilter(new
 			// HTMLNodeFilter("アクセス総数"))).elementAt(0).getNextSibling().getNextSibling().toPlainTextString());
-			// System.out.println("[DEBUG] COUNT A:"+nAgent.filterItem(new HasChildFilter(new
+			// logger.info("[DEBUG] COUNT A:"+nAgent.filterItem(new HasChildFilter(new
 			// HTMLNodeFilter("アクセス総数"))).elementAt(0).getParent().toHtml());
 
-			System.out.println("[DEBUG] COUNT B:"
+			logger.info("[DEBUG] COUNT B:"
 					+ nAgent.filterItem(
 							new HasChildFilter(new HTMLNodeFilter(
 									"ウォッチリストに追加された数"))).toHtml());
-			System.out.println("[DEBUG] COUNT C:"
+			logger.info("[DEBUG] COUNT C:"
 					+ nAgent.filterItem(
 							new HasChildFilter(new HTMLNodeFilter(
 									"友だちにメールを送られた数"))).toHtml());
-			System.out.println("[DEBUG] COUNT D:"
+			logger.info("[DEBUG] COUNT D:"
 					+ nAgent.filterItem(
 							new HasChildFilter(new HTMLNodeFilter(
 									"違反商品の申告をされた数"))).toHtml());
 
-			// System.out.println("[DEBUG] COUNT E:"+nAgent.filterItem(new
+			// logger.info("[DEBUG] COUNT E:"+nAgent.filterItem(new
 			// HTMLNodeFilter("a name=\"winnerlist\"")).elementAt(0).getNextSibling().getNextSibling());
 			Node n = nAgent.filterItem(
 					new HTMLNodeFilter("a name=\"winnerlist\"")).elementAt(0)
 					.getNextSibling().getNextSibling();
-			// System.out.println("[DEBUG] i:"+n.getChildren().elementAt(1).toHtml());
-			// System.out.println("[DEBUG] i:"+n.getChildren().elementAt(1).getChildren().elementAt(5).toHtml());
+			// logger.info("[DEBUG] i:"+n.getChildren().elementAt(1).toHtml());
+			// logger.info("[DEBUG] i:"+n.getChildren().elementAt(1).getChildren().elementAt(5).toHtml());
 
 			n = n.getChildren().elementAt(1);// 取得tbody
 
 			NodeList nodes = n.getChildren();
 			for (int i = 5; i < nodes.size(); i = i + 2) {
 				Node winnerData = nodes.elementAt(i);
-				System.out.println("[DEBUG] i:"
+				logger.info("[DEBUG] i:"
 						+ winnerData.getChildren().elementAt(1).toHtml());// 得標者
-				System.out.println("[DEBUG] i:"
+				logger.info("[DEBUG] i:"
 						+ winnerData.getChildren().elementAt(5).toHtml());// 得標個數
-				System.out.println("[DEBUG] i:"
+				logger.info("[DEBUG] i:"
 						+ winnerData.getChildren().elementAt(7).toHtml());// 得標價
-				System.out.println("[DEBUG]=============================");
-				// System.out.println("[DEBUG] i:"+nodes.elementAt(i).getChildren());
+				logger.info("[DEBUG]=============================");
+				// logger.info("[DEBUG] i:"+nodes.elementAt(i).getChildren());
 			}
 
 		} catch (ParserException e) {
@@ -1391,7 +1385,7 @@ public class NetAgentYJ extends NetAgentModel implements BidFace {
 		autoLogin(bidAccount);
 		Cookie[] cookies = getLoginSessionCookie(this.getAppId(), bidAccount);
 		nAgent.getState().addCookies(cookies);
-		System.out.println("[DEBUG] getItemContactType::"+ITEM_DATA_URL.replaceAll("\\$YAHOO_ITEM_ID",
+		logger.info("[DEBUG] getItemContactType::"+ITEM_DATA_URL.replaceAll("\\$YAHOO_ITEM_ID",
 				itemId));
 		nAgent.getDataWithGet(ITEM_DATA_URL.replaceAll("\\$YAHOO_ITEM_ID",
 				itemId));
@@ -1426,7 +1420,7 @@ public class NetAgentYJ extends NetAgentModel implements BidFace {
 			Map dataMap = new HashMap();
 			dataMap.put("contact_type", contactType);
 			dataMap.put("order_form_status", hasOrderForm);
-			System.out.println("[DEBUG] getItemContactType::" + orderId + " "
+			logger.info("[DEBUG] getItemContactType::" + orderId + " "
 					+ dataMap + " " + hasOrderForm);
 			conn.update("mogan-tw", "web_won", conditionMap, dataMap);
 		} catch (ParserException e) {
@@ -1515,8 +1509,8 @@ public class NetAgentYJ extends NetAgentModel implements BidFace {
 		String itemServer = orderMap.get("url").split("http://")[1].split("\\.")[0];
 		String sellerId = orderMap.get("seller_id");
 		String memberAccount = orderMap.get("member_account");
-		System.out.println("###[DEBUG]getItemContactMsgxx::"+bidAccount+" "+itemId+" "+itemOrderId);
-		//System.out.println("###[DEBUG]getItemContactMsgxx::"+bidAccount+" "+itemId+" "+itemOrderId);
+		logger.info("###[DEBUG]getItemContactMsgxx::"+bidAccount+" "+itemId+" "+itemOrderId);
+		//logger.info("###[DEBUG]getItemContactMsgxx::"+bidAccount+" "+itemId+" "+itemOrderId);
 		autoLogin(bidAccount);
 		Cookie[] cookies = getLoginSessionCookie(this.getAppId(), bidAccount);
 		nAgent.getState().addCookies(cookies);
@@ -1867,7 +1861,7 @@ public class NetAgentYJ extends NetAgentModel implements BidFace {
 			nAgent.setParserNodesToPostDataMap(nodes);
 			nAgent.postMaptoData();
 			nodes = nAgent.filterFormHttpHref();
-			System.out.println("[DEBUG]--3");
+			logger.info("[DEBUG]--3");
 			String bidUrl = "";
 			if (nodes.size() > 0) {
 				bidUrl = nAgent.getUrl(nodes.elementAt(0).getText());
@@ -1875,7 +1869,7 @@ public class NetAgentYJ extends NetAgentModel implements BidFace {
 			nAgent.getDataWithPost(bidUrl);
 			// outputTofile(nAgent.getResponseBody());
 			buyItemMsg = this.checkBidResult(nAgent.getResponseBody());
-			System.out.println("[DEBUG]--4");
+			logger.info("[DEBUG]--4");
 		} catch (ParserException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -1985,7 +1979,7 @@ public class NetAgentYJ extends NetAgentModel implements BidFace {
 			nAgent.postMaptoData();// 將postMap轉成postData
 
 			nodes = nAgent.filterFormLoginHref();// 過濾登入項目
-			// System.out.println("[INFO] YAHOO JP LOGIN :::::::::::");
+			// logger.info("[INFO] YAHOO JP LOGIN :::::::::::");
 //			this.outputTofile(nAgent.getResponseBody(),"loginui");
 			 
 			setWebSiteURL(nodes.elementAt(0).getText());

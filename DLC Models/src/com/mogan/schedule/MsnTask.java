@@ -8,6 +8,8 @@ import java.util.Properties;
 
 import javax.servlet.ServletContext;
 
+import org.apache.log4j.Logger;
+
 import net.sf.jml.MsnMessenger;
 import net.sf.jml.MsnProtocol;
 import net.sf.jml.MsnUserStatus;
@@ -25,6 +27,8 @@ import com.mogan.sys.model.ScheduleModelAdapter;
  * @author Dian
  */
 public class MsnTask extends ScheduleModelAdapter {
+	private static Logger logger = Logger.getLogger(MsnTask.class.getName() );
+	
 	static ModelManager modelManager = new ModelManager();
 //	static Map botMap=new HashMap();
 	
@@ -40,7 +44,7 @@ public class MsnTask extends ScheduleModelAdapter {
 		sysLogin();//檢查登入狀態
 		//檢查商品超標狀態
 		
-		System.out.println("[INFO] SCHEDULE MsnTask RUN.");
+		logger.info("[INFO] SCHEDULE MsnTask RUN.");
 	}
 
 	/**
@@ -56,8 +60,8 @@ public class MsnTask extends ScheduleModelAdapter {
 			Map accountMap = (Map) accountList.get(i);
 			MsnBotEx msnBotEx;
 			if (botMap.get("MSN_" + accountMap.get("email"))!=null){
-				System.out.println("[DEBUG] "+botMap);
-				System.out.println("[DEBUG] msn "+(botMap.get("MSN_" + accountMap.get("email")) instanceof MsnBotEx));
+				logger.info(botMap);
+				logger.info(" msn "+(botMap.get("MSN_" + accountMap.get("email")) instanceof MsnBotEx));
 				msnBotEx=(MsnBotEx) botMap.get("MSN_" + accountMap.get("email"));	
 			}else{
 				msnBotEx=new MsnBotEx();
@@ -65,7 +69,7 @@ public class MsnTask extends ScheduleModelAdapter {
 			
 			if (msnBotEx.getMsnStatus()!= MsnUserStatus.OFFLINE){
 				//在線上就跳過
-				System.out.println("[INFO] "+accountMap.get("email")+" already login.");
+				logger.info(accountMap.get("email")+" already login.");
 				continue;
 			}
 			
@@ -101,7 +105,7 @@ public class MsnTask extends ScheduleModelAdapter {
 	 */
 	private MsnMessenger login(String account, String pwd) {
 		// create MsnMessenger instance
-		System.out.println("MsnBot login." + account);
+		logger.info("MsnBot login." + account);
 		MsnMessenger messenger = MsnMessengerFactory.createMsnMessenger(
 				account, pwd);
 

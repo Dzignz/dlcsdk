@@ -5,6 +5,7 @@ package com.mogan.entity;
 
 import java.io.UnsupportedEncodingException;
 import java.sql.SQLException;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -17,6 +18,7 @@ import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
 import com.mogan.exception.entity.EntityNotExistException;
+import com.mogan.sys.DBConn;
 
 /**
  * @author Dian
@@ -40,8 +42,15 @@ public class RemitEntity extends EntityService {
 	 */
 	private static final long serialVersionUID = -3512438691918081278L;
 
+	public RemitEntity(ServletContext servletContext, HttpSession session) throws EntityNotExistException, UnsupportedEncodingException, SQLException {
+		super(servletContext, session);
+		this.id=create();
+		this.idType=RemitEntity.REMIT_ID;
+		this.refreashData();
+	}
+	
 	/**
-	 * 建立一個新的remit實体，
+	 * 讀取remit實体，
 	 * 
 	 * @param servletContext
 	 * @param session
@@ -57,7 +66,6 @@ public class RemitEntity extends EntityService {
 		this.id = id;
 		this.idType = idType;
 		this.refreashData();
-		// TODO Auto-generated constructor stub
 	}
 
 	/*
@@ -81,12 +89,12 @@ public class RemitEntity extends EntityService {
 		switch (this.idType) {
 		case 0:
 			// remit_id 付款ID
-			jArray = conn.queryJSONArray(this.CONN_ALIAS, "SELECT * FROM remit_list WHERE remit_id='"
+			jArray = conn.queryJSONArray(this.CONN_ALIAS, "SELECT * FROM view_remit_list_v1 WHERE remit_id='"
 					+ this.id + "'");
 			break;
 		case 1:
 			// tide_id 訂單ID
-			jArray = conn.queryJSONArray(this.CONN_ALIAS, "SELECT * FROM remit_list WHERE remit_id in (SELECT remit_id FROM item_tide WHERE tide_id='"
+			jArray = conn.queryJSONArray(this.CONN_ALIAS, "SELECT * FROM view_remit_list_v1 WHERE remit_id in (SELECT remit_id FROM item_tide WHERE tide_id='"
 					+ this.id + "')");
 			break;
 		}
@@ -112,8 +120,29 @@ public class RemitEntity extends EntityService {
 		logger.debug("付款資料 修改. "+this.getAttribute("remit_id"));
 	}
 
+	/**
+	 * @throws SQLException 
+	 * @throws UnsupportedEncodingException 
+	 * 
+	 */
 	@Override
-	String create(JSONObject etyObj) {
+	protected String create() throws UnsupportedEncodingException, SQLException {
+		Map etyObj=new HashMap();
+		String id = conn.getAutoNumber(CONN_ALIAS, "RL-ID-01");
+		
+		etyObj.put("remit_id", id);
+		etyObj.put("create_date", new Date());
+		etyObj.put("delete_flag", "1");
+		etyObj.put("remit_classify", "RL-901");
+		etyObj.put("creator", (String) this.getSession().getAttribute("USER_ID"));
+		conn.newData(CONN_ALIAS, "remit_list", etyObj);
+		return id;
+	}
+
+
+	@Override
+	public EntityService cloneEty() throws UnsupportedEncodingException,
+			SQLException, EntityNotExistException {
 		// TODO Auto-generated method stub
 		return null;
 	}

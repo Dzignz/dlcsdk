@@ -13,6 +13,7 @@ import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import javax.servlet.ServletContext;
 import org.apache.hadoop.hbase.util.Base64;
+import org.apache.log4j.Logger;
 import org.htmlparser.filters.AndFilter;
 import org.htmlparser.filters.HasParentFilter;
 import org.htmlparser.util.NodeList;
@@ -29,13 +30,14 @@ import com.mogan.sys.model.ProtoModel;
 import com.mogan.sys.model.ServiceModelFace;
 
 public class OAuth extends ProtoModel implements ServiceModelFace{
+	private static Logger logger = Logger.getLogger( OAuth.class.getName());
 	NetAgentTool naTool=new NetAgentTool();
 	
 	
 	public static void main (String [] args){
 		String baseStr="GET&https%3A%2F%2Fauth.login.yahoo.co.jp%2Foauth%2Fv2%2Fget_request_token&oauth_callback%3Dhttp%253A%252F%252Fap.mogan.com.tw%252FNetPassPort%252Fyahooback.jsp%26oauth_consumer_key%3Ddj0yJmk9SG1QdE12OWNIUUlmJmQ9WVdrOVRERnhjMHhaTjJzbWNHbzlNQS0tJnM9Y29uc3VtZXJzZWNyZXQmeD04Yg--%26oauth_nonce%3Dgtkt4Frkyy%26oauth_signature_method%3DHMAC-SHA1%26oauth_timestamp%3D1269497173%26oauth_version%3D1.0";
 		
-		System.out.println("getReqToken1 :: "+baseStr);
+		logger.info("getReqToken1 :: "+baseStr);
 	}
 	
 	private static String getRandStr(){
@@ -59,7 +61,7 @@ public class OAuth extends ProtoModel implements ServiceModelFace{
 	}
 	
     private static String getHmacSha1(byte[]data, byte[] key) {
-    	System.out.println("[DEBUG] getHmacSha1");
+    	logger.info("[DEBUG] getHmacSha1");
         SecretKeySpec signingKey = new SecretKeySpec(key, "HmacSHA1");
         Mac mac = null;
         try {
@@ -67,6 +69,7 @@ public class OAuth extends ProtoModel implements ServiceModelFace{
             mac.init(signingKey);
         }
         catch(Exception e) {
+        	logger.error(e.getMessage(),e);
             throw new RuntimeException(e);
         }
         byte[] rawHmac = mac.doFinal(data);
@@ -99,7 +102,7 @@ public class OAuth extends ProtoModel implements ServiceModelFace{
 		
 			String signBaseStr=httpMethod+"&"+URLEncoder.encode(apiUrl,"UTF-8")+"&"+URLEncoder.encode(paramStr,"UTF-8");
 			
-			//System.out.println("[DEBUG] getHmacSha1::"+getHmacSha1(signBaseStr.getBytes(),"cd7c3fdc9a779feaa19100482196e2d00b828f11".getBytes()));
+			//logger.info("[DEBUG] getHmacSha1::"+getHmacSha1(signBaseStr.getBytes(),"cd7c3fdc9a779feaa19100482196e2d00b828f11".getBytes()));
 			
 			String url="https://auth.login.yahoo.co.jp/oauth/v2/get_request_token?" +
 				"oauth_callback=http://ap.mogan.com.tw/NetPassPort/studyoAuth.jsp&"+
@@ -119,13 +122,13 @@ public class OAuth extends ProtoModel implements ServiceModelFace{
 		for (int i=0;i<backpram.length;i++){
 			backMap.put(backpram[i].split("=")[0],URLDecoder.decode( backpram[i].split("=")[1], "UTF-8"));
 		}
-		System.out.println("[DEBUG] getReqToken backMap:: "+backMap);
+		logger.info("[DEBUG] getReqToken backMap:: "+backMap);
 		naTool.printHeaders(na.getRequestHeaders());
 		
 		jArray.add(JSONObject.fromObject(backMap));
 		} catch (UnsupportedEncodingException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
+			logger.error(e.getMessage(),e);
 		}
 		return jArray;
 	}
@@ -140,7 +143,7 @@ public class OAuth extends ProtoModel implements ServiceModelFace{
 		NetAgent na=new NetAgent();
 		NodeList nodes;
 		try {
-			System.out.println("[DEBUG] loginYj URL:: "+url);
+			logger.info("[DEBUG] loginYj URL:: "+url);
 			//*
 			na.getDataWithGet(url);
 			nodes = na.filterInputItem();
@@ -160,22 +163,23 @@ public class OAuth extends ProtoModel implements ServiceModelFace{
 			HTMLNodeFilter urlNf = new HTMLNodeFilter("atallow=1");
 			//找出確認連結
 			nodes=na.filterItem(urlNf);
-			System.out.println("[DEBUG] nodes.size()::"+nodes.size());
-			System.out.println("[DEBUG] nodes.getText()::"+nodes.elementAt(0).getText());
-			System.out.println("[DEBUG] nodes.asString()::"+nodes.asString());
+			logger.info("[DEBUG] nodes.size()::"+nodes.size());
+			logger.info("[DEBUG] nodes.getText()::"+nodes.elementAt(0).getText());
+			logger.info("[DEBUG] nodes.asString()::"+nodes.asString());
 			String baseURL="https://auth.login.yahoo.co.jp/oauth/v2/";
 			String allowURL=nodes.elementAt(0).getText().split("\"")[1];
 			allowURL=allowURL.replaceFirst("\\./", baseURL);
-			System.out.println("[DEBUG] loginYj allow:: "+allowURL);
+			logger.info("[DEBUG] loginYj allow:: "+allowURL);
 			naTool.outputTofile(na.getResponseBody());
 			na.getDataWithGet(allowURL);	
 			naTool.outputTofile(na.getResponseBody());
 			//na.getResponseHeader();
-			System.out.println("[DEBUG] loginYj getHostUrl:: "+na.getHostConfiguration().getLocalAddress());
+			logger.info("[DEBUG] loginYj getHostUrl:: "+na.getHostConfiguration().getLocalAddress());
 			naTool.printHeaders(na.getResponseHeader());
 		} catch (ParserException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			logger.error(e.getMessage(),e);
 		}
 		
 
@@ -189,7 +193,7 @@ public class OAuth extends ProtoModel implements ServiceModelFace{
 	 */
 	private JSONArray yahooCallback(Map parameterMap){
 		JSONArray jArray=new JSONArray();
-		System.out.println("[DEBUG]  yahooCallback::"+parameterMap);
+		logger.info("[DEBUG]  yahooCallback::"+parameterMap);
 		return jArray;
 	}
 	

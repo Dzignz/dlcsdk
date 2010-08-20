@@ -31,6 +31,7 @@ import org.apache.commons.httpclient.methods.multipart.Part;
 import org.apache.commons.httpclient.methods.multipart.PartSource;
 import org.apache.commons.httpclient.methods.multipart.StringPart;
 import org.apache.commons.httpclient.params.HttpMethodParams;
+import org.apache.log4j.Logger;
 import org.htmlparser.Node;
 import org.htmlparser.NodeFilter;
 import org.htmlparser.Parser;
@@ -45,6 +46,7 @@ import com.mogan.face.NetAgentModel;
  * @author Dian 20090914 yahoo japen
  */
 public class NetAgent extends HttpClient {
+	private static Logger logger = Logger.getLogger(NetAgent.class.getName() );
 	private StringBuffer responseBody; // 回傳的html body資料
 	private Header[] responseHeader;// 回傳 html head資料
 	private Header[] requestHeader;// 回傳request head資料
@@ -87,7 +89,7 @@ public class NetAgent extends HttpClient {
 	public void showNodesText(NodeList nodes) {
 		for (int i = 0; i < nodes.size(); i++) {
 			Node tempNode = nodes.elementAt(i);
-			System.out.println("[INFO] showNodesText#" + i + " "
+			logger.info("[INFO] showNodesText#" + i + " "
 					+ tempNode.getText());
 		}
 
@@ -100,23 +102,22 @@ public class NetAgent extends HttpClient {
 	 */
 	private int getDataWithGet(GetMethod getMethod){
 		statusCode = 0;
-		try {		
+		try {
 //			HostConfiguration config = this.getHostConfiguration();
 //			config.setProxy("222.58.225.137", 3128);
 			/*
-			System.setProperty("http.proxyHost", "222.58.225.137");
-			System.setProperty("http.proxyPort", "3128");
-			System.setProperty("https.proxyHost", "222.58.225.137");
-			System.setProperty("https.proxyPort", "3128");
+			System.setProperty("http.proxyHost", "221.11.35.175");
+			System.setProperty("http.proxyPort", "808");
+			System.setProperty("https.proxyHost", "221.11.35.175");
+			System.setProperty("https.proxyPort", "808");
 			*/
 	        
 	        //this.getState().setProxyCredentials(authscope, credentials)
 			//Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("123.0.0.1", 8080));
-			//this.
+
 			statusCode = this.executeMethod(getMethod);
 			
-			this.setResponseBody(getMethod.getResponseBodyAsStream(), getMethod
-					.getResponseCharSet());
+			this.setResponseBody(getMethod.getResponseBodyAsStream(), getMethod.getResponseCharSet());
 			this.setResponseHeader(getMethod.getResponseHeaders());
 			this.setResponseCookies(this.getState().getCookies());
 			this.setHostUrl(getMethod.getURI().getHost());
@@ -124,10 +125,32 @@ public class NetAgent extends HttpClient {
 			getMethod.getRequestHeaders();
 			
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
+			logger.error(e.getMessage(),e);
 		} finally {
-			// getMethod.releaseConnection();
+//			 getMethod.releaseConnection();
+			// 必須釋放連線資源
+		}
+		return statusCode;
+	}
+	
+	private int getDataWithGet(GetMethod getMethod,String encode){
+		statusCode = 0;
+		try {
+			statusCode = this.executeMethod(getMethod);
+			this.setResponseBody(getMethod.getResponseBodyAsStream(),encode);
+//			this.setResponseBody(getMethod.getResponseBodyAsStream(), getMethod.getResponseCharSet());
+			this.setResponseHeader(getMethod.getResponseHeaders());
+			this.setResponseCookies(this.getState().getCookies());
+			this.setHostUrl(getMethod.getURI().getHost());
+			this.setRequestHeaders(getMethod.getRequestHeaders());
+			getMethod.getRequestHeaders();
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error(e.getMessage(),e);
+		} finally {
+//			 getMethod.releaseConnection();
 			// 必須釋放連線資源
 		}
 		return statusCode;
@@ -155,11 +178,20 @@ public class NetAgent extends HttpClient {
 	 */
 	public int getDataWithGet(String urlString) {
 		GetMethod getMethod = new GetMethod(urlString);
+
 		getMethod.setRequestHeader("User-Agent","Mozilla/5.0 (Windows; U; Windows NT 6.1; zh-TW; rv:1.9.1.3) Gecko/20090824 Firefox/3.5.3 GTB6 (.NET CLR 3.5.30729)");
 		statusCode=getDataWithGet(getMethod);
 		return statusCode;
 	}
 
+	public int getDataWithGet(String urlString,String encode) {
+		GetMethod getMethod = new GetMethod(urlString);
+		
+		
+		getMethod.setRequestHeader("User-Agent","Mozilla/5.0 (Windows; U; Windows NT 6.1; zh-TW; rv:1.9.1.3) Gecko/20090824 Firefox/3.5.3 GTB6 (.NET CLR 3.5.30729)");
+		statusCode=getDataWithGet(getMethod,encode);
+		return statusCode;
+	}
 
 	
 	/**
@@ -177,6 +209,7 @@ public class NetAgent extends HttpClient {
 		}
 		statusCode = 0;
 		try {
+			
 //			HostConfiguration config = this.getHostConfiguration();
 //			config.setProxy("222.58.225.137", 3128);
 			statusCode = this.executeMethod(postMethod);
@@ -188,7 +221,7 @@ public class NetAgent extends HttpClient {
 			this.setRequestHeaders(postMethod.getRequestHeaders());
 			if (statusCode == 302) {
 				String newUrl = getRedirectLocation();
-				System.out.println("[DEBUG] 302 NEW URL::" + newUrl);
+				logger.info("[DEBUG] 302 NEW URL::" + newUrl);
 				statusCode = getDataWithPost(newUrl);
 			}
 		} catch (HttpException e) {
@@ -228,7 +261,7 @@ public class NetAgent extends HttpClient {
 			
 			if (statusCode == 302) {
 				String newUrl = getRedirectLocation();
-				System.out.println("[DEBUG] 302 NEW URL::" + newUrl);
+				logger.info("[DEBUG] 302 NEW URL::" + newUrl);
 				statusCode = getDateWithPostFile(newUrl);
 			}
 		} catch (Exception ex) {
@@ -602,18 +635,18 @@ public class NetAgent extends HttpClient {
 			
 			//判斷Map中的value是屬於那種型態的資料
 			if (tempMap.get(key) instanceof java.io.File){
-				System.out.println("[DEBUG]postMaptoDataForMultipart file."+key+"#"+((File)tempMap.get(key)).length());
+				logger.info("[DEBUG]postMaptoDataForMultipart file."+key+"#"+((File)tempMap.get(key)).length());
 				File f=(File) tempMap.get(key);
 				try {
 					multipart[i]=new FilePart(key,f.getName(),f);
 				} catch (FileNotFoundException e) {
 					// TODO Auto-generated catch block
-					System.out.println("[ERR] postMaptoDataForMultipart,檔案傳換錯誤.");
+					logger.info("[ERR] postMaptoDataForMultipart,檔案傳換錯誤.");
 					e.printStackTrace();
 				}
 			}else if (tempMap.get(key) instanceof java.lang.String){
 				multipart[i]=new StringPart(key,(String) tempMap.get(key));
-				System.out.println("[DEBUG]postMaptoDataForMultipart string."+key+"#"+tempMap.get(key));
+				logger.info("[DEBUG]postMaptoDataForMultipart string."+key+"#"+tempMap.get(key));
 			}
 
 			//multipart[i] = new NameValuePair(key, (String) tempMap.get(key));
@@ -630,7 +663,7 @@ public class NetAgent extends HttpClient {
 		Iterator it = postDataMap.keySet().iterator();
 		for (int i = 0; it.hasNext(); i++) {
 			String key = (String) it.next();
-			// System.out.println("postMaptoData#" + key + ":" +
+			// logger.info("postMaptoData#" + key + ":" +
 			// postDataMap.get(key));
 			postData[i] = new NameValuePair(key, (String) postDataMap.get(key));
 		}
@@ -657,7 +690,7 @@ public class NetAgent extends HttpClient {
 			String tagText = e.getText();
 			if (!(tagText.split("(?i)(name)=").length > 1
 					&& tagText.split("(?i)(value)=").length > 1)) {
-//				System.out.println(tagText);
+//				logger.info(tagText);
 				//沒有name 跟value其中之一的就出局
 				continue;
 			}
@@ -832,7 +865,7 @@ public class NetAgent extends HttpClient {
 				}
 
 			}
-			System.out.println("[DEBUG] isMyBid resultMsg::" + resultMsg);
+			logger.info("[DEBUG] isMyBid resultMsg::" + resultMsg);
 		} catch (ParserException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

@@ -412,9 +412,9 @@ public class BidManager extends ProtoModel implements ServiceModelFace {
 		// 匯款帳戶
 		// 匯款進度 status 0已得標未處理 1已取得賣家連絡資料 2完成匯款 3日本收貨完成 4日本出貨完成 5台灣收貨完成 6會員結帳完成 7台灣出貨完成
 		// 下標帳號 jyahooid
-		System.out.println("[DEBUG] loadItems::"+condition);
+		logger.info("[DEBUG] loadItems::"+condition);
 		// String sql = "SELECT user_name,item,item_id ,no, end_date,sell_name,costed,status,jyahooid FROM web_bidding ";
-		String sql = "SELECT id,user_name,item,item_id ,item_order_id, end_date,sell_name,tax,costed,locally,remittance,status,agent_account ,contact_type,title,renote,total_item,total_unpay,total_unship,order_form_status,realname FROM view_bid_item_order_v1 ";
+		String sql = "SELECT id,user_name,item,item_id ,item_order_id, end_date,sell_name,tax,costed,locally,remittance,status,agent_account ,contact_type,title,renote,total_item,total_unpay,total_unship,order_form_status,realname,cancel_flag FROM view_bid_item_order_v1 ";
 
 		// 判斷要顯示的狀態
 		boolean statusConditionFlag = true;
@@ -505,11 +505,11 @@ public class BidManager extends ProtoModel implements ServiceModelFace {
 		sql = sql + " WHERE `show` = 1 AND (" + whereSql + ") ORDER BY "
 				+ orderBy + " " + dir;
 
-		System.out.println("[DEBUG] startIndex:"+startIndex+" pageSize:"+pageSize);
+		logger.info("[DEBUG] startIndex:"+startIndex+" pageSize:"+pageSize);
 		dataArray = conn.queryJSONArrayWithPage("mogan-tw", sql, startIndex,
 				pageSize);
 
-		System.out.println("[DEBUG] sql::" + sql);
+		logger.info("[DEBUG] sql::" + sql);
 		jObj.put("Datas", dataArray);
 		jObj.put("Records", conn.getQueryDataSize("mogan-tw", sql));
 		jArray.add(jObj);
@@ -1017,7 +1017,7 @@ public class BidManager extends ProtoModel implements ServiceModelFace {
 	 */
 	public JSONArray doAction(Map parameterMap) throws Exception {
 		JSONArray jArray = new JSONArray();
-		System.out.println("[INFO]BidManager ACTION start. " + this.getAct());
+		logger.info("[INFO]BidManager ACTION start. " + this.getAct());
 
 		if (this.getAct().equals("DEL_TEMPLATE")){
 			String templetName= (String) parameterMap.get("TEMPLATE_NAME");
@@ -1107,7 +1107,7 @@ public class BidManager extends ProtoModel implements ServiceModelFace {
 			jArray = loadBidItems(startIndex, pageSize, statusCondition,
 					condition, orderBy, dir);
 		} else if (this.getAct().equals("SEND_ITEM_ORDER_FORM")) {
-			System.out.println("[DEBUG] SEND_ITEM_ORDER_FORM::"+parameterMap);
+			logger.info("[DEBUG] SEND_ITEM_ORDER_FORM::"+parameterMap);
 		} else if (this.getAct().equals("GET_ITEM_ORDER_FORM")) {
 			String webSiteId = parameterMap.get("WEB_SITE_ID").toString();
 			String uId = (String) parameterMap.get("UID");
@@ -1208,7 +1208,7 @@ public class BidManager extends ProtoModel implements ServiceModelFace {
 			JSONObject jObj = JSONObject.fromObject(updateInfo);
 			jArray = saveOrderInfo(webSiteId, orderId, jObj);
 		}
-		System.out.println("[INFO]BidManager ACTION end.");
+		logger.info("[INFO]BidManager ACTION end.");
 		// TODO Auto-generated method stub
 		return jArray;
 	}

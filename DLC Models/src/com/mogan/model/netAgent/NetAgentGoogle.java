@@ -49,7 +49,7 @@ import com.mogan.sys.mail.MyAuthenticator;
  * @author Dian
  */
 public class NetAgentGoogle extends NetAgentModel implements Runnable {
-	private Logger logger = Logger.getLogger(NetAgentGoogle.class.getName());
+	private static Logger logger = Logger.getLogger(NetAgentGoogle.class.getName());
 	
 	// 信件分類
 
@@ -121,7 +121,7 @@ public class NetAgentGoogle extends NetAgentModel implements Runnable {
 		
 		// 用pop3協議：new URLName("pop3", "pop.gmail.com", 995, null,"[郵箱帳號]", "[郵箱密碼]");
 		// 用IMAP协议
-		System.out.println("[DEBUG] loginGmail::"+account+" / "+pwd);
+		logger.info("[DEBUG] loginGmail::"+account+" / "+pwd);
 		urln = new URLName("imap", "imap.googlemail.com", 993, null, account, pwd);
 		try {
 			store = session.getStore(urln);
@@ -257,11 +257,9 @@ public class NetAgentGoogle extends NetAgentModel implements Runnable {
 			inbox.close(false);
 			return msgList;
 		} catch (MessagingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.error(e.getMessage(),e);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.error(e.getMessage(),e);
 		}
 		return msgList;
 	}
@@ -480,7 +478,7 @@ public class NetAgentGoogle extends NetAgentModel implements Runnable {
 			e1.printStackTrace();
 			run_flag = false;
 		}
-		System.out.println("NetAgentGoogle run.");
+		logger.info("NetAgentGoogle run.");
 		// login();
 		// login("mogansweet@gmail.com", "MOGANS4725333");
 
@@ -536,7 +534,7 @@ public class NetAgentGoogle extends NetAgentModel implements Runnable {
 				// recordMsg(getSelledMail(),"日雅已賣出");// 檢查被取消的出價
 				// 被超價
 				long l1 = System.currentTimeMillis();
-				System.out.println("[DEBUG] 檢查被取消的出價耗時" + (l1 - l0));
+				logger.info("[DEBUG] 檢查被取消的出價耗時" + (l1 - l0));
 
 				Thread.sleep(1000 * 60 * 5);
 			} catch (InterruptedException e) {
@@ -566,7 +564,7 @@ public class NetAgentGoogle extends NetAgentModel implements Runnable {
 			ArrayList<Map> itemOrderIdList = getItemOrderIds(tempMap
 					.get("WEBSITE_ID"), tempMap.get("ACCOUNT"), tempMap
 					.get("ITEM_ID"));
-			System.out.println("[DEBUG] logAlert:" + tempMap.get("WEBSITE_ID")
+			logger.info("[DEBUG] logAlert:" + tempMap.get("WEBSITE_ID")
 					+ ":" + tempMap.get("ACCOUNT") + ":"
 					+ tempMap.get("ITEM_ID"));
 			for (int j = 0; j < itemOrderIdList.size(); j++) {
@@ -700,9 +698,9 @@ public class NetAgentGoogle extends NetAgentModel implements Runnable {
 				url = url.replaceAll("\\$MOGAN_ITEM_ORDER_ID", itemOrderId);// 摩根訂單ID
 				url = url.replaceAll("\\$ARGS", URLEncoder.encode(jsonArgs,
 						"UTF-8"));// 賣出價
-				System.out.println("[DEBUG] url::" + url);
+				logger.info("[DEBUG] url::" + url);
 				nAgent.getDataWithGet(url);
-				System.out.println("[DEBUG] sendMsgToPhpServer::"
+				logger.info("[DEBUG] sendMsgToPhpServer::"
 						+ nAgent.getResponseBody());
 			} catch (AccountNotExistException e) {
 				// TODO Auto-generated catch block
@@ -765,7 +763,7 @@ public class NetAgentGoogle extends NetAgentModel implements Runnable {
 
 		if (true) {
 			// TODO 呼叫PHP錯誤時須要寫入MESSAGE BORD
-			System.out.println("[DEBUG]msgList::" + msgList.size());
+			logger.info("[DEBUG]msgList::" + msgList.size());
 			for (int i = 0; i < msgList.size(); i++) {
 				String insertSQL = "INSERT member_message (" + "message_id," + // ID
 						// "reply_msg_id," + //回覆的訊息ID
@@ -805,7 +803,7 @@ public class NetAgentGoogle extends NetAgentModel implements Runnable {
 						"'0'," + // 是否保留 0=不保留 1=保留
 						"'1'" + // 刪除狀態 1=未刪除 0=已刪除
 						")"; //
-				System.out.println("[DEBUG] insertSQL:" + insertSQL);
+				logger.info("[DEBUG] insertSQL:" + insertSQL);
 				try {
 					conn.executSql("mogan-DB", insertSQL);
 				} catch (UnsupportedEncodingException e) {
@@ -830,16 +828,16 @@ public class NetAgentGoogle extends NetAgentModel implements Runnable {
 					&& (disposition.equalsIgnoreCase(Part.ATTACHMENT) || disposition
 							.equalsIgnoreCase(Part.INLINE))) {// 附件
 				String fileName = decodeText(part.getFileName());
-				System.out.println(fileName);
+				logger.info(fileName);
 				// saveAttachFile(part);// 保存附件
 			} else {// 正文
 				if (part.getContent() instanceof String) {// 接收到的純文本
-					System.out.println(part.getContent());
+					logger.info(part.getContent());
 				}
 				if (part.getContent() instanceof MimeMultipart) {// 接收的郵件有附件時
 					BodyPart bodyPart = ((MimeMultipart) part.getContent())
 							.getBodyPart(0);
-					System.out.println(bodyPart.getContent());
+					logger.info(bodyPart.getContent());
 				}
 			}
 		} catch (Exception e) {
@@ -855,13 +853,13 @@ public class NetAgentGoogle extends NetAgentModel implements Runnable {
 	public static void parseMailContent(Object content) {
 		try {
 			if (content instanceof Multipart) {
-				System.out.println("Multipart:Multipart:Multipart");
+				logger.info("Multipart:Multipart:Multipart");
 				Multipart mPart = (MimeMultipart) content;
 				for (int i = 0; i < mPart.getCount(); i++) {
 					extractPart((MimeBodyPart) mPart.getBodyPart(i));
 				}
 			} else if (content instanceof Part) {
-				System.out.println("Part:Part:Part");
+				logger.info("Part:Part:Part");
 			}
 
 		} catch (Exception e) {

@@ -12,6 +12,9 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import org.apache.log4j.Logger;
+
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import com.mogan.sys.DBConn;
@@ -27,6 +30,7 @@ import com.mogan.sys.model.ServiceModelFace;
  */
 
 public class MailService extends ProtoModel implements ServiceModelFace {
+	private static Logger logger = Logger.getLogger(MailService.class.getName() );
 	private static final long serialVersionUID = 1L;
 	private final String MAIL_SENDER_THREAD = "MAIL_SENDER_THREAD";
 	private final String FROM_NAME = "fromName";
@@ -54,9 +58,19 @@ public class MailService extends ProtoModel implements ServiceModelFace {
 		JSONArray jArray = new JSONArray();
 		DBConn conn = (DBConn) this.getModelServletContext().getAttribute(
 				"DBConn");
-		ArrayList dataList = conn.query("mogan-tw", "SELECT * FROM mail_type");
+		ArrayList dataList = new ArrayList();
+		
+
+		Map tempMap=new HashMap();
+		tempMap.put("type_name", "全體會員");
+		tempMap.put("mail_type_id", "member_data.delete_flag");
+		dataList.add(tempMap);
+		tempMap=new HashMap();
+		tempMap.put("type_name", "廣告信會員");
+		tempMap.put("mail_type_id", "member_profile_set.auto_mail");
+		dataList.add(tempMap);
 		jArray.addAll(dataList);
-		System.out.println("[DEBUG]dataList::" + dataList.size());
+		logger.info("[DEBUG]dataList::" + dataList.size());
 		return jArray;
 	}
 
@@ -75,11 +89,11 @@ public class MailService extends ProtoModel implements ServiceModelFace {
 	public JSONArray sendMail(String toName, String toAddress,String ccAddress,String bccAddress,
 			String mailSubject, String mailContent) {
 		long l0=System.currentTimeMillis();
-		System.out.println("[DEBUG] sendMail-0");
+		logger.info("[DEBUG] sendMail-0");
 		JSONArray jArray = new JSONArray();
 
 		SimpleMailSender sms = new SimpleMailSender();
-		System.out.println("[DEBUG] sendMail-1");
+		logger.info("[DEBUG] sendMail-1");
 		long l1=System.currentTimeMillis();
 		sms.setMailSubject(mailSubject);
 		sms.setMailContent(mailContent);
@@ -93,16 +107,16 @@ public class MailService extends ProtoModel implements ServiceModelFace {
 		sms.setFromAddress(this.getProperties().getProperty(this.FROM_ADDRESS));
 		long l2=System.currentTimeMillis();
 		ArrayList dataList = new ArrayList();
-		System.out.println("[DEBUG] sendMail-2");
+		logger.info("[DEBUG] sendMail-2");
 		sms.setTargetList(dataList);
 		/* 寄送mail開始 */
 		long l3=System.currentTimeMillis();
-		System.out.println(") addToAddress(String toAddress)::"+toAddress);	
+		logger.info(") addToAddress(String toAddress)::"+toAddress);	
 		MailSenderInfo mail = sms.getMailInfo(toName,toAddress,ccAddress,bccAddress);
 		jArray.add(sms.sendHtmlMail(mail));
-		System.out.println("[DEBUG] sendMail-3");
+		logger.info("[DEBUG] sendMail-3");
 		long l4=System.currentTimeMillis();
-		System.out.println("[DEBUG] sendMail time="+(l4-l3)+". "+(l3-l2)+". "+(l2-l1)+". "+(l1-l0));
+		logger.info("[DEBUG] sendMail time="+(l4-l3)+". "+(l3-l2)+". "+(l2-l1)+". "+(l1-l0));
 		sms = null;
 		return jArray;
 	}
@@ -120,14 +134,19 @@ public class MailService extends ProtoModel implements ServiceModelFace {
 	 * @return
 	 */
 	private JSONArray setMailThread(String sessionId, String mailSubject,
-			String mailContent, String conditionA, String conditionB) {
-		System.out.println("[DEBUG] setMailThread::");
+			String mailContent, String memberGroup,String mailAddress) {
+		logger.info("[DEBUG] setMailThread::");
 		JSONArray jArray = new JSONArray();
 		JSONObject jObj = new JSONObject();
 
-		JSONArray caJArray = new JSONArray().fromObject(conditionA);
-		JSONArray cbJArray = new JSONArray().fromObject(conditionB);
-		ArrayList dataList = getUserList(caJArray, cbJArray);
+		JSONArray caJArray = JSONArray.fromObject(memberGroup);
+		
+		JSONArray maJArray=JSONArray.fromObject(mailAddress);
+		ArrayList dataList=new ArrayList();
+		if (caJArray.size()>0){
+			dataList.addAll( getUserList(caJArray));
+		}
+		dataList.addAll(maJArray);
 		Map threadsMap;
 		if (this.getModelServletContext().getAttribute("THEARDS") == null) {
 			threadsMap = new HashMap();
@@ -182,7 +201,7 @@ public class MailService extends ProtoModel implements ServiceModelFace {
 		SimpleMailSender sms = (SimpleMailSender) threadsMap
 				.get(this.MAIL_SENDER_THREAD + "_" + sessionId);
 		long l2=System.currentTimeMillis();
-		System.out.println("sms::"+sms.getMailServerHost()+" "+sms.getMailServerPort()+" "+sms.getAccount()+" "+sms.getPwd());
+		logger.info("sms::"+sms.getMailServerHost()+" "+sms.getMailServerPort()+" "+sms.getAccount()+" "+sms.getPwd());
 		// sms = (SimpleMailSender) threadsMap.get(this.MAIL_SENDER_THREAD + "_" + sessionId);
 
 		if (this.getAct().equals("RUN")) {
@@ -208,9 +227,9 @@ public class MailService extends ProtoModel implements ServiceModelFace {
 		}
 		long l3=System.currentTimeMillis();
 		
-		System.out.println("setMailThreadAction 3-2="+(l3-l2));
-		System.out.println("setMailThreadAction 2-1="+(l2-l1));
-		System.out.println("setMailThreadAction 1-0="+(l1-l0));
+		logger.info("setMailThreadAction 3-2="+(l3-l2));
+		logger.info("setMailThreadAction 2-1="+(l2-l1));
+		logger.info("setMailThreadAction 1-0="+(l1-l0));
 		
 		return jArray;
 	}
@@ -253,23 +272,29 @@ public class MailService extends ProtoModel implements ServiceModelFace {
 	 * @param conditionBJSONArray
 	 * @return
 	 */
-	private ArrayList getUserList(JSONArray conditionAJSONArray,
-			JSONArray conditionBJSONArray) {
-		StringBuffer mailTypeIds = new StringBuffer();
-		for (int i = 0; i < conditionAJSONArray.size(); i++) {
-			mailTypeIds.append("'" + conditionAJSONArray.getString(i) + "'");
-			mailTypeIds.append(",");
+	private ArrayList getUserList(JSONArray memberGroup) {
+		StringBuffer whereSql=new StringBuffer();
+		logger.info("getUserList memberGroup::" + memberGroup);
+		for (int i=0;i<memberGroup.size();i++){
+			String groupType=memberGroup.getString(i);
+			if (whereSql.length()>0)
+			whereSql.append(" OR ");
+			whereSql.append(groupType+" ='1' ");
 		}
-		if (mailTypeIds.indexOf(",") > -1) {
-			mailTypeIds.delete(mailTypeIds.lastIndexOf(","), mailTypeIds
-					.length());
-		}
-		String sql = "SELECT member_id ,name,realname,email FROM web_member_mt  INNER JOIN web_member  on web_member_mt.member_id=web_member.id where mail_type_id in ("
-				+ mailTypeIds + ")";
-		System.out.println("getUserList sql::" + sql);
+		if (whereSql.length()>0)
+			whereSql.append(" AND ");
+			whereSql.append(" member_data.delete_flag <> '0' ");
+		String sql = "SELECT " +
+				" member_data.email " +
+				" FROM " +
+				" member_data " +
+				" LEFT Join member_profile_set ON member_data.member_id = member_profile_set.member_id " +
+				" WHERE " +whereSql;
+				//" member_profile_set.auto_mail =  '1'";
+		logger.info("getUserList sql::" + sql);
 		DBConn conn = (DBConn) this.getModelServletContext().getAttribute(
 				"DBConn");
-		ArrayList dataList = conn.query("mogan-tw", sql);
+		ArrayList dataList = conn.query((String) SysKernel.getApplicationAttr(SysKernel.MAIN_DB), sql);
 
 		return dataList;
 	}
@@ -339,7 +364,7 @@ public class MailService extends ProtoModel implements ServiceModelFace {
 		ArrayList dataList = conn.query("mogan-tw", sql);
 		for (int i = 0; i < dataList.size(); i++) {
 			// Map tempMap=(Map) dataList.get(i);
-			System.out.println(dataList.get(i));
+			logger.info(dataList.get(i));
 			jArray.add(JSONObject.fromObject(dataList.get(i)));
 		}
 		return jArray;
@@ -359,9 +384,9 @@ public class MailService extends ProtoModel implements ServiceModelFace {
 			String bccAddress = (String) parameterMap.get("BCC_ADDRESS");
 			String mailSubject = (String) parameterMap.get("MAIL_SUBJECT");
 			String mailContent = (String) parameterMap.get("MAIL_CONTENT");
-			System.out.println("[DEBUG] MailService doAction");
+			logger.info("[DEBUG] MailService doAction");
 			jArray=sendMail(toName, toAddress,ccAddress,bccAddress, mailSubject, mailContent);
-			System.out.println("[DEBUG]");
+			logger.info("[DEBUG]");
 		} else if (this.getAct().equals("LOAD_PROPERTIES")) {
 			jArray = this.getPropertiesWithJSONArray();
 		} else if (this.getAct().equals("SAVE_PROPERTIES")) {
@@ -376,10 +401,10 @@ public class MailService extends ProtoModel implements ServiceModelFace {
 		} else if (this.getAct().equals("SET_MAIL_THREAD")) {
 			String mailSubject = (String) parameterMap.get("MAIL_SUBJECT");
 			String mailcontent = (String) parameterMap.get("MAIL_CONTENT");
-			String conditionA = (String) parameterMap.get("CONDITION_A");// 群組條件
-			String conditionB = (String) parameterMap.get("CONDITION_B");// 特殊條件
+			String mailAddress = (String) parameterMap.get("MAIL_ADDRESS");// 群組條件
+			String memberGroup = (String) parameterMap.get("MEMBER_GROUP");// 群組條件
 			jArray = setMailThread(this.getSessionId(), mailSubject,
-					mailcontent, conditionA, conditionB);
+					mailcontent, memberGroup,mailAddress);
 		} else if (this.getAct().equals("GET_MAIL_STATUS")) {
 			String sessionId = (String) parameterMap.get("SESSION_ID");
 			jArray = getMailStatus(sessionId);

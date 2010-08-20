@@ -43,14 +43,14 @@ public class PHPAuthorization extends AuthModelAdapter {
 		postData.put("User_Id", userId);
 		nAgent.putAllPostDataMap(postData);
 		nAgent.postMaptoData();
-		nAgent.getDataWithPost("http://web.mogan.com.tw/adminv3/biditem/WonListAdministrate.php");
+		nAgent.getDataWithPost("http://web.mogan.com.tw/adminv3/website/RedirectionSystem.php?MODEL_ID="+modelId);
 		JSONObject privilegeObj=JSONObject.fromObject(nAgent.getResponseBody());
 		JSONArray users=conn.queryJSONArray("mogan-DB", "SELECT system_name FROM system_member WHERE system_member_id='"+userId+"'");
 		this.getSession().setAttribute("USER_PRIVILEGE", privilegeObj);
 		this.getSession().setAttribute("USER_ID", userId);
 		this.getSession().setAttribute("USER_NAME", users.getJSONObject(0).getString("system_name"));
 		this.getSession().setAttribute("LOGIN_TIME", new Date());
-		
+		System.out.println(privilegeObj);
 		if (privilegeObj.getJSONObject(modelId).getBoolean("view")){
 			rd = req.getRequestDispatcher((String)this.getModelServletContext().getAttribute("PHP_MODEL_ID_"+modelId));
 		}else{

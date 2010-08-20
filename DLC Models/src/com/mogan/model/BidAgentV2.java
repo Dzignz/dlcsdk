@@ -3,6 +3,8 @@ package com.mogan.model;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.UnsupportedEncodingException;
+import java.sql.SQLException;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
@@ -10,9 +12,13 @@ import org.apache.log4j.Logger;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
+import com.mogan.entity.ItemOrderEntity;
+import com.mogan.entity.ItemTideEntity;
+import com.mogan.exception.entity.EntityNotExistException;
 import com.mogan.exception.netAgent.AccountNotExistException;
 import com.mogan.model.netAgent.NetAgentYJ;
 import com.mogan.model.netAgent.NetAgentYJV2;
+import com.mogan.sys.DBConn;
 import com.mogan.sys.model.ProtoModel;
 import com.mogan.sys.model.ServiceModelFace;
 
@@ -24,7 +30,7 @@ import com.mogan.sys.model.ServiceModelFace;
  */
 public class BidAgentV2 extends ProtoModel implements ServiceModelFace {
 	static final String YAHOO_JP_WEBSITE_ID = "SWD-2009-0001";
-	private static Logger logger = Logger.getLogger(BidManagerV2.class.getName());
+	private static Logger logger = Logger.getLogger(BidAgentV2.class.getName());
 	
 	@Override
 	public JSONArray doAction(Map<String, String> parameterMap) throws Exception {
@@ -59,6 +65,68 @@ public class BidAgentV2 extends ProtoModel implements ServiceModelFace {
 			String msg=parameterMap.get("MSG");
 			jArray=sendWonMsg(webSiteId, bidAccount,
 					itemId,  subject,  msg);
+		}else if (this.getAct().equals("ASK_QUESTION")){
+			String webSiteId=parameterMap.get("WEBSITE_ID");
+			String bidAccount=parameterMap.get("BID_ACCOUNT");
+			String itemId=parameterMap.get("ITEM_ID");
+			String question=parameterMap.get("QUESTION");
+			jArray=askQusetion(webSiteId, bidAccount,itemId,  question);
+		}else if (this.getAct().equals("UPDATE_TIDE_MSG")){
+			String tideId=parameterMap.get("TIDE_ID");
+			jArray=upTideMsg(tideId);
+		}
+		return jArray;
+	}
+	
+	/**
+	 * <font size=2>對商品發問，ACTION = UPDATE_TIDE_MSG</font>
+	 * 更新訂單內所有商品的訊息及相關資料
+	 * @param tideId 商品ID[TIDE_ID]
+	 * @return 0 未執行<br /> 1 更新成功 <br />2 tideId 不存在<br />3 更新失敗
+	 */
+	private JSONArray upTideMsg(String tideId){
+		JSONArray jArray=new JSONArray();
+		int flag=0;
+		ItemTideEntity itEty;
+		try {
+			itEty = new ItemTideEntity(this.getModelServletContext(), this.getSession(),tideId,ItemTideEntity.ITEM_TIDE_ID);
+			itEty.updateIoMsg();
+			flag=1;
+		} catch (EntityNotExistException e) {
+			flag=2;
+			logger.error(e.getMessage(),e);
+			e.printStackTrace();
+		} catch (UnsupportedEncodingException e) {
+			flag=3;
+			logger.error(e.getMessage(),e);
+			e.printStackTrace();
+		} catch (SQLException e) {
+			flag=3;
+			logger.error(e.getMessage(),e);
+			e.printStackTrace();
+		}
+		
+		jArray.add(flag);
+		return jArray;
+	}
+	
+	/**
+	 * <font size=2>對商品發問，ACTION = ASK_QUESTION</font>
+	 * @param webSiteId		網站ID[WEBSITE_ID]
+	 * @param bidAccount	下標帳號[BID_ACCOUNT]
+	 * @param itemId		商品ID[ITEM_ID]
+	 * @param question		發問內容[QUESTION]
+	 * @return 1-成功，0-失敗
+	 * @throws Exception
+	 */
+	private JSONArray askQusetion(String webSiteId, String bidAccount,
+			String itemId, String question) throws Exception {
+		// TODO 商品發問
+		JSONArray jArray = new JSONArray();
+		if (webSiteId.equals(YAHOO_JP_WEBSITE_ID)) {
+			NetAgentYJV2 agentYJ = new NetAgentYJV2(this.getModelServletContext(),
+					this.getAppId());
+			jArray = agentYJ.askQuestion(bidAccount, itemId, question);
 		}
 		return jArray;
 	}
@@ -147,20 +215,31 @@ public class BidAgentV2 extends ProtoModel implements ServiceModelFace {
 			String contactType = "";
 			NetAgentYJV2 na = new NetAgentYJV2(this.getModelServletContext(), this
 					.getAppId());
+			
 			// 取得連絡方法
 			contactType = na.getItemContactType(bidAccount, itemId);
 
 			if (contactType
 					.matches("^[\\w-]+(\\.[\\w-]+)*@[\\w-]+(\\.[\\w-]+)+$")) {
+				try {
+					
+					DBConn conn = (DBConn) this.getModelServletContext().getAttribute("DBConn");
+					conn.executSql("mogan-DB", "UPDATE item_order SET flag_02='"+contactType+"' WHERE item_data_id in (SELECT item_data_id FROM item_data WHERE item_id='"+itemId+"')");
+					
+				} catch (UnsupportedEncodingException e) {
+					logger.error(e.getMessage(),e);
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
 				itemId=contactType;
-				sendMethod = 1;
+				sendMethod = 1;	//email
 			} else {
 				if (contactType.equals(NetAgentYJV2.CONTACT_BOARD)) {
 					sendMethod = 0;
-					subject = "1";
+					subject = "1";	// 留言版
 				} else {
 					sendMethod = 2;
-					subject = "no";
+					subject = "no";	//揭示版
 				}
 			}
 			jObj.put("CONTACT_TYPE", sendMethod);

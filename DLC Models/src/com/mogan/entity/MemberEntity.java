@@ -26,8 +26,7 @@ public class MemberEntity extends EntityService {
 	final static public String MEMBER_ID="MEMBER_ID";
 	final static public String ITEM_ORDER_ID="ITEM_ORDER_ID";
 	final static public String ITEM_TIDE_ID="ITEM_TIDE_ID";
-	
-	private JSONObject memberMainObj;
+
 	private String id;
 	private String idType;
 	
@@ -65,14 +64,17 @@ public class MemberEntity extends EntityService {
 		}
 		
 		if (jArray.size()==1){
-			memberMainObj=jArray.getJSONObject(0);
-			logger.info("會員資料讀取完成.("+memberMainObj.getString("name")+")");
+			this.setMainObj(jArray.getJSONObject(0));
+			
+			
 			/**
 			 * 回舊資料庫帶資料 
 			 */
-			JSONArray oldData=conn.queryJSONArray("mogan-tw", "SELECT ntd,debts FROM web_member WHERE name = '"+memberMainObj.getString("name")+"' ");
-			memberMainObj.put("sum_ntd", oldData.getJSONObject(0).getString("ntd"));
-			memberMainObj.put("debts_ntd", oldData.getJSONObject(0).getString("debts"));
+			JSONArray oldData=conn.queryJSONArray("mogan-tw", "SELECT ntd,debts FROM web_member WHERE name = '"+this.getAttribute("name")+"' ");
+			
+			this.setAttribute("sum_ntd", oldData.getJSONObject(0).getString("ntd"));
+			this.setAttribute("debts_ntd", oldData.getJSONObject(0).getString("debts"));
+			logger.info("會員資料讀取完成.("+this.getAttribute("name")+") "+this.getAttribute("sum_ntd"));
 		}else if (jArray.size()>1){
 			throw new EntityNotExistException("此ID對應多筆資料.("+id+" "+idType+")");
 		}else if (jArray.size()==0){
@@ -80,13 +82,6 @@ public class MemberEntity extends EntityService {
 		}
 	}
 	
-	/**
-	 * 直接回傳會員資料
-	 * @return
-	 */
-	public JSONObject getMemberMainObj(){
-		return memberMainObj;
-	}
 
 	/**
 	 * 調整台幣帳戶餘額
@@ -113,7 +108,7 @@ public class MemberEntity extends EntityService {
 	 */
 	public String addMoney(String money,String currency,boolean autoSave) throws UnsupportedEncodingException, SQLException, EntityNotExistException{
 		
-		String baseMoneny=memberMainObj.getString(CurrencyEntity.getCurrencyAccountColName(currency));	//取得原本餘額
+		String baseMoneny=(String) this.getAttribute(CurrencyEntity.getCurrencyAccountColName(currency));	//取得原本餘額
 		//判斷傳入金額是否正確
 		try{
 			Double.parseDouble(money);
@@ -123,18 +118,19 @@ public class MemberEntity extends EntityService {
 		}
 		
 		String sumValue= Double.toString(SysMath.add(baseMoneny, money));								//將付入金額+原本餘額
-		memberMainObj.put(CurrencyEntity.getCurrencyAccountColName(currency), sumValue);
+		logger.info("會員調整餘額  "+baseMoneny+" + "+money+" = "+sumValue);
+		this.setAttribute(CurrencyEntity.getCurrencyAccountColName(currency), sumValue);
 		if (autoSave){
 			String log_Id = conn.getAutoNumber(CONN_ALIAS, "LR-ID-01");
-			Map<String,Object> log_dataMap = mLogger.getMemberMoneyChange(log_Id, memberMainObj.getString("member_id"), money, this.getOpenUser() , this.getOpenUserIP());
+			Map<String,Object> log_dataMap = mLogger.getMemberMoneyChange(log_Id, (String) this.getAttribute("member_id"), money, this.getOpenUser() , this.getOpenUserIP());
 			log_dataMap.put("varchar2", "new db");
 			mLogger.preLog(log_dataMap);
 			Map dataMap=new HashMap();
 			Map conditionMap=new HashMap();
-			conditionMap.put("member_id", memberMainObj.getString("member_id"));
+			conditionMap.put("member_id", this.getAttribute("member_id"));
 			dataMap.put(CurrencyEntity.getCurrencyAccountColName(currency), sumValue);
 			conn.update(CONN_ALIAS, "member_data", conditionMap, dataMap);
-			this.refreashData();
+
 			log_dataMap.put("sum_money", this.getMyMoney(currency));	//帳戶餘額
 			log_dataMap.put("debts", this.getMyDebts(currency));		//帳戶欠款
 			mLogger.commitLog(log_dataMap);
@@ -142,16 +138,18 @@ public class MemberEntity extends EntityService {
 			
 			//舊版更新
 			log_Id = conn.getAutoNumber(CONN_ALIAS, "LR-ID-01");
-			log_dataMap = mLogger.getMemberMoneyChange(log_Id, memberMainObj.getString("member_id"), money, this.getOpenUser() , this.getOpenUserIP());
+			log_dataMap = mLogger.getMemberMoneyChange(log_Id, (String) this.getAttribute("member_id"), money, this.getOpenUser() , this.getOpenUserIP());
 			log_dataMap.put("varchar2", "old db");
 			mLogger.preLog(log_dataMap);
 			conditionMap=new HashMap();
 			dataMap=new HashMap();
-			conditionMap.put("name", this.getMemberMainObj().getString("name"));
+			conditionMap.put("name", this.getAttribute("name"));
 			dataMap.put("ntd", sumValue);
 			conn.update("mogan-tw", "web_member", conditionMap, dataMap);
 			mLogger.commitLog(log_dataMap);
+			this.refreashData();
 		}
+		logger.info(this.getAttribute("first_name")+" "+this.getAttribute("last_name")+"會員餘額調整.... 金額："+money+" ... 帳戶："+currency+" ... 自動儲存"+autoSave+"...("+this.getAttribute("member_id")+")");
 		return sumValue;
 	}
 	
@@ -162,7 +160,7 @@ public class MemberEntity extends EntityService {
 	 */
 	public String getMyMoney(String currency){
 		String money="";
-		money=memberMainObj.getString(CurrencyEntity.getCurrencyAccountColName(currency));
+		money=(String) this.getAttribute(CurrencyEntity.getCurrencyAccountColName(currency));
 		return money;
 	}
 	
@@ -173,7 +171,7 @@ public class MemberEntity extends EntityService {
 	 */
 	public String getMyDebts(String currency){
 		String debts="";
-		debts=memberMainObj.getString(CurrencyEntity.getCurrencyDebtsColName(currency));
+		debts=(String) this.getAttribute(CurrencyEntity.getCurrencyDebtsColName(currency));
 		return debts;
 	}
 
@@ -182,7 +180,7 @@ public class MemberEntity extends EntityService {
 	 * @return
 	 */
 	public String getUserId(){
-		return memberMainObj.getString("member_id");
+		return (String) this.getAttribute("member_id");
 	}
 	
 
@@ -197,13 +195,22 @@ public class MemberEntity extends EntityService {
 	@Override
 	public void saveEntity(String msg) throws UnsupportedEncodingException, SQLException {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 
 
 	@Override
-	String create(JSONObject etyObj) {
+	protected String create() {
+		// TODO Auto-generated method stub
+		return "";
+	}
+
+
+
+	@Override
+	public EntityService cloneEty() throws UnsupportedEncodingException,
+			SQLException, EntityNotExistException {
 		// TODO Auto-generated method stub
 		return null;
 	}

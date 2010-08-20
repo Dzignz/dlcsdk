@@ -137,7 +137,14 @@ public class SellerEntity extends EntityService {
 	}
 
 	@Override
-	String create(JSONObject etyObj) {
+	protected String create() {
+		// TODO Auto-generated method stub
+		return "";
+	}
+
+	@Override
+	public EntityService cloneEty() throws UnsupportedEncodingException,
+			SQLException, EntityNotExistException {
 		// TODO Auto-generated method stub
 		return null;
 	}

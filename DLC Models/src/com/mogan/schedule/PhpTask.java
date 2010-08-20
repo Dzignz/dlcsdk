@@ -4,12 +4,13 @@ import java.util.Date;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.logging.Logger;
 
 import com.mogan.model.netAgent.NetAgent;
 import com.mogan.sys.model.ScheduleModelAdapter;
 
 public class PhpTask extends ScheduleModelAdapter {
-
+	private static Logger logger =Logger.getLogger(PhpTask.class.getName());
 	/**
 	 * @param args
 	 */
@@ -31,7 +32,7 @@ public class PhpTask extends ScheduleModelAdapter {
 			nAgent
 					.getDataWithGet("http://www.mogan.com.tw/web_atm/Myb2bDataLink.php?type="
 							+ this.type);
-			System.out.println("[DEBUG] PHP TASK("+new Date()+"):"+nAgent.getResponseBody());
+			logger.info("[DEBUG] PHP TASK("+new Date()+"):"+nAgent.getResponseBody());
 		}
 	}
 

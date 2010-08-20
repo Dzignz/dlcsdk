@@ -72,6 +72,7 @@ public abstract class NetAgentModel extends ProtoModel {
 		 * this.getModelServletContext().getAttribute(appId + "_LOGIN_COOKIE_MAP")).get(uId) == null) { return new NetAgent().getState().getCookies();
 		 * }
 		 */
+
 		return (Cookie[]) ((Map) ((Map) this.getModelServletContext()
 				.getAttribute(appId + "_LOGIN_COOKIE_MAP")).get(uId))
 				.get("COOKIE");
@@ -82,7 +83,7 @@ public abstract class NetAgentModel extends ProtoModel {
 	 * 
 	 * @param headers
 	 */
-	public void printHeaders(Header[] headers) {
+	static public void printHeaders(Header[] headers) {
 		logger.info("[訊息] printHeaders#########");
 		for (int i = 0; i < headers.length; i++) {
 			logger.info("[訊息] #" + i + " " + headers[i].getName() + "::"
@@ -95,7 +96,7 @@ public abstract class NetAgentModel extends ProtoModel {
 	 * 
 	 * @param cookies
 	 */
-	public void printCookies(Cookie[] cookies) {
+	static public void printCookies(Cookie[] cookies) {
 		logger.info("[訊息] printCookies#########");
 		for (int i = 0; i < cookies.length; i++) {
 			Cookie cookie = cookies[i];
@@ -163,7 +164,7 @@ public abstract class NetAgentModel extends ProtoModel {
 	}
 
 	/**
-	 * 將字串輸出成為檔案，並指定檔案路徑
+	 * 將字串輸出成為檔案，並指定檔案路徑，副檔名為htm
 	 * 
 	 * @param fileData
 	 * @param filePath

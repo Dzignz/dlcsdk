@@ -1,5 +1,7 @@
 package com.mogan.model;
 
+import org.apache.log4j.Logger;
+
 import net.sf.jml.Email;
 import net.sf.jml.MsnContact;
 import net.sf.jml.MsnList;
@@ -18,9 +20,9 @@ import net.sf.json.JSONArray;
 
 public class MsnBotEx {
 	MsnMessenger messenger;
-
+	private static Logger logger = Logger.getLogger(MsnBotEx.class.getName() );
 	protected void initMessenger(MsnMessenger messenger) {
-		System.out.println("MsnBot initMessenger.");
+		logger.info("MsnBot initMessenger.");
 		// messenger.addListener(new MsnAdapter(){});
 		messenger.addMessageListener(new MsnMessageAdapter() {
 
@@ -46,7 +48,7 @@ public class MsnBotEx {
 			 */
 			public void controlMessageReceived(MsnSwitchboard switchboard,
 					MsnControlMessage message, MsnContact contact) {
-				System.out.println("[DEBUG] 正在輸入文字::"
+				logger.info("[DEBUG] 正在輸入文字::"
 						+ message.getRecordingUser());
 			}
 
@@ -60,7 +62,7 @@ public class MsnBotEx {
 			public void datacastMessageReceived(MsnSwitchboard switchboard,
 					MsnDatacastMessage message, MsnContact contact) {
 				// such as Nudge
-				System.out.println("[DEBUG] 正在輸入文字::"
+				logger.info("[DEBUG] 正在輸入文字::"
 						+ message.getContentType());
 				// switchboard.sendMessage(message);
 			}
@@ -70,13 +72,13 @@ public class MsnBotEx {
 
 			public void contactStatusChanged(MsnMessenger messenger,
 					MsnContact friend) {
-				System.out.println("[DEBUG] friend " + friend.getEmail()
+				logger.info("[DEBUG] friend " + friend.getEmail()
 						+ " status changed from " + friend.getOldStatus()
 						+ " to " + friend.getStatus());
 			}
 
 			public void contactAddedMe(MsnMessenger messenger, MsnContact friend) {
-				System.out.println(friend.getEmail() + " add " + messenger);
+				logger.info(friend.getEmail() + " add " + messenger);
 				messenger.addFriend(friend.getEmail(), "測試加入聯絡人");
 				// helloMyFriend();
 			}
@@ -87,7 +89,7 @@ public class MsnBotEx {
 			 * @param messenger
 			 */
 			public void loginCompleted(MsnMessenger messenger) {
-				System.out.println(messenger.getOwner().getEmail()
+				logger.info(messenger.getOwner().getEmail()
 						+ " add loginCompleted");
 			}
 
@@ -99,10 +101,10 @@ public class MsnBotEx {
 				// get contacts in allow list
 				MsnContact[] contacts = messenger.getContactList()
 						.getContactsInList(MsnList.AL);
-				System.out.println("[DEBUG] Allow List." + contacts.length);
+				logger.info("[DEBUG] Allow List." + contacts.length);
 				for (int i = 0; i < contacts.length; i++) {
 					// don't send message to offline contact
-					System.out.println("contacts[i].getEmail()"
+					logger.info("contacts[i].getEmail()"
 							+ contacts[i].getEmail());
 					if (contacts[i].getStatus() != MsnUserStatus.OFFLINE) {
 						// this is the simplest way to send text
@@ -111,21 +113,21 @@ public class MsnBotEx {
 				}
 				contacts = messenger.getContactList().getContactsInList(
 						MsnList.BL);
-				System.out.println("[DEBUG] Block  List." + contacts.length);
+				logger.info("[DEBUG] Block  List." + contacts.length);
 				for (int i = 0; i < contacts.length; i++) {
 					messenger.addFriend(contacts[i].getEmail(), "測試加入聯絡人");
 				}
 
 				contacts = messenger.getContactList().getContactsInList(
 						MsnList.FL);
-				System.out.println("[DEBUG] Forward  List." + contacts.length);
+				logger.info("[DEBUG] Forward  List." + contacts.length);
 				for (int i = 0; i < contacts.length; i++) {
 					messenger.addFriend(contacts[i].getEmail(), "測試加入聯絡人");
 				}
 
 				contacts = messenger.getContactList().getContactsInList(
 						MsnList.RL);
-				System.out.println("[DEBUG] Reverse List." + contacts.length);
+				logger.info("[DEBUG] Reverse List." + contacts.length);
 				for (int i = 0; i < contacts.length; i++) {
 					messenger.addFriend(contacts[i].getEmail(), "測試加入聯絡人");
 				}
@@ -150,7 +152,7 @@ public class MsnBotEx {
 	 */
 	public void login(String account, String pwd) {
 		// create MsnMessenger instance
-		System.out.println("MsnBot login." + account);
+		logger.info("MsnBot login." + account);
 		messenger = MsnMessengerFactory.createMsnMessenger(account, pwd);
 
 		// MsnMessenger support all protocols by default

@@ -22,6 +22,7 @@ import org.apache.commons.httpclient.Cookie;
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.URI;
+import org.apache.log4j.Logger;
 import org.htmlparser.util.NodeList;
 import org.htmlparser.util.ParserException;
 import com.mogan.face.NetAgentModel;
@@ -29,7 +30,7 @@ import com.mogan.sys.model.ServiceModelFace;
 
 
 public class NetAgentManager extends NetAgentModel implements ServiceModelFace {
-	
+	private static Logger logger = Logger.getLogger(NetAgentManager.class.getName() );
 	public NetAgentManager() {
 		super();
 	}
@@ -48,10 +49,9 @@ public class NetAgentManager extends NetAgentModel implements ServiceModelFace {
 		JSONArray jArray = new JSONArray();
 		Map<String, Boolean> appidMap = (Map) this.getModelServletContext()
 				.getAttribute("APP_ID");
-		System.out.println("[DEBUG] getLoginListAll::" + appidMap.size());
+		//logger.info("[DEBUG] getLoginListAll::" + appidMap.size());
 		for (Map.Entry<String, Boolean> appId : appidMap.entrySet()) {
-			System.out.println("[DEBUG] getLoginListAll::" + appId.getKey()
-					+ ":" + appId.getValue());
+			//logger.info("[DEBUG] getLoginListAll::" + appId.getKey()+ ":" + appId.getValue());
 			if (appId.getValue()) {
 				jArray.addAll(getLoginList(appId.getKey()));
 			}
@@ -321,7 +321,7 @@ public class NetAgentManager extends NetAgentModel implements ServiceModelFace {
 			nAgent.setParserNodesToPostDataMap(nodes);
 			nAgent.postMaptoData();
 			nodes = nAgent.filterFormHttpHref();
-			System.out.println("[DEBUG]--3");
+			logger.info("[DEBUG]--3");
 			String bidUrl = "";
 			if (nodes.size() > 0) {
 				bidUrl = nAgent.getUrl(nodes.elementAt(0).getText());
@@ -329,7 +329,7 @@ public class NetAgentManager extends NetAgentModel implements ServiceModelFace {
 			nAgent.getDataWithPost(bidUrl);
 			// outputTofile(nAgent.getResponseBody());
 			//buyItemMsg = nAgent.checkBidResult();
-			System.out.println("[DEBUG]--4");
+			logger.info("[DEBUG]--4");
 		} catch (ParserException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

@@ -16,5 +16,6 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/commons-collections-3.2.1"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/hbase-0.20.3"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/gdata"/>
+	<classpathentry kind="lib" path="/.JETEmitters"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

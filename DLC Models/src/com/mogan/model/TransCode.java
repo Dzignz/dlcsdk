@@ -55,11 +55,6 @@ public class TransCode extends ProtoModel implements ServiceModelFace {
 		jArray.add(mycode.convertString(value,fromCode,toCode));
 		return jArray;
 	}
-	public static void main(String [] args){
-		zhcode mycode = new zhcode();
-		System.out.println(mycode.convertString("等軟體製造商推出自己品牌的",4,0));
-		
-	}
 	
 	@Override
 	public JSONArray doAction(Map parameterMap) throws Exception {
